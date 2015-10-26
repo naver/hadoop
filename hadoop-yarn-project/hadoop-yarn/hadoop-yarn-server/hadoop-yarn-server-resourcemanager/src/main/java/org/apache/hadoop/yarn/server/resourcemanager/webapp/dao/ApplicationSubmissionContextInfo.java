@@ -80,17 +80,17 @@ public class ApplicationSubmissionContextInfo {
 
   public ApplicationSubmissionContextInfo() {
     applicationId = "";
-    applicationName = "";
+    applicationName = null;
     containerInfo = new ContainerLaunchContextInfo();
     resource = new ResourceInfo();
     priority = Priority.UNDEFINED.getPriority();
     isUnmanagedAM = false;
     cancelTokensWhenComplete = true;
     keepContainers = false;
-    applicationType = "";
+    applicationType = null;
     tags = new HashSet<String>();
-    appNodeLabelExpression = "";
-    amContainerNodeLabelExpression = "";
+    appNodeLabelExpression = null;
+    amContainerNodeLabelExpression = null;
   }
 
   public String getApplicationId() {
