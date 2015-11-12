@@ -24,3 +24,5 @@ yarnregistry.pdf
 hadoop-tools/hadoop-aws/src/test/resources/contract-test-options.xml
 *.patch
 *.orig
+*.versionBackup
+downloads
