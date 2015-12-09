@@ -62,8 +62,7 @@ public class Groups {
   private final GroupMappingServiceProvider impl;
 
   private final LoadingCache<String, List<String>> cache;
-  private final Map<String, List<String>> staticUserToGroupsMap =
-      new HashMap<String, List<String>>();
+  private Map<String, List<String>> staticUserToGroupsMap;
   private final long cacheTimeout;
   private final long negativeCacheTimeout;
   private final long warningDeltaMs;
@@ -91,7 +90,7 @@ public class Groups {
     warningDeltaMs =
       conf.getLong(CommonConfigurationKeys.HADOOP_SECURITY_GROUPS_CACHE_WARN_AFTER_MS,
         CommonConfigurationKeys.HADOOP_SECURITY_GROUPS_CACHE_WARN_AFTER_MS_DEFAULT);
-    parseStaticMapping(conf);
+    staticUserToGroupsMap = parseStaticMapping(conf);
 
     this.timer = timer;
     this.cache = CacheBuilder.newBuilder()
@@ -123,7 +122,11 @@ public class Groups {
    * Parse the hadoop.user.group.static.mapping.overrides configuration to
    * staticUserToGroupsMap
    */
-  private void parseStaticMapping(Configuration conf) {
+  private Map<String, List<String>> parseStaticMapping(Configuration conf) {
+
+    Map<String, List<String>> staticUserToGroups =
+        new HashMap<String, List<String>>();
+
     String staticMapping = conf.get(
         CommonConfigurationKeys.HADOOP_USER_GROUP_STATIC_OVERRIDES,
         CommonConfigurationKeys.HADOOP_USER_GROUP_STATIC_OVERRIDES_DEFAULT);
@@ -145,8 +148,10 @@ public class Groups {
         groups = (List<String>) StringUtils
             .getStringCollection(userToGroupsArray[1]);
       }
-      staticUserToGroupsMap.put(user, groups);
+      staticUserToGroups.put(user, groups);
     }
+
+    return staticUserToGroups;
   }
 
   private boolean isNegativeCacheEnabled() {
@@ -252,7 +257,19 @@ public class Groups {
   /**
    * Refresh all user-to-groups mappings.
    */
-  public void refresh() {
+  public void refresh(){
+    refresh(new Configuration());
+  }
+
+  /**
+   * Refresh all user-to-groups mappings.
+   * @param conf
+   */
+  public void refresh(Configuration conf) {
+
+    LOG.info("reload staticUserToGroupsMap");
+    staticUserToGroupsMap = parseStaticMapping(conf);
+
     LOG.info("clearing userToGroupsMap cache");
     try {
       impl.cacheGroupsRefresh();

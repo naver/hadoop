@@ -217,6 +217,17 @@ public class TestGroupsCaching {
     assertFalse("group lookup done for unprivileged user",
         FakeunPrivilegedGroupMapping.invoked);
 
+    Configuration newConf = new Configuration();
+    newConf.set(CommonConfigurationKeys.HADOOP_USER_GROUP_STATIC_OVERRIDES, "me=;user1=group1;user2=group1,group2;user3=group3");
+    groups.refresh(newConf);
+
+    expected.clear();
+    expected.add("group3");
+    FakeunPrivilegedGroupMapping.invoked = false;
+    userGroups = groups.getGroups("user3");
+    assertTrue("groups not correct", expected.equals(userGroups));
+    assertFalse("group lookup done for unprivileged user",
+        FakeunPrivilegedGroupMapping.invoked);
   }
 
   @Test
