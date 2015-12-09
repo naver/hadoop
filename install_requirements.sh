@@ -32,7 +32,7 @@ function simple_install(){
 
 	pushd $prefix
 	rm -rf $tarball || return 1
-	wget $download_url > /dev/null || return 1
+	wget $download_url -O $tarball --no-check-certificate > /dev/null || return 1
 	tar xfz $tarball || return 1
 	rm -rf $tarball || return 1
 	ln -snf $dirname $link || return 1
@@ -57,7 +57,7 @@ function build_install(){
 
 	pushd $tmp_dir
 	rm -rf $tarball || return 1
-	wget $download_url > /dev/null || return 1
+	wget $download_url -O $tarball --no-check-certificate > /dev/null || return 1
 	tar xfz $tarball || return 1
 	rm -rf $tarball || return 1
 	pushd $dirname 

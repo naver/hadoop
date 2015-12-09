@@ -27,3 +27,5 @@ hadoop-tools/hadoop-aws/src/test/resources/contract-test-options.xml
 *.versionBackup
 downloads
 source.me
+*.iml
+.idea
