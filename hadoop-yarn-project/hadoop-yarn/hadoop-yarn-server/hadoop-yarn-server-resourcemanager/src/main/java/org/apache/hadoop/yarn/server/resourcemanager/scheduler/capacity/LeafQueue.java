@@ -740,6 +740,15 @@ public class LeafQueue extends AbstractCSQueue {
     return labels;
   }
   
+  private boolean checkResourceRequestMatchingNodeLabel(ResourceRequest offswitchResourceRequest,
+      FiCaSchedulerNode node) {
+    String askedNodeLabel = offswitchResourceRequest.getNodeLabelExpression();
+    if (null == askedNodeLabel) {
+      askedNodeLabel = RMNodeLabelsManager.NO_LABEL;
+    }
+    return askedNodeLabel.equals(node.getPartition());
+  }
+  
   @Override
   public synchronized CSAssignment assignContainers(Resource clusterResource,
       FiCaSchedulerNode node, ResourceLimits currentResourceLimits) {
@@ -797,6 +806,14 @@ public class LeafQueue extends AbstractCSQueue {
           if (application.getTotalRequiredResources(priority) <= 0) {
             continue;
           }
+          
+          // Is the node-label-expression of this offswitch resource request
+          // matches the node's label?
+          // If not match, jump to next priority.
+          if (!checkResourceRequestMatchingNodeLabel(anyRequest, node)) {
+            continue;
+          }
+          
           if (!this.reservationsContinueLooking) {
             if (!shouldAllocOrReserveNewContainer(application, priority, required)) {
               if (LOG.isDebugEnabled()) {
@@ -826,7 +843,7 @@ public class LeafQueue extends AbstractCSQueue {
           }
 
           // Check user limit
-          if (!assignToUser(clusterResource, application.getUser(), userLimit,
+          if (!canAssignToUser(clusterResource, application.getUser(), userLimit,
               application, requestedNodeLabels, currentResourceLimits)) {
             break;
           }
@@ -1077,7 +1094,7 @@ public class LeafQueue extends AbstractCSQueue {
   }
   
   @Private
-  protected synchronized boolean assignToUser(Resource clusterResource,
+  protected synchronized boolean canAssignToUser(Resource clusterResource,
       String userName, Resource limit, FiCaSchedulerApp application,
       Set<String> requestLabels, ResourceLimits currentResoureLimits) {
     User user = getUser(userName);
@@ -1095,7 +1112,8 @@ public class LeafQueue extends AbstractCSQueue {
             limit)) {
       // if enabled, check to see if could we potentially use this node instead
       // of a reserved node if the application has reserved containers
-      if (this.reservationsContinueLooking) {
+      if (this.reservationsContinueLooking
+          && label.equals(CommonNodeLabelsManager.NO_LABEL)) {
         if (Resources.lessThanOrEqual(
             resourceCalculator,
             clusterResource,
@@ -1602,7 +1620,8 @@ public class LeafQueue extends AbstractCSQueue {
               node, rmContainer);
         } else {
           removed =
-            application.containerCompleted(rmContainer, containerStatus, event);
+              application.containerCompleted(rmContainer, containerStatus,
+                  event, node.getPartition());
           node.releaseContainer(container);
         }
 
