@@ -44,6 +44,7 @@ import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
+import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.AggregateAppResourceUsage;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttempt;
@@ -119,7 +120,9 @@ public class SchedulerApplicationAttempt {
 
   protected Queue queue;
   protected boolean isStopped = false;
-  
+
+  private String appAMNodePartitionName = CommonNodeLabelsManager.NO_LABEL;
+
   protected final RMContext rmContext;
   
   public SchedulerApplicationAttempt(ApplicationAttemptId applicationAttemptId, 
@@ -219,8 +222,16 @@ public class SchedulerApplicationAttempt {
     return attemptResourceUsage.getAMUsed();
   }
 
+  public Resource getAMResource(String label) {
+    return attemptResourceUsage.getAMUsed(label);
+  }
+
   public void setAMResource(Resource amResource) {
     attemptResourceUsage.setAMUsed(amResource);
+  }
+
+  public void setAMResource(String label, Resource amResource) {
+    attemptResourceUsage.setAMUsed(label, amResource);
   }
 
   public boolean isAmRunning() {
@@ -647,5 +658,13 @@ public class SchedulerApplicationAttempt {
       attempt.getRMAppAttemptMetrics().setApplicationAttemptHeadRoom(
           Resources.clone(headroom));
     }
+  }
+
+  public void setAppAMNodePartitionName(String partitionName) {
+    this.appAMNodePartitionName = partitionName;
+  }
+
+  public String getAppAMNodePartitionName() {
+    return appAMNodePartitionName;
   }
 }

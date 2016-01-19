@@ -36,6 +36,7 @@ import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
+import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
 import org.apache.hadoop.yarn.server.resourcemanager.RMAuditLogger;
 import org.apache.hadoop.yarn.server.resourcemanager.RMAuditLogger.AuditConstants;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
@@ -77,16 +78,24 @@ public class FiCaSchedulerApp extends SchedulerApplicationAttempt {
     RMApp rmApp = rmContext.getRMApps().get(getApplicationId());
     
     Resource amResource;
+    String partition;
+
     if (rmApp == null || rmApp.getAMResourceRequest() == null) {
-      //the rmApp may be undefined (the resource manager checks for this too)
-      //and unmanaged applications do not provide an amResource request
-      //in these cases, provide a default using the scheduler
+      // the rmApp may be undefined (the resource manager checks for this too)
+      // and unmanaged applications do not provide an amResource request
+      // in these cases, provide a default using the scheduler
       amResource = rmContext.getScheduler().getMinimumResourceCapability();
+      partition = CommonNodeLabelsManager.NO_LABEL;
     } else {
       amResource = rmApp.getAMResourceRequest().getCapability();
+      partition =
+          (rmApp.getAMResourceRequest().getNodeLabelExpression() == null)
+          ? CommonNodeLabelsManager.NO_LABEL
+          : rmApp.getAMResourceRequest().getNodeLabelExpression();
     }
     
-    setAMResource(amResource);
+    setAppAMNodePartitionName(partition);
+    setAMResource(partition, amResource);
   }
 
   synchronized public boolean containerCompleted(RMContainer rmContainer,
@@ -116,8 +125,8 @@ public class FiCaSchedulerApp extends SchedulerApplicationAttempt {
 
     containersToPreempt.remove(rmContainer.getContainerId());
 
-    RMAuditLogger.logSuccess(getUser(), 
-        AuditConstants.RELEASE_CONTAINER, "SchedulerApp", 
+    RMAuditLogger.logSuccess(getUser(),
+        AuditConstants.RELEASE_CONTAINER, "SchedulerApp",
         getApplicationId(), containerId);
     
     // Update usage metrics 
@@ -157,10 +166,10 @@ public class FiCaSchedulerApp extends SchedulerApplicationAttempt {
     // Update consumption and track allocations
     List<ResourceRequest> resourceRequestList = appSchedulingInfo.allocate(
         type, node, priority, request, container);
-    attemptResourceUsage.incUsed(node.getPartition(),
-        container.getResource());
-    
-    // Update resource requests related to "request" and store in RMContainer 
+
+    attemptResourceUsage.incUsed(node.getPartition(), container.getResource());
+
+    // Update resource requests related to "request" and store in RMContainer
     ((RMContainerImpl)rmContainer).setResourceRequests(resourceRequestList);
 
     // Inform the container
@@ -173,8 +182,8 @@ public class FiCaSchedulerApp extends SchedulerApplicationAttempt {
           + " container=" + container.getId() + " host="
           + container.getNodeId().getHost() + " type=" + type);
     }
-    RMAuditLogger.logSuccess(getUser(), 
-        AuditConstants.ALLOC_CONTAINER, "SchedulerApp", 
+    RMAuditLogger.logSuccess(getUser(),
+        AuditConstants.ALLOC_CONTAINER, "SchedulerApp",
         getApplicationId(), container.getId());
     
     return rmContainer;

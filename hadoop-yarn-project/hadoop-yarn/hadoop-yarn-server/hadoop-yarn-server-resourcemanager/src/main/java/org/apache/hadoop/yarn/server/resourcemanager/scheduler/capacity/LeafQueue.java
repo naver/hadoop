@@ -539,98 +539,150 @@ public class LeafQueue extends AbstractCSQueue {
   }
   
   public synchronized Resource getAMResourceLimit() {
-     /* 
-      * The limit to the amount of resources which can be consumed by
-      * application masters for applications running in the queue
-      * is calculated by taking the greater of the max resources currently
-      * available to the queue (see absoluteMaxAvailCapacity) and the absolute
-      * resources guaranteed for the queue and multiplying it by the am
-      * resource percent.
-      *
-      * This is to allow a queue to grow its (proportional) application 
-      * master resource use up to its max capacity when other queues are 
-      * idle but to scale back down to it's guaranteed capacity as they 
-      * become busy.
-      *
-      */
-     Resource queueCurrentLimit;
-     synchronized (queueResourceLimitsInfo) {
-       queueCurrentLimit = queueResourceLimitsInfo.getQueueCurrentLimit();
-     }
-     Resource queueCap = Resources.max(resourceCalculator, lastClusterResource,
-       absoluteCapacityResource, queueCurrentLimit);
-     return Resources.multiplyAndNormalizeUp( 
-          resourceCalculator,
-          queueCap, 
-          maxAMResourcePerQueuePercent, minimumAllocation);
+    return getAMResourceLimitPerPartition(RMNodeLabelsManager.NO_LABEL);
   }
-  
+
   public synchronized Resource getUserAMResourceLimit() {
-     /*
-      * The user amresource limit is based on the same approach as the 
-      * user limit (as it should represent a subset of that).  This means that
-      * it uses the absolute queue capacity instead of the max and is modified
-      * by the userlimit and the userlimit factor as is the userlimit
-      *
-      */ 
-     float effectiveUserLimit = Math.max(userLimit / 100.0f, 1.0f /    
-       Math.max(getActiveUsersManager().getNumActiveUsers(), 1));
-     
-     return Resources.multiplyAndNormalizeUp( 
-          resourceCalculator,
-          absoluteCapacityResource, 
-          maxAMResourcePerQueuePercent * effectiveUserLimit  *
-            userLimitFactor, minimumAllocation);
+     return getUserAMResourceLimitPerPartition(RMNodeLabelsManager.NO_LABEL);
+  }
+
+  public synchronized Resource getUserAMResourceLimitPerPartition(
+      String nodePartition) {
+    /*
+     * The user am resource limit is based on the same approach as the user
+     * limit (as it should represent a subset of that). This means that it uses
+     * the absolute queue capacity (per partition) instead of the max and is
+     * modified by the userlimit and the userlimit factor as is the userlimit
+     */
+    float effectiveUserLimit = Math.max(userLimit / 100.0f,
+        1.0f / Math.max(getActiveUsersManager().getNumActiveUsers(), 1));
+
+    Resource queuePartitionResource = Resources.multiplyAndNormalizeUp(
+        resourceCalculator,
+        labelManager.getResourceByLabel(nodePartition, lastClusterResource),
+        queueCapacities.getAbsoluteCapacity(nodePartition), minimumAllocation);
+
+    return Resources.multiplyAndNormalizeUp(resourceCalculator,
+        queuePartitionResource,
+        queueCapacities.getMaxAMResourcePercentage(nodePartition)
+            * effectiveUserLimit * userLimitFactor, minimumAllocation);
+  }
+
+  public synchronized Resource getAMResourceLimitPerPartition(
+      String nodePartition) {
+    /*
+     * For non-labeled partition, get the max value from resources currently
+     * available to the queue and the absolute resources guaranteed for the
+     * partition in the queue. For labeled partition, consider only the absolute
+     * resources guaranteed. Multiply this value (based on labeled/
+     * non-labeled), * with per-partition am-resource-percent to get the max am
+     * resource limit for this queue and partition.
+     */
+    Resource queuePartitionResource = Resources.multiplyAndNormalizeUp(
+        resourceCalculator,
+        labelManager.getResourceByLabel(nodePartition, lastClusterResource),
+        queueCapacities.getAbsoluteCapacity(nodePartition), minimumAllocation);
+
+    Resource queueCurrentLimit = Resources.none();
+    // For non-labeled partition, we need to consider the current queue
+    // usage limit.
+    if (nodePartition.equals(RMNodeLabelsManager.NO_LABEL)) {
+      synchronized (queueResourceLimitsInfo) {
+        queueCurrentLimit = queueResourceLimitsInfo.getQueueCurrentLimit();
+      }
+    }
+
+    float amResourcePercent = queueCapacities
+        .getMaxAMResourcePercentage(nodePartition);
+
+    // Current usable resource for this queue and partition is the max of
+    // queueCurrentLimit and queuePartitionResource.
+    Resource queuePartitionUsableResource = Resources.max(resourceCalculator,
+        lastClusterResource, queueCurrentLimit, queuePartitionResource);
+
+    Resource amResouceLimit = Resources.multiplyAndNormalizeUp(
+        resourceCalculator, queuePartitionUsableResource, amResourcePercent,
+        minimumAllocation);
+
+     //YARN-3494
+     //metrics.setAMResouceLimit(amResouceLimit);
+     return amResouceLimit;
   }
 
   private synchronized void activateApplications() {
-    //limit of allowed resource usage for application masters
-    Resource amLimit = getAMResourceLimit();
-    Resource userAMLimit = getUserAMResourceLimit();
+    // limit of allowed resource usage for application masters
+    Map<String, Resource> amPartitionLimit = new HashMap<String, Resource>();
+    Map<String, Resource> userAmPartitionLimit =
+        new HashMap<String, Resource>();
         
     for (Iterator<FiCaSchedulerApp> i=pendingApplications.iterator(); 
          i.hasNext(); ) {
       FiCaSchedulerApp application = i.next();
-      
-      // Check am resource limit
-      Resource amIfStarted = 
-        Resources.add(application.getAMResource(), queueUsage.getAMUsed());
+
+      // Get the am-node-partition associated with each application
+      // and calculate max-am resource limit for this partition.
+      String partitionName = application.getAppAMNodePartitionName();
+
+      Resource amLimit = amPartitionLimit.get(partitionName);
+      // Verify whether we already calculated am-limit for this label.
+      if (amLimit == null) {
+        amLimit = getAMResourceLimitPerPartition(partitionName);
+        amPartitionLimit.put(partitionName, amLimit);
+      }
+      // Check am resource limit.
+      Resource amIfStarted = Resources.add(
+          application.getAMResource(partitionName),
+          queueUsage.getAMUsed(partitionName));
       
       if (LOG.isDebugEnabled()) {
-        LOG.debug("application AMResource " + application.getAMResource() +
-          " maxAMResourcePerQueuePercent " + maxAMResourcePerQueuePercent +
-          " amLimit " + amLimit +
-          " lastClusterResource " + lastClusterResource +
-          " amIfStarted " + amIfStarted);
+        LOG.debug("application AMResource "
+            + application.getAMResource(partitionName)
+            + " maxAMResourcePerQueuePercent " + maxAMResourcePerQueuePercent
+            + " amLimit " + amLimit + " lastClusterResource "
+            + lastClusterResource + " amIfStarted " + amIfStarted
+            + " AM node-partition name " + partitionName);
       }
       
-      if (!Resources.lessThanOrEqual(
-        resourceCalculator, lastClusterResource, amIfStarted, amLimit)) {
-        if (getNumActiveApplications() < 1) {
-          LOG.warn("maximum-am-resource-percent is insufficient to start a" +
-            " single application in queue, it is likely set too low." +
-            " skipping enforcement to allow at least one application to start"); 
+      if (!Resources.lessThanOrEqual(resourceCalculator, lastClusterResource,
+          amIfStarted, amLimit)) {
+        if (getNumActiveApplications() < 1
+            || (Resources.lessThanOrEqual(resourceCalculator,
+                lastClusterResource, queueUsage.getAMUsed(partitionName),
+                Resources.none()))) {
+          LOG.warn("maximum-am-resource-percent is insufficient to start a"
+              + " single application in queue, it is likely set too low."
+              + " skipping enforcement to allow at least one application"
+              + " to start");
         } else {
           LOG.info("not starting application as amIfStarted exceeds amLimit");
           continue;
         }
       }
-      
+
       // Check user am resource limit
-      
       User user = getUser(application.getUser());
-      
-      Resource userAmIfStarted = 
-        Resources.add(application.getAMResource(),
-          user.getConsumedAMResources());
-        
-      if (!Resources.lessThanOrEqual(
-          resourceCalculator, lastClusterResource, userAmIfStarted, 
-          userAMLimit)) {
-        if (getNumActiveApplications() < 1) {
-          LOG.warn("maximum-am-resource-percent is insufficient to start a" +
-            " single application in queue for user, it is likely set too low." +
-            " skipping enforcement to allow at least one application to start"); 
+      Resource userAMLimit = userAmPartitionLimit.get(partitionName);
+
+      // Verify whether we already calculated user-am-limit for this label.
+      if (userAMLimit == null) {
+        userAMLimit = getUserAMResourceLimitPerPartition(partitionName);
+        userAmPartitionLimit.put(partitionName, userAMLimit);
+      }
+
+      Resource userAmIfStarted = Resources.add(
+          application.getAMResource(partitionName),
+          user.getConsumedAMResources(partitionName));
+
+      if (!Resources.lessThanOrEqual(resourceCalculator, lastClusterResource,
+          userAmIfStarted, userAMLimit)) {
+        if (getNumActiveApplications() < 1
+            || (Resources.lessThanOrEqual(resourceCalculator,
+                lastClusterResource, queueUsage.getAMUsed(partitionName),
+                Resources.none()))) {
+          LOG.warn("maximum-am-resource-percent is insufficient to start a"
+              + " single application in queue for user, it is likely set too"
+              + " low. skipping enforcement to allow at least one application"
+              + " to start");
         } else {
           LOG.info("not starting application as amIfStarted exceeds " +
             "userAmLimit");
@@ -639,8 +691,10 @@ public class LeafQueue extends AbstractCSQueue {
       }
       user.activateApplication();
       activeApplications.add(application);
-      queueUsage.incAMUsed(application.getAMResource());
-      user.getResourceUsage().incAMUsed(application.getAMResource());
+      queueUsage.incAMUsed(partitionName,
+          application.getAMResource(partitionName));
+      user.getResourceUsage().incAMUsed(partitionName,
+          application.getAMResource(partitionName));
       i.remove();
       LOG.info("Application " + application.getApplicationId() +
           " from user: " + application.getUser() + 
@@ -687,12 +741,15 @@ public class LeafQueue extends AbstractCSQueue {
 
   public synchronized void removeApplicationAttempt(
       FiCaSchedulerApp application, User user) {
+    String partitionName = application.getAppAMNodePartitionName();
     boolean wasActive = activeApplications.remove(application);
     if (!wasActive) {
       pendingApplications.remove(application);
     } else {
-      queueUsage.decAMUsed(application.getAMResource());
-      user.getResourceUsage().decAMUsed(application.getAMResource());
+      queueUsage.decAMUsed(partitionName,
+          application.getAMResource(partitionName));
+      user.getResourceUsage().decAMUsed(partitionName,
+          application.getAMResource(partitionName));
     }
     applicationAttemptMap.remove(application.getApplicationAttemptId());
 
@@ -1737,6 +1794,22 @@ public class LeafQueue extends AbstractCSQueue {
     }
   }
 
+  public void incAMUsedResource(String nodeLabel, Resource resourceToInc,
+      SchedulerApplicationAttempt application) {
+    getUser(application.getUser()).getResourceUsage().incAMUsed(nodeLabel,
+        resourceToInc);
+    // ResourceUsage has its own lock, no addition lock needs here.
+    queueUsage.incAMUsed(nodeLabel, resourceToInc);
+  }
+
+  public void decAMUsedResource(String nodeLabel, Resource resourceToDec,
+      SchedulerApplicationAttempt application) {
+    getUser(application.getUser()).getResourceUsage().decAMUsed(nodeLabel,
+        resourceToDec);
+    // ResourceUsage has its own lock, no addition lock needs here.
+    queueUsage.decAMUsed(nodeLabel, resourceToDec);
+  }
+
   @VisibleForTesting
   public static class User {
     ResourceUsage userResourceUsage = new ResourceUsage();
@@ -1766,6 +1839,10 @@ public class LeafQueue extends AbstractCSQueue {
     
     public Resource getConsumedAMResources() {
       return userResourceUsage.getAMUsed();
+    }
+
+    public Resource getConsumedAMResources(String label) {
+      return userResourceUsage.getAMUsed(label);
     }
 
     public int getTotalApplications() {
