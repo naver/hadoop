@@ -17,19 +17,20 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.webapp.dao;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
+import org.apache.hadoop.yarn.api.records.QueueState;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceUsage;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CSQueue;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.PlanQueue;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.QueueCapacities;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
-
-import org.apache.hadoop.yarn.api.records.QueueState;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CSQueue;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.PlanQueue;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -59,25 +60,30 @@ public class CapacitySchedulerQueueInfo {
   CapacitySchedulerQueueInfo() {
   };
 
-  CapacitySchedulerQueueInfo(CSQueue q) {
-    queuePath = q.getQueuePath();
-    capacity = q.getCapacity() * 100;
-    usedCapacity = q.getUsedCapacity() * 100;
+  CapacitySchedulerQueueInfo(CSQueue q, String nodeLabel) {
+    QueueCapacities qCapacities = q.getQueueCapacities();
+    ResourceUsage queueResourceUsage = q.getQueueResourceUsage();
 
-    maxCapacity = q.getMaximumCapacity();
+    queuePath = q.getQueuePath();
+    capacity = qCapacities.getCapacity(nodeLabel) * 100;
+    usedCapacity = qCapacities.getUsedCapacity(nodeLabel) * 100;
+
+    maxCapacity = qCapacities.getMaximumCapacity(nodeLabel);
     if (maxCapacity < EPSILON || maxCapacity > 1f)
       maxCapacity = 1f;
     maxCapacity *= 100;
 
-    absoluteCapacity = cap(q.getAbsoluteCapacity(), 0f, 1f) * 100;
-    absoluteMaxCapacity = cap(q.getAbsoluteMaximumCapacity(), 0f, 1f) * 100;
-    absoluteUsedCapacity = cap(q.getAbsoluteUsedCapacity(), 0f, 1f) * 100;
+    absoluteCapacity =
+        cap(qCapacities.getAbsoluteCapacity(nodeLabel), 0f, 1f) * 100;
+    absoluteMaxCapacity =
+        cap(qCapacities.getAbsoluteMaximumCapacity(nodeLabel), 0f, 1f) * 100;
+    absoluteUsedCapacity =
+        cap(qCapacities.getAbsoluteUsedCapacity(nodeLabel), 0f, 1f) * 100;
     numApplications = q.getNumApplications();
     queueName = q.getQueueName();
     state = q.getState();
-    resourcesUsed = new ResourceInfo(q.getUsedResources());
-    if(q instanceof PlanQueue &&
-       !((PlanQueue)q).showReservationsAsQueues()) {
+    resourcesUsed = new ResourceInfo(queueResourceUsage.getUsed(nodeLabel));
+    if (q instanceof PlanQueue && !((PlanQueue) q).showReservationsAsQueues()) {
       hideReservationQueues = true;
     }
     

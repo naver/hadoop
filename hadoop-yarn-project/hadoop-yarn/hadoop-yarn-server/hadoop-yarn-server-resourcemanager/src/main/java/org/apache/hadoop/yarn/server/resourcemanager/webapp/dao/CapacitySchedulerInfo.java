@@ -19,7 +19,6 @@
 package org.apache.hadoop.yarn.server.resourcemanager.webapp.dao;
 
 import org.apache.hadoop.yarn.nodelabels.NodeLabel;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.AbstractCSQueue;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CSQueue;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.LeafQueue;
@@ -47,6 +46,10 @@ public class CapacitySchedulerInfo extends SchedulerInfo {
 
   public CapacitySchedulerInfo() {
   } // JAXB needs this
+
+  public CapacitySchedulerInfo(CSQueue parent, String nodeLabel) {
+    this(parent, new NodeLabel(nodeLabel));
+  }
 
   public CapacitySchedulerInfo(CSQueue parent, NodeLabel nodeLabel) {
     this.queueName = parent.getQueueName();

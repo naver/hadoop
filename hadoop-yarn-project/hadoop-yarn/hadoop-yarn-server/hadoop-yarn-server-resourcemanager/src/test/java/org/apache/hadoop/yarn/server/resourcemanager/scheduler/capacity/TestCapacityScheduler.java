@@ -18,27 +18,9 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -73,6 +55,7 @@ import org.apache.hadoop.yarn.event.AsyncDispatcher;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
+import org.apache.hadoop.yarn.nodelabels.NodeLabel;
 import org.apache.hadoop.yarn.server.api.protocolrecords.UpdateNodeResourceRequest;
 import org.apache.hadoop.yarn.server.resourcemanager.AdminService;
 import org.apache.hadoop.yarn.server.resourcemanager.Application;
@@ -135,9 +118,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 public class TestCapacityScheduler {
@@ -1667,7 +1664,9 @@ public class TestCapacityScheduler {
     CapacityScheduler cs =
         (CapacityScheduler) resourceManager.getResourceScheduler();
     CSQueue origRootQ = cs.getRootQueue();
-    CapacitySchedulerInfo oldInfo = new CapacitySchedulerInfo(origRootQ);
+    CapacitySchedulerInfo oldInfo =
+        new CapacitySchedulerInfo(origRootQ, cs, new NodeLabel(
+            RMNodeLabelsManager.NO_LABEL));
     int origNumAppsA = getNumAppsInQueue("a", origRootQ.getChildQueues());
     int origNumAppsRoot = origRootQ.getNumApplications();
 
@@ -1676,7 +1675,9 @@ public class TestCapacityScheduler {
     CSQueue newRootQ = cs.getRootQueue();
     int newNumAppsA = getNumAppsInQueue("a", newRootQ.getChildQueues());
     int newNumAppsRoot = newRootQ.getNumApplications();
-    CapacitySchedulerInfo newInfo = new CapacitySchedulerInfo(newRootQ);
+    CapacitySchedulerInfo newInfo =
+        new CapacitySchedulerInfo(origRootQ, cs, new NodeLabel(
+            RMNodeLabelsManager.NO_LABEL));
     CapacitySchedulerLeafQueueInfo origOldA1 =
         (CapacitySchedulerLeafQueueInfo) getQueueInfo("a1", oldInfo.getQueues());
     CapacitySchedulerLeafQueueInfo origNewA1 =
