@@ -61,9 +61,13 @@ public class RMWebAppFilter extends GuiceContainer {
       ServletException {
     response.setCharacterEncoding("UTF-8");
     String uri = HtmlQuoting.quoteHtmlChars(request.getRequestURI());
+    String queryString = request.getQueryString();
 
     if (uri == null) {
       uri = "/";
+    }
+    if (queryString != null) {
+      uri = uri + "?" + queryString;
     }
     RMWebApp rmWebApp = injector.getInstance(RMWebApp.class);
     rmWebApp.checkIfStandbyRM();
