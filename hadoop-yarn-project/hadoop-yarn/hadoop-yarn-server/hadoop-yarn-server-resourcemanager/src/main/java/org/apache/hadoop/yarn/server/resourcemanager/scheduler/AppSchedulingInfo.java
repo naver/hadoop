@@ -154,6 +154,30 @@ public class AppSchedulingInfo {
         if (request.getNumContainers() > 0) {
           activeUsersManager.activateApplication(user, applicationId);
         }
+        ResourceRequest previousAnyRequest =
+            getResourceRequest(priority, resourceName);
+
+        // When there is change in ANY request label expression, we should
+        // update label for all resource requests already added of same
+        // priority as ANY resource request.
+        if ((null == previousAnyRequest)
+            || isRequestLabelChanged(previousAnyRequest, request)) {
+          Map<String, ResourceRequest> resourceRequest =
+              getResourceRequests(priority);
+          if (resourceRequest != null) {
+            for (ResourceRequest r : resourceRequest.values()) {
+              if (!r.getResourceName().equals(ResourceRequest.ANY)) {
+                r.setNodeLabelExpression(request.getNodeLabelExpression());
+              }
+            }
+          }
+        }
+      } else {
+        ResourceRequest anyRequest =
+            getResourceRequest(priority, ResourceRequest.ANY);
+        if (anyRequest != null) {
+          request.setNodeLabelExpression(anyRequest.getNodeLabelExpression());
+        }
       }
 
       Map<String, ResourceRequest> asks = this.requests.get(priority);
@@ -201,6 +225,13 @@ public class AppSchedulingInfo {
         }
       }
     }
+  }
+
+  private boolean isRequestLabelChanged(ResourceRequest requestOne,
+      ResourceRequest requestTwo) {
+    String requestOneLabelExp = requestOne.getNodeLabelExpression();
+    String requestTwoLabelExp = requestTwo.getNodeLabelExpression();
+    return (!(requestOneLabelExp.equals(requestTwoLabelExp)));
   }
 
   /**
