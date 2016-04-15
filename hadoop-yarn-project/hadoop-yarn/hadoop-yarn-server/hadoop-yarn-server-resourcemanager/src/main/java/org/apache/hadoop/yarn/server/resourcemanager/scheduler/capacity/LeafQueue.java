@@ -18,19 +18,7 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableObject;
 import org.apache.commons.logging.Log;
@@ -57,7 +45,6 @@ import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
 import org.apache.hadoop.yarn.security.AccessType;
-import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerEventType;
@@ -76,7 +63,18 @@ import org.apache.hadoop.yarn.server.utils.Lock;
 import org.apache.hadoop.yarn.server.utils.Lock.NoLock;
 import org.apache.hadoop.yarn.util.resource.Resources;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Private
 @Unstable
@@ -422,13 +420,33 @@ public class LeafQueue extends AbstractCSQueue {
     ArrayList<UserInfo> usersToReturn = new ArrayList<UserInfo>();
     for (Map.Entry<String, User> entry : users.entrySet()) {
       User user = entry.getValue();
-      usersToReturn.add(new UserInfo(entry.getKey(), Resources.clone(user
-          .getUsed()), user.getActiveApplications(), user
+      Resource usedRes = Resource.newInstance(0, 0);
+      for (String nl : getAccessibleLabelSet()) {
+        Resources.addTo(usedRes, user.getUsed(nl));
+      }
+      usersToReturn.add(new UserInfo(entry.getKey(), usedRes,
+          user.getActiveApplications(), user
           .getPendingApplications(), Resources.clone(user
           .getConsumedAMResources()), Resources.clone(user
           .getUserResourceLimit())));
     }
     return usersToReturn;
+  }
+
+  /**
+   * Gets the labels which are accessible by this queue. If ANY label can be
+   * accessed, put all labels in the set.
+   * @return accessiglbe node labels
+   */
+  protected final Set<String> getAccessibleLabelSet() {
+    Set<String> nodeLabels = new HashSet<String>();
+    if (this.getAccessibleNodeLabels().contains(RMNodeLabelsManager.ANY)) {
+      nodeLabels.addAll(labelManager.getClusterNodeLabels());
+    } else {
+      nodeLabels.addAll(this.getAccessibleNodeLabels());
+    }
+    nodeLabels.add(RMNodeLabelsManager.NO_LABEL);
+    return nodeLabels;
   }
 
   @Override

@@ -18,12 +18,7 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,7 +45,11 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerUtils;
 import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
 import org.apache.hadoop.yarn.util.resource.Resources;
 
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractCSQueue implements CSQueue {
   private static final Log LOG = LogFactory.getLog(AbstractCSQueue.class);
@@ -86,6 +85,8 @@ public abstract class AbstractCSQueue implements CSQueue {
       RecordFactoryProvider.getRecordFactory(null);
   protected CapacitySchedulerContext csContext;
   protected YarnAuthorizationProvider authorizer = null;
+
+  private Resource cr;
 
   public AbstractCSQueue(CapacitySchedulerContext cs, 
       String queueName, CSQueue parent, CSQueue old) throws IOException {
@@ -291,6 +292,7 @@ public abstract class AbstractCSQueue implements CSQueue {
         .getReservationContinueLook();
 
     this.preemptionDisabled = isQueueHierarchyPreemptionDisabled(this);
+    this.cr = clusterResource;
   }
   
   protected QueueInfo getQueueInfo() {
@@ -322,7 +324,9 @@ public abstract class AbstractCSQueue implements CSQueue {
     if (nodeLabels == null || nodeLabels.isEmpty()) {
       queueUsage.incUsed(resource);
     } else {
-      for (String label : Sets.intersection(accessibleLabels, nodeLabels)) {
+      Set<String> anls = (accessibleLabels.contains(RMNodeLabelsManager.ANY))
+          ? labelManager.getClusterNodeLabels() : accessibleLabels;
+      for (String label : Sets.intersection(anls, nodeLabels)) {
         queueUsage.incUsed(label, resource);
       }
     }
@@ -338,7 +342,9 @@ public abstract class AbstractCSQueue implements CSQueue {
     if (null == nodeLabels || nodeLabels.isEmpty()) {
       queueUsage.decUsed(resource);
     } else {
-      for (String label : Sets.intersection(accessibleLabels, nodeLabels)) {
+      Set<String> anls = (accessibleLabels.contains(RMNodeLabelsManager.ANY))
+          ? labelManager.getClusterNodeLabels() : accessibleLabels;
+      for (String label : Sets.intersection(anls, nodeLabels)) {
         queueUsage.decUsed(label, resource);
       }
     }
@@ -527,5 +533,34 @@ public abstract class AbstractCSQueue implements CSQueue {
     if (null != parent) {
       parent.decPendingResource(nodeLabel, resourceToDec);
     }
+  }
+
+  /**
+   * Used capacity of label =
+   *   (queue's used resources labeled by nodeLabel)
+   *      / (   (all resources labeled by nodLabel)
+   *          X (percent of labeled resources allocated to this queue)  )
+   */
+  public synchronized float getUsedCapacity(String nodeLabel) {
+    Resource availableToQueue =
+        Resources.multiply(labelManager.getResourceByLabel(nodeLabel, cr),
+            queueCapacities.getAbsoluteCapacity(nodeLabel));
+    if (!Resources.greaterThan(resourceCalculator, cr,
+         availableToQueue, Resources.none())) {
+      return 0.0f;
+    }
+    return
+        Resources.divide(resourceCalculator, cr,
+            queueUsage.getUsed(nodeLabel), availableToQueue);
+  }
+
+  public float getAbsoluteUsedCapacity(String nodeLabel) {
+    Resource labeledResources = labelManager.getResourceByLabel(nodeLabel, cr);
+    if (!Resources.greaterThan(resourceCalculator, cr,
+        labeledResources, Resources.none())) {
+      return 0.0f;
+    }
+    return Resources.divide(resourceCalculator, cr,
+        queueUsage.getUsed(nodeLabel), labeledResources);
   }
 }

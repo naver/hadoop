@@ -306,8 +306,7 @@ class CapacitySchedulerPage extends RmView {
             String nodeLabel =
                 csqinfo.label.length() == 0 ? "<DEFAULT_PARTITION>"
                     : csqinfo.label;
-            QueueCapacities queueCapacities = root.getQueueCapacities();
-            used = queueCapacities.getUsedCapacity(label.getLabelName());
+            used = root.getUsedCapacity(label.getLabelName());
             String partitionUiTag =
                 "Partition: " + nodeLabel + " " + label.getResource();
             ul.li().
