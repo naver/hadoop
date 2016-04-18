@@ -26,7 +26,6 @@ import org.apache.hadoop.yarn.server.resourcemanager.ResourceManager;
 import org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CSQueue;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.QueueCapacities;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.UserInfo;
 import org.apache.hadoop.yarn.server.resourcemanager.webapp.dao.CapacitySchedulerInfo;
 import org.apache.hadoop.yarn.server.resourcemanager.webapp.dao.CapacitySchedulerLeafQueueInfo;
@@ -315,7 +314,7 @@ class CapacitySchedulerPage extends RmView {
                   used > 1 ? Q_OVER : Q_UNDER))._(".")._().
               span(".q", partitionUiTag)._().
             span().$class("qstats").$style(left(Q_STATS_POS)).
-              _(join(percent(used), " used"))._();
+              _(join(percent(used), " used"))._()._();
 
             //for the queue hierarchy under label
             UL<Hamlet> underLabel = html.ul("#pq");
