@@ -18,16 +18,16 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler;
 
+import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
+import org.apache.hadoop.yarn.util.resource.Resources;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
-import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
-import org.apache.hadoop.yarn.util.resource.Resources;
 
 /**
  * Resource Usage by Labels for following fields by label - AM resource (to
@@ -220,14 +220,6 @@ public class ResourceUsage {
 
   public void incAMUsed(String label, Resource res) {
     _inc(label, ResourceType.AMUSED, res);
-  }
-
-  public void incAMUsed(Resource res) {
-    incAMUsed(NL, res);
-  }
-
-  public void decAMUsed(Resource res) {
-    decAMUsed(NL, res);
   }
 
   public void decAMUsed(String label, Resource res) {

@@ -1812,22 +1812,6 @@ public class LeafQueue extends AbstractCSQueue {
     }
   }
 
-  public void incAMUsedResource(String nodeLabel, Resource resourceToInc,
-      SchedulerApplicationAttempt application) {
-    getUser(application.getUser()).getResourceUsage().incAMUsed(nodeLabel,
-        resourceToInc);
-    // ResourceUsage has its own lock, no addition lock needs here.
-    queueUsage.incAMUsed(nodeLabel, resourceToInc);
-  }
-
-  public void decAMUsedResource(String nodeLabel, Resource resourceToDec,
-      SchedulerApplicationAttempt application) {
-    getUser(application.getUser()).getResourceUsage().decAMUsed(nodeLabel,
-        resourceToDec);
-    // ResourceUsage has its own lock, no addition lock needs here.
-    queueUsage.decAMUsed(nodeLabel, resourceToDec);
-  }
-
   @VisibleForTesting
   public static class User {
     ResourceUsage userResourceUsage = new ResourceUsage();
