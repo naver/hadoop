@@ -45,6 +45,7 @@ public class NNHAServiceTarget extends HAServiceTarget {
   private static final String NAMENODE_ID_KEY = "namenodeid";
   
   private final InetSocketAddress addr;
+  private final InetSocketAddress lifelineAddr;
   private InetSocketAddress zkfcAddr;
   private NodeFencer fencer;
   private BadFencingConfigurationException fenceConfigError;
@@ -79,6 +80,11 @@ public class NNHAServiceTarget extends HAServiceTarget {
     this.addr = NetUtils.createSocketAddr(serviceAddr,
         NameNode.DEFAULT_PORT);
 
+    String lifelineAddrStr =
+        DFSUtil.getNamenodeLifelineAddr(targetConf, nsId, nnId);
+    this.lifelineAddr = (lifelineAddrStr != null) ?
+        NetUtils.createSocketAddr(lifelineAddrStr) : null;
+
     this.autoFailoverEnabled = targetConf.getBoolean(
         DFSConfigKeys.DFS_HA_AUTO_FAILOVER_ENABLED_KEY,
         DFSConfigKeys.DFS_HA_AUTO_FAILOVER_ENABLED_DEFAULT);
@@ -106,6 +112,11 @@ public class NNHAServiceTarget extends HAServiceTarget {
   @Override
   public InetSocketAddress getAddress() {
     return addr;
+  }
+
+  @Override
+  public InetSocketAddress getHealthMonitorAddress() {
+    return lifelineAddr;
   }
 
   @Override
