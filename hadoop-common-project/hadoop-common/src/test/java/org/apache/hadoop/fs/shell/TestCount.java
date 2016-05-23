@@ -31,6 +31,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FilterFileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.shell.CommandFormat.NotEnoughArgumentsException;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -47,7 +48,6 @@ public class TestCount {
   private static Configuration conf;
   private static FileSystem mockFs;
   private static FileStatus fileStat;
-  private static ContentSummary mockCs;
 
   @BeforeClass
   public static void setup() {
@@ -55,7 +55,6 @@ public class TestCount {
     conf.setClass("fs.mockfs.impl", MockFileSystem.class, FileSystem.class);
     mockFs = mock(FileSystem.class);
     fileStat = mock(FileStatus.class);
-    mockCs = mock(ContentSummary.class);
     when(fileStat.isFile()).thenReturn(true);
   }
 
@@ -85,6 +84,85 @@ public class TestCount {
     count.processOptions(options);
     assertTrue(count.isShowQuotas());
     assertTrue(count.isHumanReadable());
+  }
+
+  // check no options is handled correctly
+  @Test
+  public void processOptionsNoOptions() {
+    LinkedList<String> options = new LinkedList<String>();
+    options.add("dummy");
+    Count count = new Count();
+    count.processOptions(options);
+    assertFalse(count.isShowQuotas());
+  }
+
+  // check -q is handled correctly
+  @Test
+  public void processOptionsShowQuotas() {
+    LinkedList<String> options = new LinkedList<String>();
+    options.add("-q");
+    options.add("dummy");
+    Count count = new Count();
+    count.processOptions(options);
+    assertTrue(count.isShowQuotas());
+  }
+
+  // check missing arguments is handled correctly
+  @Test
+  public void processOptionsMissingArgs() {
+    LinkedList<String> options = new LinkedList<String>();
+    Count count = new Count();
+    try {
+      count.processOptions(options);
+      fail("Count.processOptions - NotEnoughArgumentsException not thrown");
+    } catch (NotEnoughArgumentsException e) {
+    }
+    assertFalse(count.isShowQuotas());
+  }
+
+  // check the correct header is produced with no quotas (-v)
+  @Test
+  public void processOptionsHeaderNoQuotas() {
+    LinkedList<String> options = new LinkedList<String>();
+    options.add("-v");
+    options.add("dummy");
+
+    PrintStream out = mock(PrintStream.class);
+
+    Count count = new Count();
+    count.out = out;
+
+    count.processOptions(options);
+
+    String noQuotasHeader =
+    // <----12----> <----12----> <-------18------->
+      "   DIR_COUNT   FILE_COUNT       CONTENT_SIZE PATHNAME";
+    verify(out).println(noQuotasHeader);
+    verifyNoMoreInteractions(out);
+  }
+
+  // check the correct header is produced with quotas (-q -v)
+  @Test
+  public void processOptionsHeaderWithQuotas() {
+    LinkedList<String> options = new LinkedList<String>();
+    options.add("-q");
+    options.add("-v");
+    options.add("dummy");
+
+    PrintStream out = mock(PrintStream.class);
+
+    Count count = new Count();
+    count.out = out;
+
+    count.processOptions(options);
+
+    String withQuotasHeader =
+    // <----12----> <-----15------> <-----15------> <-----15------>
+      "       QUOTA       REM_QUOTA     SPACE_QUOTA REM_SPACE_QUOTA " +
+    // <----12----> <----12----> <-------18------->
+      "   DIR_COUNT   FILE_COUNT       CONTENT_SIZE PATHNAME";
+    verify(out).println(withQuotasHeader);
+    verifyNoMoreInteractions(out);
   }
 
   // check quotas are reported correctly
