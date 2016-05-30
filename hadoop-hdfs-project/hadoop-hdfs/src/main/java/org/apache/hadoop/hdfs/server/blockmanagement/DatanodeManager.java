@@ -1609,6 +1609,11 @@ public class DatanodeManager {
         }
         return avgLoad;
       }
+
+      @Override
+      public float getCapacityUsedPercent(){
+        return heartbeatManager.getCapacityUsedPercent();
+      }
     };
   }
 }

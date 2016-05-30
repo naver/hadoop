@@ -62,7 +62,10 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
         }
       };
 
-  protected boolean considerLoad; 
+  protected boolean considerLoad;
+  protected boolean considerDfsUsedPercent;
+  protected float considerDfsUsedPercentFactor;
+  protected int considerDfsUsedPercentTresholdPercent;
   private boolean preferLocalNode = true;
   protected NetworkTopology clusterMap;
   protected Host2NodesMap host2datanodeMap;
@@ -84,6 +87,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
                          Host2NodesMap host2datanodeMap) {
     this.considerLoad = conf.getBoolean(
         DFSConfigKeys.DFS_NAMENODE_REPLICATION_CONSIDERLOAD_KEY, true);
+
     this.stats = stats;
     this.clusterMap = clusterMap;
     this.host2datanodeMap = host2datanodeMap;
@@ -94,8 +98,21 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
         DFSConfigKeys.DFS_NAMENODE_TOLERATE_HEARTBEAT_MULTIPLIER_KEY,
         DFSConfigKeys.DFS_NAMENODE_TOLERATE_HEARTBEAT_MULTIPLIER_DEFAULT);
     this.staleInterval = conf.getLong(
-        DFSConfigKeys.DFS_NAMENODE_STALE_DATANODE_INTERVAL_KEY, 
+        DFSConfigKeys.DFS_NAMENODE_STALE_DATANODE_INTERVAL_KEY,
         DFSConfigKeys.DFS_NAMENODE_STALE_DATANODE_INTERVAL_DEFAULT);
+
+
+    this.considerDfsUsedPercentTresholdPercent = conf.getInt(
+        DFSConfigKeys.DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_THRESHOLD,
+        DFSConfigKeys.DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_THRESHOLD_DEFAULT);
+
+    this.considerDfsUsedPercent = conf.getBoolean(
+        DFSConfigKeys.DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_KEY,
+        DFSConfigKeys.DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_DEFAULT);
+
+    this.considerDfsUsedPercentFactor = conf.getFloat(
+        DFSConfigKeys.DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_FACTOR,
+        DFSConfigKeys.DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_FACTOR_DEFAULT);
   }
 
   @Override
@@ -197,11 +214,11 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
     if (excludedNodes == null) {
       excludedNodes = new HashSet<Node>();
     }
-     
+
     int[] result = getMaxNodesPerRack(chosenStorage.size(), numOfReplicas);
     numOfReplicas = result[0];
     int maxNodesPerRack = result[1];
-      
+
     final List<DatanodeStorageInfo> results = new ArrayList<DatanodeStorageInfo>(chosenStorage);
     for (DatanodeStorageInfo storage : chosenStorage) {
       // add localMachine and related nodes to excludedNodes
@@ -213,7 +230,8 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
     final Node localNode = chooseTarget(numOfReplicas, writer, excludedNodes,
         blocksize, maxNodesPerRack, results, avoidStaleNodes, storagePolicy,
         EnumSet.noneOf(StorageType.class), results.isEmpty());
-    if (!returnChosenNodes) {  
+
+    if (!returnChosenNodes) {
       results.removeAll(chosenStorage);
     }
       
@@ -606,6 +624,60 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
         results, avoidStaleNodes, storageTypes);
   }
 
+  private boolean isEnoughDfsUsedPercent(DatanodeDescriptor node, boolean considerDfsUsedPercent){
+
+    if (considerDfsUsedPercent) {
+      final float dfsUsedPercent = stats.getCapacityUsedPercent();
+      final float weightedDfsUsedPercent = considerDfsUsedPercentFactor * dfsUsedPercent;
+      final float nodeDfsUsedPercent = node.getDfsUsedPercent();
+
+      if(nodeDfsUsedPercent > weightedDfsUsedPercent && nodeDfsUsedPercent >= considerDfsUsedPercentTresholdPercent) {
+        String reason = "dfsUsedPercent of the node is too high. (nodDfsUsedPercent: " + nodeDfsUsedPercent
+                  + " > " + weightedDfsUsedPercent + ", dfsUsedPercent: " + dfsUsedPercent + ")";
+        LOG.info("Datanode: " + node + " is not chosen since " + reason);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  protected DatanodeStorageInfo chooseRandom(int numOfReplicas,
+                            String scope,
+                            Set<Node> excludedNodes,
+                            long blocksize,
+                            int maxNodesPerRack,
+                            List<DatanodeStorageInfo> results,
+                            boolean avoidStaleNodes,
+                            EnumMap<StorageType, Integer> storageTypes)
+                            throws NotEnoughReplicasException {
+
+    Set<Node> originExcludedNodes = new HashSet<Node>(excludedNodes);
+    DatanodeStorageInfo storage =
+      chooseRandom(numOfReplicas, scope, excludedNodes, blocksize, maxNodesPerRack, results, avoidStaleNodes, considerDfsUsedPercent, storageTypes);
+
+    if(storage == null){
+
+      if(LOG.isDebugEnabled()) {
+        LOG.debug("retry chooseRandom(numOfReplicas=" + numOfReplicas + " scope=" + scope + " excludeNodes=" + excludedNodes
+            + " originExcludedNodes=" + originExcludedNodes + " excludedNodes=" + excludedNodes
+            + " maxNodesPerRack=" + maxNodesPerRack + " results=" + results + " avoidStaleNodes=" + avoidStaleNodes + " storageTypes=" + storageTypes
+            + " because failed choice by considerDfsUsedPercent");
+      } else {
+        LOG.info("retry chooseRandom(numOfReplicas=" + numOfReplicas + ", scope=" + scope + ", maxNodesPerRack=" + maxNodesPerRack + ")"
+            + " because failed choice by considerDfsUsedPercent");
+      }
+
+      excludedNodes.clear();
+      excludedNodes.addAll(originExcludedNodes);
+
+      storage = chooseRandom(numOfReplicas, scope, excludedNodes, blocksize, maxNodesPerRack, results, avoidStaleNodes, false, storageTypes);
+    }
+
+    return storage;
+  }
+
+
   /**
    * Randomly choose <i>numOfReplicas</i> targets from the given <i>scope</i>.
    * @return the first chosen node, if there is any.
@@ -617,6 +689,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
                             int maxNodesPerRack,
                             List<DatanodeStorageInfo> results,
                             boolean avoidStaleNodes,
+                            boolean considerDfsUsedPercent,
                             EnumMap<StorageType, Integer> storageTypes)
                             throws NotEnoughReplicasException {
       
@@ -628,6 +701,9 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
       builder.setLength(0);
       builder.append("[");
     }
+
+    boolean isNotChosenDNByDfsUsedPercent = false;
+
     boolean badTarget = false;
     DatanodeStorageInfo firstChosen = null;
     while(numOfReplicas > 0 && numOfAvailableNodes > 0) {
@@ -638,6 +714,11 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
           builder.append("\nNode ").append(NodeBase.getPath(chosenNode)).append(" [");
         }
         numOfAvailableNodes--;
+
+        if(!isEnoughDfsUsedPercent(chosenNode, considerDfsUsedPercent)){
+          isNotChosenDNByDfsUsedPercent = true;
+          continue;
+        }
 
         final DatanodeStorageInfo[] storages = DFSUtil.shuffle(
             chosenNode.getStorageInfos());
@@ -687,11 +768,16 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
           detail = "";
         }
       }
-      throw new NotEnoughReplicasException(detail);
+      if(isNotChosenDNByDfsUsedPercent && (scope.startsWith("~") || scope.equals(NodeBase.ROOT))){
+        return null;
+      } else {
+        throw new NotEnoughReplicasException(detail);
+      }
     }
     
     return firstChosen;
   }
+
 
   /**
    * If the given storage is a good target, add it to the result list and

@@ -225,6 +225,13 @@ public class DFSConfigKeys extends CommonConfigurationKeys {
   public static final int     DFS_CLIENT_CACHED_CONN_RETRY_DEFAULT = 3;
   public static final String  DFS_NAMENODE_ACCESSTIME_PRECISION_KEY = "dfs.namenode.accesstime.precision";
   public static final long    DFS_NAMENODE_ACCESSTIME_PRECISION_DEFAULT = 3600000;
+  public static final String  DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_KEY = "dfs.namenode.replication.considerDfsUsedPercent";
+  public static final boolean DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_DEFAULT = false;
+  public static final String  DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_FACTOR = "dfs.namenode.replication.considerDfsUsedPercent.factor";
+  public static final float   DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_FACTOR_DEFAULT = 1.2f;
+  public static final String  DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_THRESHOLD = "dfs.namenode.replication.considerDfsUsedPercent.threshold.percent";
+  public static final int     DFS_NAMENODE_REPLICATION_CONSIDER_DFS_USED_PERCENT_THRESHOLD_DEFAULT = 50;
+
   public static final String  DFS_NAMENODE_REPLICATION_CONSIDERLOAD_KEY = "dfs.namenode.replication.considerLoad";
   public static final boolean DFS_NAMENODE_REPLICATION_CONSIDERLOAD_DEFAULT = true;
   public static final String  DFS_NAMENODE_REPLICATION_INTERVAL_KEY = "dfs.namenode.replication.interval";

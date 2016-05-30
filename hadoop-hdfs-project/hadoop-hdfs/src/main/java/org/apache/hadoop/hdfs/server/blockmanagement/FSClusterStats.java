@@ -57,4 +57,6 @@ public interface FSClusterStats {
    *         writes that are currently occurring on the cluster.
    */
   public double getInServiceXceiverAverage();
+
+  public float getCapacityUsedPercent();
 }
