@@ -632,8 +632,8 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
       final float nodeDfsUsedPercent = node.getDfsUsedPercent();
 
       if(nodeDfsUsedPercent > weightedDfsUsedPercent && nodeDfsUsedPercent >= considerDfsUsedPercentTresholdPercent) {
-        String reason = "dfsUsedPercent of the node is too high. (nodDfsUsedPercent: " + nodeDfsUsedPercent
-                  + " > " + weightedDfsUsedPercent + ", dfsUsedPercent: " + dfsUsedPercent + ")";
+        String reason = "dfsUsedPercent of the node is too high. (nodeDfsUsedPercent: " + nodeDfsUsedPercent
+                  + "% > " + weightedDfsUsedPercent + "% , dfsUsedPercent: " + dfsUsedPercent + "%)";
         LOG.info("Datanode: " + node + " is not chosen since " + reason);
         return false;
       }
@@ -660,16 +660,13 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
 
       if(LOG.isDebugEnabled()) {
         LOG.debug("retry chooseRandom(numOfReplicas=" + numOfReplicas + " scope=" + scope + " excludeNodes=" + excludedNodes
-            + " originExcludedNodes=" + originExcludedNodes + " excludedNodes=" + excludedNodes
-            + " maxNodesPerRack=" + maxNodesPerRack + " results=" + results + " avoidStaleNodes=" + avoidStaleNodes + " storageTypes=" + storageTypes
+            + " originExcludedNodes=" + originExcludedNodes + " maxNodesPerRack=" + maxNodesPerRack
+            + " results=" + results + " avoidStaleNodes=" + avoidStaleNodes + " storageTypes=" + storageTypes
             + " because failed choice by considerDfsUsedPercent");
       } else {
         LOG.info("retry chooseRandom(numOfReplicas=" + numOfReplicas + ", scope=" + scope + ", maxNodesPerRack=" + maxNodesPerRack + ")"
             + " because failed choice by considerDfsUsedPercent");
       }
-
-      excludedNodes.clear();
-      excludedNodes.addAll(originExcludedNodes);
 
       storage = chooseRandom(numOfReplicas, scope, excludedNodes, blocksize, maxNodesPerRack, results, avoidStaleNodes, false, storageTypes);
     }
@@ -702,23 +699,24 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
       builder.append("[");
     }
 
-    boolean isNotChosenDNByDfsUsedPercent = false;
+    Set<Node> dfsUsedPercentExcludedNodes = new HashSet<Node>();
 
     boolean badTarget = false;
     DatanodeStorageInfo firstChosen = null;
     while(numOfReplicas > 0 && numOfAvailableNodes > 0) {
       DatanodeDescriptor chosenNode = 
           (DatanodeDescriptor)clusterMap.chooseRandom(scope);
-      if (excludedNodes.add(chosenNode)) { //was not in the excluded list
+      if (!dfsUsedPercentExcludedNodes.contains(chosenNode) && !excludedNodes.contains(chosenNode)) { //was not in the excluded list
         if (LOG.isDebugEnabled()) {
           builder.append("\nNode ").append(NodeBase.getPath(chosenNode)).append(" [");
         }
         numOfAvailableNodes--;
 
         if(!isEnoughDfsUsedPercent(chosenNode, considerDfsUsedPercent)){
-          isNotChosenDNByDfsUsedPercent = true;
+          dfsUsedPercentExcludedNodes.add(chosenNode);
           continue;
         }
+        excludedNodes.add(chosenNode);
 
         final DatanodeStorageInfo[] storages = DFSUtil.shuffle(
             chosenNode.getStorageInfos());
@@ -768,7 +766,7 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
           detail = "";
         }
       }
-      if(isNotChosenDNByDfsUsedPercent && (scope.startsWith("~") || scope.equals(NodeBase.ROOT))){
+      if(dfsUsedPercentExcludedNodes.size() > 0 && (scope.startsWith("~") || scope.equals(NodeBase.ROOT))){
         return null;
       } else {
         throw new NotEnoughReplicasException(detail);
