@@ -478,11 +478,23 @@ public class CgroupsLCEResourcesHandler implements LCEResourcesHandler {
 
   private void initializeControllerPaths() throws IOException {
     String controllerPath;
-    Map<String, List<String>> parsedMtab = parseMtab();
 
-    // CPU
 
-    controllerPath = findControllerInMtab(CONTROLLER_CPU, parsedMtab);
+    Boolean isCentos7 = conf.getBoolean("os.centos7",false);
+
+    if (isCentos7) {
+      // centos7
+      controllerPath = cgroupMountPath+"/"+CONTROLLER_CPU;  //   "/sys/fs/cgroup/cpu"
+
+    }else {
+      Map<String, List<String>> parsedMtab = parseMtab();
+
+      // CPU
+
+      controllerPath = findControllerInMtab(CONTROLLER_CPU, parsedMtab);
+    }
+
+
 
     if (controllerPath != null) {
       File f = new File(controllerPath + "/" + this.cgroupPrefix);
