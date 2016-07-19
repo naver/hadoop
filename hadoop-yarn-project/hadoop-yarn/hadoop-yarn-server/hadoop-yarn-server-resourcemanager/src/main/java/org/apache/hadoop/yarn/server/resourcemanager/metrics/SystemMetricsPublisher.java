@@ -18,11 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.metrics;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -51,6 +46,11 @@ import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttempt;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptState;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The class that helps RM publish metrics to the timeline server. RM will
@@ -283,7 +283,9 @@ public class SystemMetricsPublisher extends CompositeService {
         appMetrics.getVcoreSeconds());
     entity.addOtherInfo(ApplicationMetricsConstants.APP_MEM_METRICS,
         appMetrics.getMemorySeconds());
-    
+    entity.addOtherInfo(ApplicationMetricsConstants.APP_GPU_METRICS,
+        appMetrics.getGcoreSeconds());
+
     tEvent.setEventInfo(eventInfo);
     entity.addEvent(tEvent);
     putEntity(entity);

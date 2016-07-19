@@ -17,13 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.webapp.dao;
 
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-
+import com.google.common.base.Joiner;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationResourceUsageReport;
 import org.apache.hadoop.yarn.api.records.Container;
@@ -40,7 +34,11 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Times;
 import org.apache.hadoop.yarn.webapp.util.WebAppUtils;
 
-import com.google.common.base.Joiner;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import java.util.List;
 
 @XmlRootElement(name = "app")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -82,13 +80,16 @@ public class AppInfo {
   protected String amHostHttpAddress;
   protected int allocatedMB;
   protected int allocatedVCores;
+  protected int allocatedGCores;
   protected int runningContainers;
   protected long memorySeconds;
   protected long vcoreSeconds;
+  protected long gcoreSeconds;
   
   // preemption info fields
   protected int preemptedResourceMB;
   protected int preemptedResourceVCores;
+  protected int preemptedResourceGCores;
   protected int numNonAMContainerPreempted;
   protected int numAMContainerPreempted;
 
@@ -160,6 +161,7 @@ public class AppInfo {
             Resource usedResources = resourceReport.getUsedResources();
             allocatedMB = usedResources.getMemory();
             allocatedVCores = usedResources.getVirtualCores();
+            allocatedGCores = usedResources.getGpuCores();
             runningContainers = resourceReport.getNumUsedContainers();
           }
           resourceRequests =
@@ -180,6 +182,7 @@ public class AppInfo {
           appMetrics.getResourcePreempted().getVirtualCores();
       memorySeconds = appMetrics.getMemorySeconds();
       vcoreSeconds = appMetrics.getVcoreSeconds();
+      gcoreSeconds = appMetrics.getGcoreSeconds();
     }
   }
 
@@ -286,13 +289,21 @@ public class AppInfo {
   public int getAllocatedVCores() {
     return this.allocatedVCores;
   }
-  
+
+  public int getAllocatedGCores() {
+    return this.allocatedGCores;
+  }
+
   public int getPreemptedMB() {
     return preemptedResourceMB;
   }
 
   public int getPreemptedVCores() {
     return preemptedResourceVCores;
+  }
+
+  public int getPreemptedGCores() {
+    return preemptedResourceGCores;
   }
 
   public int getNumNonAMContainersPreempted() {
@@ -309,6 +320,10 @@ public class AppInfo {
 
   public long getVcoreSeconds() {
     return vcoreSeconds;
+  }
+
+  public long getGcoreSeconds() {
+    return gcoreSeconds;
   }
 
   public List<ResourceRequest> getResourceRequests() {

@@ -18,9 +18,6 @@
 
 package org.apache.hadoop.yarn.server.applicationhistoryservice;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.protocolrecords.GetApplicationAttemptReportRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetApplicationAttemptReportResponse;
@@ -52,6 +49,9 @@ import org.apache.hadoop.yarn.server.timeline.security.TimelineACLsManager;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.List;
 
 public class TestApplicationHistoryClientService {
 
@@ -152,6 +152,8 @@ public class TestApplicationHistoryClientService {
         .getMemorySeconds());
     Assert.assertEquals(345, appReport.getApplicationResourceUsageReport()
         .getVcoreSeconds());
+    Assert.assertEquals(345, appReport.getApplicationResourceUsageReport()
+        .getGcoreSeconds());
     Assert.assertEquals("application_0_0001", appReport.getApplicationId()
       .toString());
     Assert.assertEquals("test app type",

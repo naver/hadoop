@@ -17,12 +17,6 @@
 */
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -33,6 +27,10 @@ import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
 import org.apache.hadoop.yarn.util.resource.Resources;
+
+import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Private
 @Evolving
@@ -49,7 +47,9 @@ public class FairSchedulerConfiguration extends Configuration {
   public static final String RM_SCHEDULER_INCREMENT_ALLOCATION_VCORES =
     YarnConfiguration.YARN_PREFIX + "scheduler.increment-allocation-vcores";
   public static final int DEFAULT_RM_SCHEDULER_INCREMENT_ALLOCATION_VCORES = 1;
-  
+  public static final String RM_SCHEDULER_INCREMENT_ALLOCATION_GCORES =
+    YarnConfiguration.YARN_PREFIX + "scheduler.increment-allocation-gcores";
+  public static final int DEFAULT_RM_SCHEDULER_INCREMENT_ALLOCATION_GCORES = 1;
   private static final String CONF_PREFIX =  "yarn.scheduler.fair.";
 
   public static final String ALLOCATION_FILE = CONF_PREFIX + "allocation.file";
@@ -144,7 +144,10 @@ public class FairSchedulerConfiguration extends Configuration {
     int cpu = getInt(
         YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_VCORES,
         YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_VCORES);
-    return Resources.createResource(mem, cpu);
+    int gpu = getInt(
+        YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES,
+        YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES);
+    return Resources.createResource(mem, cpu, gpu);
   }
 
   public Resource getMaximumAllocation() {
@@ -154,7 +157,10 @@ public class FairSchedulerConfiguration extends Configuration {
     int cpu = getInt(
         YarnConfiguration.RM_SCHEDULER_MAXIMUM_ALLOCATION_VCORES,
         YarnConfiguration.DEFAULT_RM_SCHEDULER_MAXIMUM_ALLOCATION_VCORES);
-    return Resources.createResource(mem, cpu);
+    int gpu = getInt(
+        YarnConfiguration.RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES,
+        YarnConfiguration.DEFAULT_RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES);
+    return Resources.createResource(mem, cpu, gpu);
   }
 
   public Resource getIncrementAllocation() {
@@ -164,7 +170,10 @@ public class FairSchedulerConfiguration extends Configuration {
     int incrementCores = getInt(
       RM_SCHEDULER_INCREMENT_ALLOCATION_VCORES,
       DEFAULT_RM_SCHEDULER_INCREMENT_ALLOCATION_VCORES);
-    return Resources.createResource(incrementMemory, incrementCores);
+    int incrementGCores = getInt(
+      RM_SCHEDULER_INCREMENT_ALLOCATION_GCORES,
+      DEFAULT_RM_SCHEDULER_INCREMENT_ALLOCATION_GCORES);
+    return Resources.createResource(incrementMemory, incrementCores, incrementGCores);
   }
   
   public float getLocalityThresholdNode() {
@@ -235,7 +244,7 @@ public class FairSchedulerConfiguration extends Configuration {
 
   /**
    * Parses a resource config value of a form like "1024", "1024 mb",
-   * or "1024 mb, 3 vcores". If no units are given, megabytes are assumed.
+   * or "1024 mb, 3 vcores" or "1024 mb, 3 vcores, 1 gcores". If no units are given, megabytes are assumed.
    * 
    * @throws AllocationConfigurationException
    */
@@ -245,7 +254,8 @@ public class FairSchedulerConfiguration extends Configuration {
       val = StringUtils.toLowerCase(val);
       int memory = findResource(val, "mb");
       int vcores = findResource(val, "vcores");
-      return BuilderUtils.newResource(memory, vcores);
+      int gcores = findResource(val, "gcores");
+      return BuilderUtils.newResource(memory, vcores, gcores);
     } catch (AllocationConfigurationException ex) {
       throw ex;
     } catch (Exception ex) {
@@ -262,9 +272,10 @@ public class FairSchedulerConfiguration extends Configuration {
     throws AllocationConfigurationException {
     Pattern pattern = Pattern.compile("(\\d+)\\s*" + units);
     Matcher matcher = pattern.matcher(val);
-    if (!matcher.find()) {
+    if (!matcher.find() && !units.equals("gcores")) {
       throw new AllocationConfigurationException("Missing resource: " + units);
+    } else {
+      return matcher.find(0) ? Integer.parseInt(matcher.group(1)) : 0;
     }
-    return Integer.parseInt(matcher.group(1));
   }
 }

@@ -18,13 +18,6 @@
 
 package org.apache.hadoop.yarn.server.api.protocolrecords;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.security.Credentials;
@@ -45,6 +38,13 @@ import org.apache.hadoop.yarn.util.Records;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class TestProtocolRecords {
 
   @Test
@@ -52,7 +52,7 @@ public class TestProtocolRecords {
     ApplicationId appId = ApplicationId.newInstance(123456789, 1);
     ApplicationAttemptId attemptId = ApplicationAttemptId.newInstance(appId, 1);
     ContainerId containerId = ContainerId.newContainerId(attemptId, 1);
-    Resource resource = Resource.newInstance(1000, 200);
+    Resource resource = Resource.newInstance(1000, 200, 300);
 
     NMContainerStatus report =
         NMContainerStatus.newInstance(containerId,
@@ -80,13 +80,13 @@ public class TestProtocolRecords {
 
     NMContainerStatus containerReport =
         NMContainerStatus.newInstance(containerId,
-          ContainerState.RUNNING, Resource.newInstance(1024, 1), "diagnostics",
+          ContainerState.RUNNING, Resource.newInstance(1024, 1, 2), "diagnostics",
           0, Priority.newInstance(10), 1234);
     List<NMContainerStatus> reports = Arrays.asList(containerReport);
     RegisterNodeManagerRequest request =
         RegisterNodeManagerRequest.newInstance(
           NodeId.newInstance("1.1.1.1", 1000), 8080,
-            Resource.newInstance(1024, 1), "NM-version-id", reports,
+            Resource.newInstance(1024, 1, 2), "NM-version-id", reports,
             Arrays.asList(appId));
     RegisterNodeManagerRequest requestProto =
         new RegisterNodeManagerRequestPBImpl(
@@ -97,7 +97,7 @@ public class TestProtocolRecords {
     Assert.assertEquals("NM-version-id", requestProto.getNMVersion());
     Assert.assertEquals(NodeId.newInstance("1.1.1.1", 1000),
       requestProto.getNodeId());
-    Assert.assertEquals(Resource.newInstance(1024, 1),
+    Assert.assertEquals(Resource.newInstance(1024, 1, 2),
       requestProto.getResource());
     Assert.assertEquals(1, requestProto.getRunningApplications().size());
     Assert.assertEquals(appId, requestProto.getRunningApplications().get(0)); 

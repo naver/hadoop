@@ -54,9 +54,16 @@ public abstract class Resource implements Comparable<Resource> {
   @Public
   @Stable
   public static Resource newInstance(int memory, int vCores) {
+    return newInstance(memory, vCores, 0);
+  }
+
+  @Public
+  @Stable
+  public static Resource newInstance(int memory, int vCores, int gCores) {
     Resource resource = Records.newRecord(Resource.class);
     resource.setMemory(memory);
     resource.setVirtualCores(vCores);
+    resource.setGpuCores(gCores);
     return resource;
   }
 
@@ -105,12 +112,21 @@ public abstract class Resource implements Comparable<Resource> {
   @Evolving
   public abstract void setVirtualCores(int vCores);
 
+  @Public
+  @Evolving
+  public abstract int getGpuCores();
+
+  @Public
+  @Evolving
+  public abstract void setGpuCores(int gCores);
+
   @Override
   public int hashCode() {
     final int prime = 263167;
     int result = 3571;
     result = 939769357 + getMemory(); // prime * result = 939769357 initially
     result = prime * result + getVirtualCores();
+    result = prime * result + getGpuCores();
     return result;
   }
 
@@ -124,7 +140,8 @@ public abstract class Resource implements Comparable<Resource> {
       return false;
     Resource other = (Resource) obj;
     if (getMemory() != other.getMemory() || 
-        getVirtualCores() != other.getVirtualCores()) {
+        getVirtualCores() != other.getVirtualCores() ||
+        getGpuCores() != other.getGpuCores()) {
       return false;
     }
     return true;
@@ -132,6 +149,6 @@ public abstract class Resource implements Comparable<Resource> {
 
   @Override
   public String toString() {
-    return "<memory:" + getMemory() + ", vCores:" + getVirtualCores() + ">";
+    return "<memory:" + getMemory() + ", vCores:" + getVirtualCores() + ", gCores:" + getGpuCores() + ">";
   }
 }

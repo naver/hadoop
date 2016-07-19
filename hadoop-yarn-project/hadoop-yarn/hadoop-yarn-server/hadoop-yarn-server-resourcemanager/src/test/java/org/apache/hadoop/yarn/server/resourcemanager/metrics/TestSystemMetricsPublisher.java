@@ -18,11 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.metrics;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.EnumSet;
-
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.Container;
@@ -56,6 +51,11 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.EnumSet;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestSystemMetricsPublisher {
 
@@ -160,6 +160,10 @@ public class TestSystemMetricsPublisher {
             app.getRMAppMetrics().getVcoreSeconds(),
             Long.parseLong(entity.getOtherInfo()
                 .get(ApplicationMetricsConstants.APP_CPU_METRICS).toString()));
+        Assert.assertEquals(
+            app.getRMAppMetrics().getGcoreSeconds(),
+            Long.parseLong(entity.getOtherInfo()
+                .get(ApplicationMetricsConstants.APP_GPU_METRICS).toString()));
       }
       boolean hasCreatedEvent = false;
       boolean hasFinishedEvent = false;
@@ -351,7 +355,7 @@ public class TestSystemMetricsPublisher {
     when(app.getFinalApplicationStatus()).thenReturn(
         FinalApplicationStatus.UNDEFINED);
     when(app.getRMAppMetrics()).thenReturn(
-        new RMAppMetrics(null, 0, 0, Integer.MAX_VALUE, Long.MAX_VALUE));
+        new RMAppMetrics(null, 0, 0, Integer.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE));
     return app;
   }
 

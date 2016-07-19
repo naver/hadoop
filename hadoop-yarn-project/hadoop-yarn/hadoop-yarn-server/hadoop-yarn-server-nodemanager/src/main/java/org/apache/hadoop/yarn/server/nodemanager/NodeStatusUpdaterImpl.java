@@ -18,21 +18,7 @@
 
 package org.apache.hadoop.yarn.server.nodemanager;
 
-import java.io.IOException;
-import java.net.ConnectException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -72,7 +58,20 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.Cont
 import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.util.YarnVersionInfo;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
+import java.util.Set;
 
 public class NodeStatusUpdaterImpl extends AbstractService implements
     NodeStatusUpdater {
@@ -148,7 +147,11 @@ public class NodeStatusUpdaterImpl extends AbstractService implements
         conf.getInt(
             YarnConfiguration.NM_VCORES, YarnConfiguration.DEFAULT_NM_VCORES);
 
-    this.totalResource = Resource.newInstance(memoryMb, virtualCores);
+    int gpuCores =
+        conf.getInt(
+            YarnConfiguration.NM_GCORES, YarnConfiguration.DEFAULT_NM_GCORES);
+
+    this.totalResource = Resource.newInstance(memoryMb, virtualCores, gpuCores);
     metrics.addResource(totalResource);
     this.tokenKeepAliveEnabled = isTokenKeepAliveEnabled(conf);
     this.tokenRemovalDelayMs =

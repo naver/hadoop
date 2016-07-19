@@ -17,12 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.util.concurrent.ConcurrentMap;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -71,7 +66,11 @@ import org.apache.hadoop.yarn.server.utils.YarnServerBuilderUtils;
 import org.apache.hadoop.yarn.util.RackResolver;
 import org.apache.hadoop.yarn.util.YarnVersionInfo;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentMap;
 
 public class ResourceTrackerService extends AbstractService implements
     ResourceTracker {
@@ -99,6 +98,7 @@ public class ResourceTrackerService extends AbstractService implements
   
   private int minAllocMb;
   private int minAllocVcores;
+  private int minAllocGcores;
 
   static {
     resync.setNodeAction(NodeAction.RESYNC);
@@ -144,6 +144,9 @@ public class ResourceTrackerService extends AbstractService implements
     minAllocVcores = conf.getInt(
     	YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_VCORES,
     	YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_VCORES);
+    minAllocGcores = conf.getInt(
+    	YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES,
+    	YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES);
 
     minimumNodeManagerVersion = conf.get(
         YarnConfiguration.RM_NODEMANAGER_MINIMUM_VERSION,
@@ -285,7 +288,8 @@ public class ResourceTrackerService extends AbstractService implements
 
     // Check if this node has minimum allocations
     if (capability.getMemory() < minAllocMb
-        || capability.getVirtualCores() < minAllocVcores) {
+        || capability.getVirtualCores() < minAllocVcores
+        || capability.getGpuCores() < minAllocGcores) {
       String message =
           "NodeManager from  " + host
               + " doesn't satisfy minimum allocations, Sending SHUTDOWN"

@@ -17,17 +17,7 @@
  */
 package org.apache.hadoop.yarn.client.cli;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.Charset;
-import java.text.DecimalFormat;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -51,7 +41,16 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Times;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.text.DecimalFormat;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Private
 @Unstable
@@ -527,6 +526,7 @@ public class ApplicationCLI extends YarnCLI {
         //completed app report in the timeline server doesn't have usage report
         appReportStr.print(usageReport.getMemorySeconds() + " MB-seconds, ");
         appReportStr.println(usageReport.getVcoreSeconds() + " vcore-seconds");
+        appReportStr.println(usageReport.getGcoreSeconds() + " gcore-seconds");
       } else {
         appReportStr.println("N/A");
       }

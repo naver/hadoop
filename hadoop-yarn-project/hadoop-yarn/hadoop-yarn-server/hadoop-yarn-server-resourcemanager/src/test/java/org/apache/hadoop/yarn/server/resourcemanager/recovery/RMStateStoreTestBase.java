@@ -18,25 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.recovery;
 
-import org.apache.hadoop.yarn.event.Event;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.spy;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
-import javax.crypto.SecretKey;
-
-import org.junit.Assert;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -54,27 +35,39 @@ import org.apache.hadoop.yarn.api.records.impl.pb.ApplicationSubmissionContextPB
 import org.apache.hadoop.yarn.api.records.impl.pb.ContainerPBImpl;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.event.Dispatcher;
+import org.apache.hadoop.yarn.event.Event;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.security.AMRMTokenIdentifier;
 import org.apache.hadoop.yarn.security.client.RMDelegationTokenIdentifier;
 import org.apache.hadoop.yarn.server.records.Version;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
-import org.apache.hadoop.yarn.server.resourcemanager.recovery.records.ApplicationStateData;
-import org.apache.hadoop.yarn.server.resourcemanager.recovery.records.ApplicationAttemptStateData;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore.RMDTSecretManagerState;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore.RMState;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.records.AMRMTokenSecretManagerState;
+import org.apache.hadoop.yarn.server.resourcemanager.recovery.records.ApplicationAttemptStateData;
+import org.apache.hadoop.yarn.server.resourcemanager.recovery.records.ApplicationStateData;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppState;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.AggregateAppResourceUsage;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttempt;
-import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptEvent;
+import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptState;
 import org.apache.hadoop.yarn.server.resourcemanager.security.AMRMTokenSecretManager;
 import org.apache.hadoop.yarn.server.resourcemanager.security.ClientToAMTokenSecretManagerInRM;
 import org.apache.hadoop.yarn.server.security.MasterKeyData;
 import org.apache.hadoop.yarn.util.ConverterUtils;
+import org.junit.Assert;
+
+import javax.crypto.SecretKey;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class RMStateStoreTestBase extends ClientBaseWithFixes{
 
@@ -179,7 +172,7 @@ public class RMStateStoreTestBase extends ClientBaseWithFixes{
     when(mockAttempt.getRMAppAttemptMetrics())
         .thenReturn(mockRmAppAttemptMetrics);
     when(mockRmAppAttemptMetrics.getAggregateAppResourceUsage())
-        .thenReturn(new AggregateAppResourceUsage(0, 0));
+        .thenReturn(new AggregateAppResourceUsage(0, 0, 0));
     dispatcher.attemptId = attemptId;
     store.storeNewApplicationAttempt(mockAttempt);
     waitNotify(dispatcher);
@@ -268,7 +261,7 @@ public class RMStateStoreTestBase extends ClientBaseWithFixes{
     when(mockRemovedAttempt.getRMAppAttemptMetrics())
         .thenReturn(mockRmAppAttemptMetrics);
     when(mockRmAppAttemptMetrics.getAggregateAppResourceUsage())
-        .thenReturn(new AggregateAppResourceUsage(0,0));
+        .thenReturn(new AggregateAppResourceUsage(0,0,0));
     attempts.put(attemptIdRemoved, mockRemovedAttempt);
     store.removeApplication(mockRemovedApp);
 
@@ -344,7 +337,7 @@ public class RMStateStoreTestBase extends ClientBaseWithFixes{
             oldAttemptState.getStartTime(), RMAppAttemptState.FINISHED,
             "myTrackingUrl", "attemptDiagnostics",
             FinalApplicationStatus.SUCCEEDED, 100,
-            oldAttemptState.getFinishTime(), 0, 0);
+            oldAttemptState.getFinishTime(), 0, 0, 0);
     store.updateApplicationAttemptState(newAttemptState);
 
     // test updating the state of an app/attempt whose initial state was not
@@ -368,7 +361,7 @@ public class RMStateStoreTestBase extends ClientBaseWithFixes{
             oldAttemptState.getStartTime(), RMAppAttemptState.FINISHED,
             "myTrackingUrl", "attemptDiagnostics",
             FinalApplicationStatus.SUCCEEDED, 111,
-            oldAttemptState.getFinishTime(), 0, 0);
+            oldAttemptState.getFinishTime(), 0, 0, 0);
     store.updateApplicationAttemptState(dummyAttempt);
 
     // let things settle down

@@ -17,14 +17,14 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.webapp.dao;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.apache.hadoop.yarn.server.resourcemanager.ClusterMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.ResourceManager;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.QueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "clusterMetrics")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -45,12 +45,17 @@ public class ClusterMetricsInfo {
   protected long availableVirtualCores;
   protected long allocatedVirtualCores;
 
+  protected long reservedGpuCores;
+  protected long availableGpuCores;
+  protected long allocatedGpuCores;
+
   protected int containersAllocated;
   protected int containersReserved;
   protected int containersPending;
 
   protected long totalMB;
   protected long totalVirtualCores;
+  protected long totalGpuCores;
   protected int totalNodes;
   protected int lostNodes;
   protected int unhealthyNodes;
@@ -81,12 +86,17 @@ public class ClusterMetricsInfo {
     this.availableVirtualCores = metrics.getAvailableVirtualCores();
     this.allocatedVirtualCores = metrics.getAllocatedVirtualCores();
 
+    this.reservedGpuCores = metrics.getReservedGpuCores();
+    this.availableGpuCores = metrics.getAvailableGpuCores();
+    this.allocatedGpuCores = metrics.getAllocatedGpuCores();
+
     this.containersAllocated = metrics.getAllocatedContainers();
     this.containersPending = metrics.getPendingContainers();
     this.containersReserved = metrics.getReservedContainers();
 
     this.totalMB = availableMB + allocatedMB;
     this.totalVirtualCores = availableVirtualCores + allocatedVirtualCores;
+    this.totalGpuCores = availableGpuCores + allocatedGpuCores;
     this.activeNodes = clusterMetrics.getNumActiveNMs();
     this.lostNodes = clusterMetrics.getNumLostNMs();
     this.unhealthyNodes = clusterMetrics.getUnhealthyNMs();
@@ -144,6 +154,18 @@ public class ClusterMetricsInfo {
     return this.allocatedVirtualCores;
   }
 
+  public long getReservedGpuCores() {
+    return this.reservedGpuCores;
+  }
+
+  public long getAvailableGpuCores() {
+    return this.availableGpuCores;
+  }
+
+  public long getAllocatedGpuCores() {
+    return this.allocatedGpuCores;
+  }
+
   public int getContainersAllocated() {
     return this.containersAllocated;
   }
@@ -162,6 +184,10 @@ public class ClusterMetricsInfo {
 
   public long getTotalVirtualCores() {
     return this.totalVirtualCores;
+  }
+
+  public long getTotalGpuCores() {
+    return this.totalGpuCores;
   }
 
   public int getTotalNodes() {

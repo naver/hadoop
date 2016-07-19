@@ -18,17 +18,16 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Assert;
-
-import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceType;
 import org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceWeights;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.policies.ComputeFairShares;
+import org.apache.hadoop.yarn.util.resource.Resources;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Exercise the computeFairShares method in SchedulingAlgorithms.
@@ -177,17 +176,35 @@ public class TestComputeFairShares {
    */
   @Test
   public void testCPU() {
-    scheds.add(new FakeSchedulable(Resources.createResource(0, 20),
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 20, 0),
         new ResourceWeights(2.0f)));
-    scheds.add(new FakeSchedulable(Resources.createResource(0, 0),
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 0),
         new ResourceWeights(1.0f)));
-    scheds.add(new FakeSchedulable(Resources.createResource(0, 5),
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 5, 0),
         new ResourceWeights(1.0f)));
-    scheds.add(new FakeSchedulable(Resources.createResource(0, 15),
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 15, 0),
         new ResourceWeights(0.5f)));
     ComputeFairShares.computeShares(scheds,
-        Resources.createResource(0, 45), ResourceType.CPU);
+        Resources.createResource(0, 45, 0), ResourceType.CPU);
     verifyCPUShares(20, 5, 5, 15);
+  }
+
+  /**
+   * Test that GPU works as well as memory
+   */
+  @Test
+  public void testGPU() {
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 2),
+        new ResourceWeights(2.0f)));
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 0),
+        new ResourceWeights(1.0f)));
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 1),
+        new ResourceWeights(1.0f)));
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 3),
+        new ResourceWeights(0.5f)));
+    ComputeFairShares.computeShares(scheds,
+        Resources.createResource(0, 0, 8), ResourceType.GPU);
+    verifyGPUShares(2, 1, 1, 3);
   }
   
   /**
@@ -209,4 +226,14 @@ public class TestComputeFairShares {
       Assert.assertEquals(shares[i], scheds.get(i).getFairShare().getVirtualCores());
     }
   }
+  
+  /**
+   * Check that a given list of shares have been assigned to this.scheds.
+   */
+  private void verifyGPUShares(int... shares) {
+    Assert.assertEquals(scheds.size(), shares.length);
+    for (int i = 0; i < shares.length; i ++) {
+      Assert.assertEquals(shares[i], scheds.get(i).getFairShare().getGpuCores());
+    }
+  }  
 }

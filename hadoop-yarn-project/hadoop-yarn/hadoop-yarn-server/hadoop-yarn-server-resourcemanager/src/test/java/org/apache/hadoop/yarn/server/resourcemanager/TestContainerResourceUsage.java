@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager;
 
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.api.records.ApplicationAccessType;
@@ -38,9 +32,9 @@ import org.apache.hadoop.yarn.server.resourcemanager.recovery.MemoryRMStateStore
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppState;
+import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.AggregateAppResourceUsage;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttempt;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptState;
-import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.AggregateAppResourceUsage;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerState;
 import org.apache.log4j.Level;
@@ -50,6 +44,12 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 
 public class TestContainerResourceUsage {
 
@@ -90,6 +90,11 @@ public class TestContainerResourceUsage {
                           + rmAppMetrics.getVcoreSeconds(),
         rmAppMetrics.getVcoreSeconds() == 0);
 
+    Assert.assertTrue(
+        "Before app submission, gcore seconds should have been 0 but was "
+                          + rmAppMetrics.getGcoreSeconds(),
+        rmAppMetrics.getGcoreSeconds() == 0);
+
     RMAppAttempt attempt0 = app0.getCurrentAppAttempt();
 
     nm.nodeHeartbeat(true);
@@ -127,7 +132,8 @@ public class TestContainerResourceUsage {
         ru.getMemorySeconds(), rmAppMetrics.getMemorySeconds());
     Assert.assertEquals("Unexpected VcoreSeconds value",
         ru.getVcoreSeconds(), rmAppMetrics.getVcoreSeconds());
-
+    Assert.assertEquals("Unexpected GcoreSeconds value",
+        ru.getGcoreSeconds(), rmAppMetrics.getGcoreSeconds());
     rm.stop();
   }
 
@@ -216,10 +222,12 @@ public class TestContainerResourceUsage {
     // Check that the container metrics match those from the app usage report.
     long memorySeconds = 0;
     long vcoreSeconds = 0;
+    long gcoreSeconds = 0;
     for (RMContainer c : rmContainers) {
       AggregateAppResourceUsage ru = calculateContainerResourceMetrics(c);
       memorySeconds += ru.getMemorySeconds();
       vcoreSeconds += ru.getVcoreSeconds();
+      gcoreSeconds += ru.getGcoreSeconds();
     }
 
     RMAppMetrics metricsBefore = app0.getRMAppMetrics();
@@ -227,6 +235,8 @@ public class TestContainerResourceUsage {
         memorySeconds, metricsBefore.getMemorySeconds());
     Assert.assertEquals("Unexpected VcoreSeconds value",
         vcoreSeconds, metricsBefore.getVcoreSeconds());
+    Assert.assertEquals("Unexpected GcoreSeconds value",
+        gcoreSeconds, metricsBefore.getGcoreSeconds());
 
     // create new RM to represent RM restart. Load up the state store.
     MockRM rm1 = new MockRM(conf, memStore);
@@ -240,7 +250,8 @@ public class TestContainerResourceUsage {
         metricsBefore.getVcoreSeconds(), metricsAfter.getVcoreSeconds());
     Assert.assertEquals("Memory seconds were not the same after RM Restart",
         metricsBefore.getMemorySeconds(), metricsAfter.getMemorySeconds());
-
+    Assert.assertEquals("Gcore seconds were not the same after RM Restart",
+        metricsBefore.getGcoreSeconds(), metricsAfter.getGcoreSeconds());
     rm0.stop();
     rm0.close();
     rm1.stop();
@@ -312,6 +323,7 @@ public class TestContainerResourceUsage {
 
     long memorySeconds = 0;
     long vcoreSeconds = 0;
+    long gcoreSeconds = 0;
 
     // Calculate container usage metrics for first attempt.
     if (keepRunningContainers) {
@@ -321,6 +333,7 @@ public class TestContainerResourceUsage {
           AggregateAppResourceUsage ru = calculateContainerResourceMetrics(c);
           memorySeconds += ru.getMemorySeconds();
           vcoreSeconds += ru.getVcoreSeconds();
+          gcoreSeconds += ru.getGcoreSeconds();
         } else {
           // The remaining container should be RUNNING.
           Assert.assertTrue("After first attempt failed, remaining container "
@@ -335,6 +348,7 @@ public class TestContainerResourceUsage {
         AggregateAppResourceUsage ru = calculateContainerResourceMetrics(c);
         memorySeconds += ru.getMemorySeconds();
         vcoreSeconds += ru.getVcoreSeconds();
+        gcoreSeconds += ru.getGcoreSeconds();
       }
     }
 
@@ -386,6 +400,7 @@ public class TestContainerResourceUsage {
       AggregateAppResourceUsage ru = calculateContainerResourceMetrics(c);
       memorySeconds += ru.getMemorySeconds();
       vcoreSeconds += ru.getVcoreSeconds();
+      gcoreSeconds += ru.getGcoreSeconds();
     }
     
     RMAppMetrics rmAppMetrics = app.getRMAppMetrics();
@@ -394,7 +409,8 @@ public class TestContainerResourceUsage {
         memorySeconds, rmAppMetrics.getMemorySeconds());
     Assert.assertEquals("Unexpected VcoreSeconds value",
         vcoreSeconds, rmAppMetrics.getVcoreSeconds());
-
+    Assert.assertEquals("Unexpected GcoreSeconds value",
+        gcoreSeconds, rmAppMetrics.getGcoreSeconds());
     rm.stop();
     return;
   }
@@ -408,6 +424,8 @@ public class TestContainerResourceUsage {
                           * usedMillis / DateUtils.MILLIS_PER_SECOND;
     long vcoreSeconds = resource.getVirtualCores()
                           * usedMillis / DateUtils.MILLIS_PER_SECOND;
-    return new AggregateAppResourceUsage(memorySeconds, vcoreSeconds);
+    long gcoreSeconds = resource.getGpuCores()
+                          * usedMillis / DateUtils.MILLIS_PER_SECOND;
+    return new AggregateAppResourceUsage(memorySeconds, vcoreSeconds, gcoreSeconds);
   }
 }

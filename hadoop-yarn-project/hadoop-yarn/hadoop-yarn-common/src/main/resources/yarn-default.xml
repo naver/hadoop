@@ -272,6 +272,22 @@
   </property>
 
   <property>
+    <description>The minimum allocation for every container request at the RM,
+      in terms of GPU cores. Requests lower than this will throw a
+      InvalidResourceRequestException.</description>
+    <name>yarn.scheduler.minimum-allocation-gcores</name>
+    <value>0</value>
+  </property>
+
+  <property>
+    <description>The maximum allocation for every container request at the RM,
+      in terms of GPU cores. Requests higher than this will throw a
+      InvalidResourceRequestException.</description>
+    <name>yarn.scheduler.maximum-allocation-gcores</name>
+    <value>8</value>
+  </property>
+
+  <property>
     <description>Enable RM to recover state after starting. If true, then 
       yarn.resourcemanager.store.class must be specified. </description>
     <name>yarn.resourcemanager.recovery.enabled</name>
@@ -922,6 +938,15 @@
     physical cores used by YARN containers.</description>
     <name>yarn.nodemanager.resource.cpu-vcores</name>
     <value>8</value>
+  </property>
+
+  <property>
+    <description>Number of gcores that can be allocated
+      for containers. This is used by the RM scheduler when allocating
+      resources for containers. This is not used to limit the number of
+      gpu cores used by YARN containers.</description>
+    <name>yarn.nodemanager.resource.gcores</name>
+    <value>0</value>
   </property>
 
   <property>

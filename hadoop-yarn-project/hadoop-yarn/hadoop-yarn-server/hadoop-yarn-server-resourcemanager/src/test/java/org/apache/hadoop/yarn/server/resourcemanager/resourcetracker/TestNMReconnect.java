@@ -18,10 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.resourcetracker;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -43,8 +39,12 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEv
 import org.apache.hadoop.yarn.server.resourcemanager.security.NMTokenSecretManagerInRM;
 import org.apache.hadoop.yarn.server.resourcemanager.security.RMContainerTokenSecretManager;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestNMReconnect {
   private static final RecordFactory recordFactory = 
@@ -102,7 +102,7 @@ public class TestNMReconnect {
   @Test
   public void testReconnect() throws Exception {
     String hostname1 = "localhost1";
-    Resource capability = BuilderUtils.newResource(1024, 1);
+    Resource capability = BuilderUtils.newResource(1024, 1, 1);
 
     RegisterNodeManagerRequest request1 = recordFactory
         .newRecordInstance(RegisterNodeManagerRequest.class);
@@ -121,7 +121,7 @@ public class TestNMReconnect {
 
     rmNodeEvents.clear();
     resourceTrackerService.registerNodeManager(request1);
-    capability = BuilderUtils.newResource(1024, 2);
+    capability = BuilderUtils.newResource(1024, 2, 2);
     request1.setResource(capability);
     Assert.assertEquals(RMNodeEventType.RECONNECTED,
         rmNodeEvents.get(0).getType());

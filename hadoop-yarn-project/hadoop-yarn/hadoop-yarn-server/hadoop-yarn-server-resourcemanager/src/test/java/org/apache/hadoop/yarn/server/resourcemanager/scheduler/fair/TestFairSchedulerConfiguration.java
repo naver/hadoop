@@ -17,34 +17,31 @@
 */
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair;
 
-import static org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairSchedulerConfiguration.parseResourceConfigValue;
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-
-import org.junit.Assert;
-
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
 import org.junit.Test;
+
+import static org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairSchedulerConfiguration.parseResourceConfigValue;
+import static org.junit.Assert.assertEquals;
 
 public class TestFairSchedulerConfiguration {
   @Test
   public void testParseResourceConfigValue() throws Exception {
-    assertEquals(BuilderUtils.newResource(1024, 2),
-        parseResourceConfigValue("2 vcores, 1024 mb"));
-    assertEquals(BuilderUtils.newResource(1024, 2),
-        parseResourceConfigValue("1024 mb, 2 vcores"));
-    assertEquals(BuilderUtils.newResource(1024, 2),
-        parseResourceConfigValue("2vcores,1024mb"));
-    assertEquals(BuilderUtils.newResource(1024, 2),
-        parseResourceConfigValue("1024mb,2vcores"));
-    assertEquals(BuilderUtils.newResource(1024, 2),
-        parseResourceConfigValue("1024   mb, 2    vcores"));
-    assertEquals(BuilderUtils.newResource(1024, 2),
-        parseResourceConfigValue("1024 Mb, 2 vCores"));
-    assertEquals(BuilderUtils.newResource(1024, 2),
-        parseResourceConfigValue("  1024 mb, 2 vcores  "));
+    assertEquals(BuilderUtils.newResource(1024, 2, 4),
+        parseResourceConfigValue("2 vcores, 1024 mb, 4 gcores"));
+    assertEquals(BuilderUtils.newResource(1024, 2, 4),
+        parseResourceConfigValue("1024 mb, 2 vcores, 4 gcores"));
+    assertEquals(BuilderUtils.newResource(1024, 2, 4),
+        parseResourceConfigValue("4 gcores, 1024 mb, 2 vcores"));
+    assertEquals(BuilderUtils.newResource(1024, 2, 4),
+        parseResourceConfigValue("2vcores,1024mb,4gcores"));
+    assertEquals(BuilderUtils.newResource(1024, 2, 2),
+        parseResourceConfigValue("1024mb,2vcores,2gcores"));
+    assertEquals(BuilderUtils.newResource(1024, 2, 2),
+        parseResourceConfigValue("1024   mb, 2    vcores, 2    gcores"));
+    assertEquals(BuilderUtils.newResource(1024, 2, 2),
+        parseResourceConfigValue("1024 Mb, 2 vCores, 2 gCores"));
+    assertEquals(BuilderUtils.newResource(1024, 2, 2),
+        parseResourceConfigValue("  1024 mb, 2 vcores, 2 gcores  "));
   }
   
   @Test(expected = AllocationConfigurationException.class)
@@ -61,7 +58,12 @@ public class TestFairSchedulerConfiguration {
   public void testOnlyCPU() throws Exception {
     parseResourceConfigValue("1024vcores");
   }
-  
+
+  @Test(expected = AllocationConfigurationException.class)
+  public void testOnlyGPU() throws Exception {
+    parseResourceConfigValue("1024gcores");
+  }
+
   @Test(expected = AllocationConfigurationException.class)
   public void testGibberish() throws Exception {
     parseResourceConfigValue("1o24vc0res");

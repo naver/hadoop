@@ -18,17 +18,6 @@
 
 package org.apache.hadoop.yarn.server;
 
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -82,8 +71,16 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteStreams;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
 public class TestContainerManagerSecurity extends KerberosSecurityTestcase {
@@ -224,7 +221,7 @@ public class TestContainerManagerSecurity extends KerberosSecurityTestcase {
      */
     YarnRPC rpc = YarnRPC.create(conf);
     String user = "test";
-    Resource r = Resource.newInstance(1024, 1);
+    Resource r = Resource.newInstance(1024, 1, 1);
 
     ApplicationId appId = ApplicationId.newInstance(1, 1);
     ApplicationAttemptId validAppAttemptId =
@@ -657,7 +654,7 @@ public class TestContainerManagerSecurity extends KerberosSecurityTestcase {
         yarnCluster.getResourceManager().getRMContext().
             getContainerTokenSecretManager();
     
-    Resource r = Resource.newInstance(1230, 2);
+    Resource r = Resource.newInstance(1230, 2, 2);
     
     Token containerToken = 
         containerTokenSecretManager.createContainerToken(

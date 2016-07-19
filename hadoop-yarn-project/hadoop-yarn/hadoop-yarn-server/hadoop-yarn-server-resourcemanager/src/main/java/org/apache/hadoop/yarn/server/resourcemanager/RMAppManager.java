@@ -17,11 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.LinkedList;
-import java.util.Map;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -58,7 +54,10 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.YarnScheduler;
 import org.apache.hadoop.yarn.server.security.ApplicationACLsManager;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * This class manages the list of applications for the resource manager. 
@@ -170,6 +169,7 @@ public class RMAppManager implements EventHandler<RMAppManagerEvent>,
           .add("finalStatus", app.getFinalApplicationStatus())
           .add("memorySeconds", metrics.getMemorySeconds())
           .add("vcoreSeconds", metrics.getVcoreSeconds())
+          .add("gcoreSeconds", metrics.getGcoreSeconds())
           .add("preemptedAMContainers", metrics.getNumAMContainersPreempted())
           .add("preemptedNonAMContainers", metrics.getNumNonAMContainersPreempted())
           .add("preemptedResources", metrics.getResourcePreempted())

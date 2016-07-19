@@ -18,11 +18,6 @@
 
 package org.apache.hadoop.yarn.client.api.impl;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.net.DNSToSwitchMapping;
@@ -33,6 +28,11 @@ import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest;
 import org.apache.hadoop.yarn.client.api.InvalidContainerRequestException;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestAMRMClientContainerRequest {
   @Test
@@ -46,7 +46,7 @@ public class TestAMRMClientContainerRequest {
         MyResolver.class, DNSToSwitchMapping.class);
     client.init(conf);
  
-    Resource capability = Resource.newInstance(1024, 1);
+    Resource capability = Resource.newInstance(1024, 1, 1);
     ContainerRequest request =
         new ContainerRequest(capability, new String[] {"host1", "host2"},
             new String[] {"/rack2"}, Priority.newInstance(1));
@@ -68,7 +68,7 @@ public class TestAMRMClientContainerRequest {
         MyResolver.class, DNSToSwitchMapping.class);
     client.init(conf);
     
-    Resource capability = Resource.newInstance(1024, 1);
+    Resource capability = Resource.newInstance(1024, 1, 1);
     ContainerRequest nodeLevelRequest =
         new ContainerRequest(capability, new String[] {"host1", "host2"},
             null, Priority.newInstance(1), false);
@@ -135,7 +135,7 @@ public class TestAMRMClientContainerRequest {
         MyResolver.class, DNSToSwitchMapping.class);
     client.init(conf);
     
-    Resource capability = Resource.newInstance(1024, 1);
+    Resource capability = Resource.newInstance(1024, 1, 1);
     ContainerRequest request1 =
         new ContainerRequest(capability, new String[] {"host1", "host2"},
             null, Priority.newInstance(1), false);
@@ -156,7 +156,7 @@ public class TestAMRMClientContainerRequest {
         MyResolver.class, DNSToSwitchMapping.class);
     client.init(conf);
     
-    Resource capability = Resource.newInstance(1024, 1);
+    Resource capability = Resource.newInstance(1024, 1, 1);
     ContainerRequest request1 =
         new ContainerRequest(capability, new String[] {"host1", "host2"},
             null, Priority.newInstance(1), false);
@@ -195,7 +195,7 @@ public class TestAMRMClientContainerRequest {
         MyResolver.class, DNSToSwitchMapping.class);
     client.init(conf);
     
-    Resource capability = Resource.newInstance(1024, 1);
+    Resource capability = Resource.newInstance(1024, 1, 1);
     ContainerRequest request1 =
         new ContainerRequest(capability, new String[] {"host1", "host2"},
             null, Priority.newInstance(1), false);

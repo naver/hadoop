@@ -17,30 +17,7 @@
  */
 package org.apache.hadoop.yarn.client.cli;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
@@ -71,7 +48,24 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mortbay.log.Log;
 
-import com.google.common.collect.ImmutableSet;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.*;
 
 public class TestYarnCLI {
 
@@ -97,7 +91,7 @@ public class TestYarnCLI {
       ApplicationId applicationId = ApplicationId.newInstance(1234, 5);
       ApplicationResourceUsageReport usageReport = i == 0 ? null :
           ApplicationResourceUsageReport.newInstance(
-              2, 0, null, null, null, 123456, 4567);
+              2, 0, null, null, null, 123456, 4567, 4567);
       ApplicationReport newApplicationReport = ApplicationReport.newInstance(
           applicationId, ApplicationAttemptId.newInstance(applicationId, 1),
           "user", "queue", "appname", "host", 124, null,
@@ -126,7 +120,7 @@ public class TestYarnCLI {
       pw.println("\tRPC Port : 124");
       pw.println("\tAM Host : host");
       pw.println("\tAggregate Resource Allocation : " +
-          (i == 0 ? "N/A" : "123456 MB-seconds, 4567 vcore-seconds"));
+          (i == 0 ? "N/A" : "123456 MB-seconds, 4567 vcore-seconds, 4567 gcore-seconds"));
       pw.println("\tDiagnostics : diagnostics");
       pw.close();
       String appReportStr = baos.toString("UTF-8");

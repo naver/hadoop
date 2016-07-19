@@ -18,10 +18,6 @@
 
 package org.apache.hadoop.yarn.client;
 
-import java.io.IOException;
-
-import org.junit.Assert;
-
 import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -32,8 +28,11 @@ import org.apache.hadoop.yarn.server.api.protocolrecords.RegisterNodeManagerRequ
 import org.apache.hadoop.yarn.server.api.records.NodeStatus;
 import org.apache.hadoop.yarn.util.YarnVersionInfo;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
 
 public class TestResourceTrackerOnHA extends ProtocolHATestBase{
 
@@ -55,7 +54,7 @@ public class TestResourceTrackerOnHA extends ProtocolHATestBase{
   @Test(timeout = 15000)
   public void testResourceTrackerOnHA() throws Exception {
     NodeId nodeId = NodeId.newInstance("localhost", 0);
-    Resource resource = Resource.newInstance(2048, 4);
+    Resource resource = Resource.newInstance(2048, 4, 4);
 
     // make sure registerNodeManager works when failover happens
     RegisterNodeManagerRequest request =

@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.yarn;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -56,6 +50,12 @@ import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  * Test that the container launcher rpc times out properly. This is used
@@ -99,7 +99,7 @@ public class TestContainerLaunchRPC {
       ContainerId containerId =
           ContainerId.newContainerId(applicationAttemptId, 100);
       NodeId nodeId = NodeId.newInstance("localhost", 1234);
-      Resource resource = Resource.newInstance(1234, 2);
+      Resource resource = Resource.newInstance(1234, 2, 3);
       ContainerTokenIdentifier containerTokenIdentifier =
           new ContainerTokenIdentifier(containerId, "localhost", "user",
             resource, System.currentTimeMillis() + 10000, 42, 42,

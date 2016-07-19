@@ -18,9 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.policies;
 
-import java.util.Collection;
-import java.util.Comparator;
-
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -31,7 +28,13 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.Schedulable;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.SchedulingPolicy;
 import org.apache.hadoop.yarn.util.resource.Resources;
 
-import static org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceType.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Set;
+
+import static org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceType.CPU;
+import static org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceType.MEMORY;
+import static org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceType.GPU;
 
 /**
  * Makes scheduling decisions by trying to equalize dominant resource usage.
@@ -46,6 +49,8 @@ public class DominantResourceFairnessPolicy extends SchedulingPolicy {
 
   private DominantResourceFairnessComparator comparator =
       new DominantResourceFairnessComparator();
+
+  private Set<ResourceType> enabledResourceTypes;
 
   @Override
   public String getName() {
@@ -96,10 +101,13 @@ public class DominantResourceFairnessPolicy extends SchedulingPolicy {
     int queueAvailableCPU =
         Math.max(queueFairShare.getVirtualCores() - queueUsage
             .getVirtualCores(), 0);
+    int queueAvailableGPU =
+        Math.max(queueFairShare.getGpuCores() - queueUsage.getGpuCores(), 0);
     Resource headroom = Resources.createResource(
         Math.min(maxAvailable.getMemory(), queueAvailableMemory),
         Math.min(maxAvailable.getVirtualCores(),
-            queueAvailableCPU));
+            queueAvailableCPU),
+        Math.min(maxAvailable.getGpuCores(), queueAvailableGPU));
     return headroom;
   }
 
@@ -108,9 +116,16 @@ public class DominantResourceFairnessPolicy extends SchedulingPolicy {
     comparator.setClusterCapacity(clusterCapacity);
   }
 
-  public static class DominantResourceFairnessComparator implements Comparator<Schedulable> {
-    private static final int NUM_RESOURCES = ResourceType.values().length;
-    
+  public void setEnabledResourceTypes(Set<ResourceType> enabledResourceTypes) {
+    this.enabledResourceTypes = enabledResourceTypes;
+  }
+
+  public Set<ResourceType> getEnabledResourceTypes() {
+    return this.enabledResourceTypes;
+  }
+
+  public class DominantResourceFairnessComparator implements Comparator<Schedulable> {
+
     private Resource clusterCapacity;
 
     public void setClusterCapacity(Resource clusterCapacity) {
@@ -119,12 +134,16 @@ public class DominantResourceFairnessPolicy extends SchedulingPolicy {
 
     @Override
     public int compare(Schedulable s1, Schedulable s2) {
+      if (enabledResourceTypes == null || enabledResourceTypes.isEmpty()) {
+        return (int)(s1.getStartTime() - s2.getStartTime());
+      } 
+      
       ResourceWeights sharesOfCluster1 = new ResourceWeights();
       ResourceWeights sharesOfCluster2 = new ResourceWeights();
       ResourceWeights sharesOfMinShare1 = new ResourceWeights();
       ResourceWeights sharesOfMinShare2 = new ResourceWeights();
-      ResourceType[] resourceOrder1 = new ResourceType[NUM_RESOURCES];
-      ResourceType[] resourceOrder2 = new ResourceType[NUM_RESOURCES];
+      ResourceType[] resourceOrder1 = new ResourceType[enabledResourceTypes.size()];
+      ResourceType[] resourceOrder2 = new ResourceType[enabledResourceTypes.size()];
       
       // Calculate shares of the cluster for each resource both schedulables.
       calculateShares(s1.getResourceUsage(),
@@ -170,19 +189,53 @@ public class DominantResourceFairnessPolicy extends SchedulingPolicy {
      */
     void calculateShares(Resource resource, Resource pool,
         ResourceWeights shares, ResourceType[] resourceOrder, ResourceWeights weights) {
-      shares.setWeight(MEMORY, (float)resource.getMemory() /
-          (pool.getMemory() * weights.getWeight(MEMORY)));
-      shares.setWeight(CPU, (float)resource.getVirtualCores() /
-          (pool.getVirtualCores() * weights.getWeight(CPU)));
-      // sort order vector by resource share
-      if (resourceOrder != null) {
-        if (shares.getWeight(MEMORY) > shares.getWeight(CPU)) {
-          resourceOrder[0] = MEMORY;
-          resourceOrder[1] = CPU;
-        } else  {
+      if (enabledResourceTypes.contains(ResourceType.MEMORY)) {
+        shares.setWeight(MEMORY, (float)resource.getMemory() /
+            (pool.getMemory() * weights.getWeight(MEMORY)));
+      }
+      if (enabledResourceTypes.contains(ResourceType.CPU)) {
+        shares.setWeight(CPU, (float) resource.getVirtualCores() /
+            (pool.getVirtualCores() * weights.getWeight(CPU)));
+      }
+      if (enabledResourceTypes.contains(ResourceType.GPU)) {
+        shares.setWeight(GPU, (float) resource.getGpuCores() /
+            (pool.getGpuCores() * weights.getWeight(GPU)));
+      }
+      if (resourceOrder == null) {
+        return;
+      }
+
+      int position = 0;
+      if (enabledResourceTypes.contains(ResourceType.MEMORY)) {
+        resourceOrder[0] = MEMORY;
+        position ++;
+      }
+      if (enabledResourceTypes.contains(ResourceType.CPU)) {
+        if (position == 0) {
           resourceOrder[0] = CPU;
-          resourceOrder[1] = MEMORY;
+        } else {
+          if (shares.getWeight(MEMORY) >= shares.getWeight(CPU)) {
+            resourceOrder[1] = CPU;
+          } else {
+            resourceOrder[0] = CPU;
+            resourceOrder[1] = MEMORY;
+          }
         }
+        position ++;
+      }
+      if (enabledResourceTypes.contains(ResourceType.GPU)) {
+        int startIndex = 0;
+        while (startIndex < position) {
+          if (shares.getWeight(GPU) >=
+              shares.getWeight(resourceOrder[startIndex])) {
+            break;
+          }
+          startIndex ++;
+        }
+        for (int i = position; i > startIndex; i --) {
+          resourceOrder[i] = resourceOrder[i-1];
+        }
+        resourceOrder[startIndex] = GPU;
       }
     }
     

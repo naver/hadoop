@@ -18,26 +18,7 @@
 
 package org.apache.hadoop.yarn.client.api.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
+import com.google.common.base.Supplier;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.security.Credentials;
@@ -95,7 +76,23 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mortbay.log.Log;
 
-import com.google.common.base.Supplier;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestAMRMClient {
   static Configuration conf = null;
@@ -141,7 +138,7 @@ public class TestAMRMClient {
     
     priority = Priority.newInstance(1);
     priority2 = Priority.newInstance(2);
-    capability = Resource.newInstance(1024, 1);
+    capability = Resource.newInstance(1024, 1, 1);
 
     node = nodeReports.get(0).getNodeId().getHost();
     rack = nodeReports.get(0).getRackName();
@@ -171,7 +168,7 @@ public class TestAMRMClient {
           new HashMap<String, ByteBuffer>(), null,
           new HashMap<ApplicationAccessType, String>());
     appContext.setAMContainerSpec(amContainer);
-    appContext.setResource(Resource.newInstance(1024, 1));
+    appContext.setResource(Resource.newInstance(1024, 1, 1));
     // Create the request to send to the applications manager
     SubmitApplicationRequest appRequest = Records
         .newRecord(SubmitApplicationRequest.class);
@@ -233,13 +230,13 @@ public class TestAMRMClient {
       amClient.start();
       amClient.registerApplicationMaster("Host", 10000, "");
       
-      Resource capability1 = Resource.newInstance(1024, 2);
-      Resource capability2 = Resource.newInstance(1024, 1);
-      Resource capability3 = Resource.newInstance(1000, 2);
-      Resource capability4 = Resource.newInstance(2000, 1);
-      Resource capability5 = Resource.newInstance(1000, 3);
-      Resource capability6 = Resource.newInstance(2000, 1);
-      Resource capability7 = Resource.newInstance(2000, 1);
+      Resource capability1 = Resource.newInstance(1024, 2, 2);
+      Resource capability2 = Resource.newInstance(1024, 1, 1);
+      Resource capability3 = Resource.newInstance(1000, 2, 2);
+      Resource capability4 = Resource.newInstance(2000, 1, 1);
+      Resource capability5 = Resource.newInstance(1000, 3, 3);
+      Resource capability6 = Resource.newInstance(2000, 1, 1);
+      Resource capability7 = Resource.newInstance(2000, 1, 1);
 
       ContainerRequest storedContainer1 = 
           new ContainerRequest(capability1, nodes, racks, priority);
@@ -267,7 +264,7 @@ public class TestAMRMClient {
       List<? extends Collection<ContainerRequest>> matches;
       ContainerRequest storedRequest;
       // exact match
-      Resource testCapability1 = Resource.newInstance(1024,  2);
+      Resource testCapability1 = Resource.newInstance(1024,  2, 2);
       matches = amClient.getMatchingRequests(priority, node, testCapability1);
       verifyMatches(matches, 1);
       storedRequest = matches.get(0).iterator().next();
@@ -275,7 +272,7 @@ public class TestAMRMClient {
       amClient.removeContainerRequest(storedContainer1);
       
       // exact matching with order maintained
-      Resource testCapability2 = Resource.newInstance(2000, 1);
+      Resource testCapability2 = Resource.newInstance(2000, 1, 1);
       matches = amClient.getMatchingRequests(priority, node, testCapability2);
       verifyMatches(matches, 2);
       // must be returned in the order they were made
@@ -290,11 +287,11 @@ public class TestAMRMClient {
       amClient.removeContainerRequest(storedContainer6);
       
       // matching with larger container. all requests returned
-      Resource testCapability3 = Resource.newInstance(4000, 4);
+      Resource testCapability3 = Resource.newInstance(4000, 4, 4);
       matches = amClient.getMatchingRequests(priority, node, testCapability3);
       assert(matches.size() == 4);
       
-      Resource testCapability4 = Resource.newInstance(1024, 2);
+      Resource testCapability4 = Resource.newInstance(1024, 2, 2);
       matches = amClient.getMatchingRequests(priority, node, testCapability4);
       assert(matches.size() == 2);
       // verify non-fitting containers are not returned and fitting ones are
@@ -307,13 +304,13 @@ public class TestAMRMClient {
                 testRequest == storedContainer3);
       }
       
-      Resource testCapability5 = Resource.newInstance(512, 4);
+      Resource testCapability5 = Resource.newInstance(512, 4, 4);
       matches = amClient.getMatchingRequests(priority, node, testCapability5);
       assert(matches.size() == 0);
       
       // verify requests without relaxed locality are only returned at specific
       // locations
-      Resource testCapability7 = Resource.newInstance(2000, 1);
+      Resource testCapability7 = Resource.newInstance(2000, 1, 1);
       matches = amClient.getMatchingRequests(priority2, ResourceRequest.ANY,
           testCapability7);
       assert(matches.size() == 0);
@@ -347,7 +344,7 @@ public class TestAMRMClient {
       amClient.start();
       amClient.registerApplicationMaster("Host", 10000, "");
       
-      Resource capability = Resource.newInstance(1024, 2);
+      Resource capability = Resource.newInstance(1024, 2, 2);
 
       ContainerRequest storedContainer1 = 
           new ContainerRequest(capability, nodes, null, priority);
@@ -552,7 +549,7 @@ public class TestAMRMClient {
       
       // create a invalid ContainerRequest - memory value is minus
       ContainerRequest invalidContainerRequest = 
-          new ContainerRequest(Resource.newInstance(-1024, 1),
+          new ContainerRequest(Resource.newInstance(-1024, 1, 1),
               nodes, racks, priority);
       amClient.addContainerRequest(invalidContainerRequest);
       amClient.updateBlacklist(localNodeBlacklist, null);

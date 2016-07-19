@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.security.PrivilegedAction;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.security.Credentials;
@@ -89,6 +83,12 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.security.PrivilegedAction;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public class MockRM extends ResourceManager {
@@ -451,18 +451,18 @@ public class MockRM extends ResourceManager {
     return nm;
   }
 
-  public MockNM registerNode(String nodeIdStr, int memory, int vCores)
+  public MockNM registerNode(String nodeIdStr, int memory, int vCores, int gCores)
       throws Exception {
     MockNM nm =
-        new MockNM(nodeIdStr, memory, vCores, getResourceTrackerService());
+        new MockNM(nodeIdStr, memory, vCores, gCores, getResourceTrackerService());
     nm.registerNode();
     return nm;
   }
   
-  public MockNM registerNode(String nodeIdStr, int memory, int vCores,
+  public MockNM registerNode(String nodeIdStr, int memory, int vCores, int gCores,
       List<ApplicationId> runningApplications) throws Exception {
     MockNM nm =
-        new MockNM(nodeIdStr, memory, vCores, getResourceTrackerService(),
+        new MockNM(nodeIdStr, memory, vCores, gCores, getResourceTrackerService(),
             YarnVersionInfo.getVersion());
     nm.registerNode(runningApplications);
     return nm;

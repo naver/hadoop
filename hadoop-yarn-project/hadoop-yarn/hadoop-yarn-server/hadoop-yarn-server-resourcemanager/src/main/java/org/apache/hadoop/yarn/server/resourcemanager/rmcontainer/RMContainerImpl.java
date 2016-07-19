@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.rmcontainer;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,6 +47,12 @@ import org.apache.hadoop.yarn.state.StateMachine;
 import org.apache.hadoop.yarn.state.StateMachineFactory;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.webapp.util.WebAppUtils;
+
+import java.util.EnumSet;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class RMContainerImpl implements RMContainer {
@@ -526,8 +526,10 @@ public class RMContainerImpl implements RMContainer {
                               * usedMillis / DateUtils.MILLIS_PER_SECOND;
         long vcoreSeconds = resource.getVirtualCores()
                              * usedMillis / DateUtils.MILLIS_PER_SECOND;
+        long gcoreSeconds = resource.getGpuCores()
+                             * usedMillis / DateUtils.MILLIS_PER_SECOND;
         rmAttempt.getRMAppAttemptMetrics()
-                  .updateAggregateAppResourceUsage(memorySeconds,vcoreSeconds);
+                  .updateAggregateAppResourceUsage(memorySeconds,vcoreSeconds, gcoreSeconds);
       }
     }
   }

@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.yarn.server.applicationhistoryservice;
 
-import java.security.PrivilegedExceptionAction;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.SaslRpcServer.AuthMethod;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -62,6 +56,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @RunWith(Parameterized.class)
 public class TestApplicationHistoryManagerOnTimelineStore {
@@ -216,6 +216,8 @@ public class TestApplicationHistoryManagerOnTimelineStore {
           applicationResourceUsageReport.getMemorySeconds());
       Assert
           .assertEquals(345, applicationResourceUsageReport.getVcoreSeconds());
+      Assert
+          .assertEquals(345, applicationResourceUsageReport.getGcoreSeconds());
       Assert.assertEquals(FinalApplicationStatus.UNDEFINED,
           app.getFinalApplicationStatus());
       Assert.assertEquals(YarnApplicationState.FINISHED,
@@ -463,6 +465,7 @@ public class TestApplicationHistoryManagerOnTimelineStore {
         Integer.MAX_VALUE + 1L);
     entityInfo.put(ApplicationMetricsConstants.APP_MEM_METRICS,123);
     entityInfo.put(ApplicationMetricsConstants.APP_CPU_METRICS,345);
+    entityInfo.put(ApplicationMetricsConstants.APP_GPU_METRICS,345);
     if (emptyACLs) {
       entityInfo.put(ApplicationMetricsConstants.APP_VIEW_ACLS_ENTITY_INFO, "");
     } else {

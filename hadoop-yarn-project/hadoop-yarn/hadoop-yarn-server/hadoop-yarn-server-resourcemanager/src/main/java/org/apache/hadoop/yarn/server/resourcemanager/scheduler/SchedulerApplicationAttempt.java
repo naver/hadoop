@@ -17,15 +17,9 @@
 */
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.base.Preconditions;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -58,9 +52,14 @@ import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerStat
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeCleanContainerEvent;
 import org.apache.hadoop.yarn.util.resource.Resources;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents an application attempt from the viewpoint of the scheduler.
@@ -78,6 +77,7 @@ public class SchedulerApplicationAttempt {
   protected long lastMemoryAggregateAllocationUpdateTime = 0;
   private long lastMemorySeconds = 0;
   private long lastVcoreSeconds = 0;
+  private long lastGcoreSeconds = 0;
 
   protected final AppSchedulingInfo appSchedulingInfo;
   protected ApplicationAttemptId attemptId;
@@ -88,7 +88,7 @@ public class SchedulerApplicationAttempt {
 
   private final Multiset<Priority> reReservations = HashMultiset.create();
   
-  private Resource resourceLimit = Resource.newInstance(0, 0);
+  private Resource resourceLimit = Resource.newInstance(0, 0, 0);
   private boolean unmanagedAM = true;
   private boolean amRunning = false;
   private LogAggregationContext logAggregationContext;
@@ -541,6 +541,7 @@ public class SchedulerApplicationAttempt {
         > MEM_AGGREGATE_ALLOCATION_CACHE_MSECS) {
       long memorySeconds = 0;
       long vcoreSeconds = 0;
+      long gcoreSeconds = 0;
       for (RMContainer rmContainer : this.liveContainers.values()) {
         long usedMillis = currentTimeMillis - rmContainer.getCreationTime();
         Resource resource = rmContainer.getContainer().getResource();
@@ -548,13 +549,15 @@ public class SchedulerApplicationAttempt {
             DateUtils.MILLIS_PER_SECOND;
         vcoreSeconds += resource.getVirtualCores() * usedMillis  
             / DateUtils.MILLIS_PER_SECOND;
+        gcoreSeconds += resource.getGpuCores() * usedMillis / DateUtils.MILLIS_PER_SECOND;
       }
 
       lastMemoryAggregateAllocationUpdateTime = currentTimeMillis;
       lastMemorySeconds = memorySeconds;
       lastVcoreSeconds = vcoreSeconds;
+      lastGcoreSeconds = gcoreSeconds;
     }
-    return new AggregateAppResourceUsage(lastMemorySeconds, lastVcoreSeconds);
+    return new AggregateAppResourceUsage(lastMemorySeconds, lastVcoreSeconds, lastGcoreSeconds);
   }
 
   public synchronized ApplicationResourceUsageReport getResourceUsageReport() {
@@ -568,7 +571,8 @@ public class SchedulerApplicationAttempt {
         reservedContainers.size(), usedResourceClone, reservedResourceClone,
         Resources.add(usedResourceClone, reservedResourceClone),
         runningResourceUsage.getMemorySeconds(),
-        runningResourceUsage.getVcoreSeconds());
+        runningResourceUsage.getVcoreSeconds(),
+        runningResourceUsage.getGcoreSeconds());
   }
 
   public synchronized Map<ContainerId, RMContainer> getLiveContainersMap() {

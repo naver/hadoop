@@ -236,6 +236,24 @@ public class FairScheduler extends
         + "=" + maxVcores + ", min should equal greater than 0"
         + ", max should be no smaller than min.");
     }
+
+    // validate scheduler gcores allocating setting
+    int minGcores = conf.getInt(
+      YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES,
+      YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES);
+    int maxGcores = conf.getInt(
+      YarnConfiguration.RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES,
+      YarnConfiguration.DEFAULT_RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES);
+
+    if (minGcores < 0 || minGcores > maxGcores) {
+      throw new YarnRuntimeException("Invalid resource scheduler gcores"
+        + " allocation configuration"
+        + ", " + YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES
+        + "=" + minGcores
+        + ", " + YarnConfiguration.RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES
+        + "=" + maxGcores + ", min should equal greater than 0"
+        + ", max should be no smaller than min.");
+    }
   }
 
   public FairSchedulerConfiguration getConf() {
@@ -319,7 +337,8 @@ public class FairScheduler extends
             "  Allocations: " + rootMetrics.getAllocatedResources() +
             "  Availability: " + Resource.newInstance(
             rootMetrics.getAvailableMB(),
-            rootMetrics.getAvailableVirtualCores()) +
+            rootMetrics.getAvailableVirtualCores(),
+            rootMetrics.getAvailableGpuCores()) +
             "  Demand: " + rootQueue.getDemand());
       }
     }
@@ -1143,8 +1162,9 @@ public class FairScheduler extends
     if (preemptionEnabled) {
       return (preemptionUtilizationThreshold < Math.max(
           (float) rootMetrics.getAllocatedMB() / clusterResource.getMemory(),
-          (float) rootMetrics.getAllocatedVirtualCores() /
-              clusterResource.getVirtualCores()));
+          Math.max((float) rootMetrics.getAllocatedVirtualCores() /
+              clusterResource.getVirtualCores(),
+              (float) rootMetrics.getAllocatedGpuCores() / clusterResource.getGpuCores())));
     }
     return false;
   }
@@ -1638,7 +1658,7 @@ public class FairScheduler extends
   @Override
   public EnumSet<SchedulerResourceTypes> getSchedulingResourceTypes() {
     return EnumSet
-      .of(SchedulerResourceTypes.MEMORY, SchedulerResourceTypes.CPU);
+      .of(SchedulerResourceTypes.MEMORY, SchedulerResourceTypes.CPU, SchedulerResourceTypes.GPU);
   }
 
   @Override

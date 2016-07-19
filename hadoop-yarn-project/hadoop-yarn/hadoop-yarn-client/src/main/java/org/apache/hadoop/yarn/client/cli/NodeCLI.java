@@ -17,18 +17,6 @@
  */
 package org.apache.hadoop.yarn.client.cli;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -45,6 +33,18 @@ import org.apache.hadoop.yarn.api.records.NodeReport;
 import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Private
 @Unstable
@@ -211,6 +211,11 @@ public class NodeCLI extends YarnCLI {
           : (nodeReport.getUsed().getVirtualCores() + " vcores"));
       nodeReportStr.print("\tCPU-Capacity : ");
       nodeReportStr.println(nodeReport.getCapability().getVirtualCores() + " vcores");
+      nodeReportStr.print("\tGPU-Used : ");
+      nodeReportStr.println((nodeReport.getUsed() == null) ? "0 vcores"
+              : (nodeReport.getUsed().getGpuCores() + " gcores"));
+      nodeReportStr.print("\tGPU-Capacity : ");
+      nodeReportStr.println(nodeReport.getCapability().getGpuCores() + " gcores");
       nodeReportStr.print("\tNode-Labels : ");
       
       // Create a List for node labels since we need it get sorted

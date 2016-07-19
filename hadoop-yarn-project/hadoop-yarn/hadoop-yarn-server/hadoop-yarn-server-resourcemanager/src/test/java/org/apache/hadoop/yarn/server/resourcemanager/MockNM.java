@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerState;
@@ -44,12 +38,19 @@ import org.apache.hadoop.yarn.util.Records;
 import org.apache.hadoop.yarn.util.YarnVersionInfo;
 import org.mortbay.log.Log;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class MockNM {
 
   private int responseId;
   private NodeId nodeId;
   private final int memory;
   private final int vCores;
+  private final int gCores;
   private ResourceTrackerService resourceTracker;
   private int httpPort = 2;
   private MasterKey currentContainerTokenMasterKey;
@@ -66,13 +67,21 @@ public class MockNM {
 
   public MockNM(String nodeIdStr, int memory, int vcores,
       ResourceTrackerService resourceTracker) {
-    this(nodeIdStr, memory, vcores, resourceTracker, YarnVersionInfo.getVersion());
+    this(nodeIdStr, memory, vcores,
+        Math.max(1, (memory * YarnConfiguration.DEFAULT_NM_GCORES) /
+            YarnConfiguration.DEFAULT_NM_PMEM_MB),
+                resourceTracker);
   }
 
-  public MockNM(String nodeIdStr, int memory, int vcores,
+  public MockNM(String nodeIdStr, int memory, int vcores, int gcores, ResourceTrackerService resourceTracker) {
+    this(nodeIdStr, memory, vcores, gcores, resourceTracker, YarnVersionInfo.getVersion());
+  }
+
+  public MockNM(String nodeIdStr, int memory, int vcores, int gcores,
       ResourceTrackerService resourceTracker, String version) {
     this.memory = memory;
     this.vCores = vcores;
+    this.gCores = gcores;
     this.resourceTracker = resourceTracker;
     this.version = version;
     String[] splits = nodeIdStr.split(":");
@@ -119,7 +128,7 @@ public class MockNM {
         RegisterNodeManagerRequest.class);
     req.setNodeId(nodeId);
     req.setHttpPort(httpPort);
-    Resource resource = BuilderUtils.newResource(memory, vCores);
+    Resource resource = BuilderUtils.newResource(memory, vCores, gCores);
     req.setResource(resource);
     req.setContainerStatuses(containerReports);
     req.setNMVersion(version);
@@ -201,5 +210,9 @@ public class MockNM {
 
   public int getvCores() {
     return vCores;
+  }
+
+  public int getgCores() {
+    return gCores;
   }
 }

@@ -18,13 +18,7 @@
 
 package org.apache.hadoop.yarn.server.applicationhistoryservice;
 
-import java.io.IOException;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -64,7 +58,12 @@ import org.apache.hadoop.yarn.server.timeline.TimelineReader.Field;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.webapp.util.WebAppUtils;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ApplicationHistoryManagerOnTimelineStore extends AbstractService
     implements
@@ -286,8 +285,10 @@ public class ApplicationHistoryManagerOnTimelineStore extends AbstractService
                 ApplicationMetricsConstants.APP_CPU_METRICS).toString());
         long memorySeconds=Long.parseLong(entityInfo.get(
                 ApplicationMetricsConstants.APP_MEM_METRICS).toString());
+        long gcoreSeconds=Long.parseLong(entityInfo.get(
+                ApplicationMetricsConstants.APP_GPU_METRICS).toString());
         appResources=ApplicationResourceUsageReport
-            .newInstance(0, 0, null, null, null, memorySeconds, vcoreSeconds);
+            .newInstance(0, 0, null, null, null, memorySeconds, vcoreSeconds, gcoreSeconds);
       }
     }
     List<TimelineEvent> events = entity.getEvents();

@@ -17,13 +17,6 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -48,6 +41,13 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.AppAddedSch
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.AppAttemptAddedSchedulerEvent;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
 import org.apache.hadoop.yarn.util.Clock;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class FairSchedulerTestBase {
   protected static class MockClock implements Clock {
@@ -97,15 +97,15 @@ public class FairSchedulerTestBase {
   protected ResourceRequest createResourceRequest(
       int memory, String host, int priority, int numContainers,
       boolean relaxLocality) {
-    return createResourceRequest(memory, 1, host, priority, numContainers,
+    return createResourceRequest(memory, 1, 0, host, priority, numContainers,
         relaxLocality);
   }
 
   protected ResourceRequest createResourceRequest(
-      int memory, int vcores, String host, int priority, int numContainers,
+      int memory, int vcores, int gcores, String host, int priority, int numContainers,
       boolean relaxLocality) {
     ResourceRequest request = recordFactory.newRecordInstance(ResourceRequest.class);
-    request.setCapability(BuilderUtils.newResource(memory, vcores));
+    request.setCapability(BuilderUtils.newResource(memory, vcores, gcores));
     request.setResourceName(host);
     request.setNumContainers(numContainers);
     Priority prio = recordFactory.newRecordInstance(Priority.class);
@@ -126,8 +126,8 @@ public class FairSchedulerTestBase {
   }
 
   protected ApplicationAttemptId createSchedulingRequest(
-      int memory, int vcores, String queueId, String userId) {
-    return createSchedulingRequest(memory, vcores, queueId, userId, 1);
+      int memory, int vcores, int gcores, String queueId, String userId) {
+    return createSchedulingRequest(memory, vcores, gcores, queueId, userId, 1);
   }
 
   protected ApplicationAttemptId createSchedulingRequest(
@@ -136,18 +136,18 @@ public class FairSchedulerTestBase {
   }
 
   protected ApplicationAttemptId createSchedulingRequest(
-      int memory, int vcores, String queueId, String userId, int numContainers) {
-    return createSchedulingRequest(memory, vcores, queueId, userId, numContainers, 1);
+      int memory, int vcores, int gcores, String queueId, String userId, int numContainers) {
+    return createSchedulingRequest(memory, vcores, gcores, queueId, userId, numContainers, 1);
   }
 
   protected ApplicationAttemptId createSchedulingRequest(
       int memory, String queueId, String userId, int numContainers, int priority) {
-    return createSchedulingRequest(memory, 1, queueId, userId, numContainers,
+    return createSchedulingRequest(memory, 1, 0, queueId, userId, numContainers,
         priority);
   }
 
   protected ApplicationAttemptId createSchedulingRequest(
-      int memory, int vcores, String queueId, String userId, int numContainers,
+      int memory, int vcores, int gcores, String queueId, String userId, int numContainers,
       int priority) {
     ApplicationAttemptId id = createAppAttemptId(this.APP_ID++, this.ATTEMPT_ID++);
     scheduler.addApplication(id.getApplicationId(), queueId, userId, false);
@@ -157,7 +157,7 @@ public class FairSchedulerTestBase {
       scheduler.addApplicationAttempt(id, false, false);
     }
     List<ResourceRequest> ask = new ArrayList<ResourceRequest>();
-    ResourceRequest request = createResourceRequest(memory, vcores, ResourceRequest.ANY,
+    ResourceRequest request = createResourceRequest(memory, vcores, gcores, ResourceRequest.ANY,
         priority, numContainers, true);
     ask.add(request);
 
@@ -204,8 +204,8 @@ public class FairSchedulerTestBase {
   }
 
   protected void createSchedulingRequestExistingApplication(
-      int memory, int vcores, int priority, ApplicationAttemptId attId) {
-    ResourceRequest request = createResourceRequest(memory, vcores, ResourceRequest.ANY,
+      int memory, int vcores, int gcores, int priority, ApplicationAttemptId attId) {
+    ResourceRequest request = createResourceRequest(memory, vcores, gcores, ResourceRequest.ANY,
         priority, 1, true);
     createSchedulingRequestExistingApplication(request, attId);
   }

@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.resourcetracker;
 
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -43,13 +41,15 @@ import org.apache.hadoop.yarn.server.resourcemanager.ResourceManager;
 import org.apache.hadoop.yarn.server.resourcemanager.ResourceTrackerService;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEventType;
+import org.apache.hadoop.yarn.server.resourcemanager.security.NMTokenSecretManagerInRM;
 import org.apache.hadoop.yarn.server.resourcemanager.security.RMContainerTokenSecretManager;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
-import org.apache.hadoop.yarn.server.resourcemanager.security.NMTokenSecretManagerInRM;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
 
 @SuppressWarnings("rawtypes")
 public class TestRMNMRPCResponseId {
@@ -94,7 +94,7 @@ public class TestRMNMRPCResponseId {
   @Test
   public void testRPCResponseId() throws IOException, YarnException {
     String node = "localhost";
-    Resource capability = BuilderUtils.newResource(1024, 1);
+    Resource capability = BuilderUtils.newResource(1024, 1, 1);
     RegisterNodeManagerRequest request = recordFactory.newRecordInstance(RegisterNodeManagerRequest.class);
     nodeId = NodeId.newInstance(node, 1234);
     request.setNodeId(nodeId);

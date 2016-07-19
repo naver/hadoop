@@ -18,32 +18,8 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CyclicBarrier;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -154,8 +130,29 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CyclicBarrier;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class TestClientRMService {
 
@@ -330,6 +327,7 @@ public class TestClientRMService {
           report.getApplicationResourceUsageReport();
       Assert.assertEquals(10, usageReport.getMemorySeconds());
       Assert.assertEquals(3, usageReport.getVcoreSeconds());
+      Assert.assertEquals(3, usageReport.getGcoreSeconds());
     } finally {
       rmService.close();
     }
@@ -1190,11 +1188,11 @@ public class TestClientRMService {
     ApplicationId applicationId3 = getApplicationId(3);
     YarnConfiguration config = new YarnConfiguration();
     apps.put(applicationId1, getRMApp(rmContext, yarnScheduler, applicationId1,
-        config, "testqueue", 10, 3));
+        config, "testqueue", 10, 3, 3));
     apps.put(applicationId2, getRMApp(rmContext, yarnScheduler, applicationId2,
-        config, "a", 20, 2));
+        config, "a", 20, 2, 2));
     apps.put(applicationId3, getRMApp(rmContext, yarnScheduler, applicationId3,
-        config, "testqueue", 40, 5));
+        config, "testqueue", 40, 5, 5));
     return apps;
   }
   
@@ -1217,7 +1215,7 @@ public class TestClientRMService {
 
   private RMAppImpl getRMApp(RMContext rmContext, YarnScheduler yarnScheduler,
       ApplicationId applicationId3, YarnConfiguration config, String queueName,
-      final long memorySeconds, final long vcoreSeconds) {
+      final long memorySeconds, final long vcoreSeconds, final long gcoreSeconds) {
     ApplicationSubmissionContext asContext = mock(ApplicationSubmissionContext.class);
     when(asContext.getMaxAppAttempts()).thenReturn(1);
 
@@ -1227,7 +1225,7 @@ public class TestClientRMService {
             System.currentTimeMillis(), "YARN", null,
             BuilderUtils.newResourceRequest(
                 RMAppAttemptImpl.AM_CONTAINER_PRIORITY, ResourceRequest.ANY,
-                Resource.newInstance(1024, 1), 1)){
+                Resource.newInstance(1024, 1, 1), 1)){
                   @Override
                   public ApplicationReport createAndGetApplicationReport(
                       String clientUserName, boolean allowAccess) {
@@ -1237,6 +1235,7 @@ public class TestClientRMService {
                         report.getApplicationResourceUsageReport();
                     usageReport.setMemorySeconds(memorySeconds);
                     usageReport.setVcoreSeconds(vcoreSeconds);
+                    usageReport.setGcoreSeconds(gcoreSeconds);
                     report.setApplicationResourceUsageReport(usageReport);
                     return report;
                   }
@@ -1308,7 +1307,7 @@ public class TestClientRMService {
     rm.start();
     MockNM nm;
     try {
-      nm = rm.registerNode("127.0.0.1:1", 102400, 100);
+      nm = rm.registerNode("127.0.0.1:1", 102400, 100, 100);
       // allow plan follower to synchronize
       Thread.sleep(1050);
     } catch (Exception e) {
@@ -1380,7 +1379,7 @@ public class TestClientRMService {
       int numContainers, long arrival, long deadline, long duration) {
     // create a request with a single atomic ask
     ReservationRequest r =
-        ReservationRequest.newInstance(Resource.newInstance(1024, 1),
+        ReservationRequest.newInstance(Resource.newInstance(1024, 1, 1),
             numContainers, 1, duration);
     ReservationRequests reqs =
         ReservationRequests.newInstance(Collections.singletonList(r),

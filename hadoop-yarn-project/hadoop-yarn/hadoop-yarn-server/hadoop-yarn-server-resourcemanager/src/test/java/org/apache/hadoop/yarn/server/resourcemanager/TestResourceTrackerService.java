@@ -18,18 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.metrics2.MetricsSystem;
@@ -65,6 +53,16 @@ import org.apache.hadoop.yarn.util.YarnVersionInfo;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 public class TestResourceTrackerService {
 
@@ -299,7 +297,7 @@ public class TestResourceTrackerService {
     RegisterNodeManagerRequest req = Records.newRecord(
         RegisterNodeManagerRequest.class);
     NodeId nodeId = NodeId.newInstance("host2", 1234);
-    Resource capability = BuilderUtils.newResource(1024, 1);
+    Resource capability = BuilderUtils.newResource(1024, 1, 1);
     req.setResource(capability);
     req.setNodeId(nodeId);
     req.setHttpPort(1234);
@@ -324,7 +322,7 @@ public class TestResourceTrackerService {
     RegisterNodeManagerRequest req = Records.newRecord(
         RegisterNodeManagerRequest.class);
     NodeId nodeId = NodeId.newInstance("host2", 1234);
-    Resource capability = BuilderUtils.newResource(1024, 1);
+    Resource capability = BuilderUtils.newResource(1024, 1, 1);
     req.setResource(capability);
     req.setNodeId(nodeId);
     req.setHttpPort(1234);
@@ -383,6 +381,7 @@ public class TestResourceTrackerService {
     Configuration conf = new Configuration();
     conf.set(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB, "2048");
     conf.set(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_VCORES, "4");
+    conf.set(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES, "4");
     rm = new MockRM(conf);
     rm.start();
 
@@ -393,7 +392,7 @@ public class TestResourceTrackerService {
     NodeId nodeId = BuilderUtils.newNodeId("host", 1234);
     req.setNodeId(nodeId);
 
-    Resource capability = BuilderUtils.newResource(1024, 1);
+    Resource capability = BuilderUtils.newResource(1024, 1, 1);
     req.setResource(capability);
     RegisterNodeManagerResponse response1 =
         resourceTrackerService.registerNodeManager(req);
@@ -401,6 +400,7 @@ public class TestResourceTrackerService {
     
     capability.setMemory(2048);
     capability.setVirtualCores(1);
+    capability.setGpuCores(1);
     req.setResource(capability);
     RegisterNodeManagerResponse response2 =
         resourceTrackerService.registerNodeManager(req);
@@ -408,6 +408,7 @@ public class TestResourceTrackerService {
     
     capability.setMemory(1024);
     capability.setVirtualCores(4);
+    capability.setGpuCores(4);
     req.setResource(capability);
     RegisterNodeManagerResponse response3 =
         resourceTrackerService.registerNodeManager(req);
@@ -415,6 +416,7 @@ public class TestResourceTrackerService {
     
     capability.setMemory(2048);
     capability.setVirtualCores(4);
+    capability.setGpuCores(4);
     req.setResource(capability);
     RegisterNodeManagerResponse response4 =
         resourceTrackerService.registerNodeManager(req);
@@ -513,7 +515,7 @@ public class TestResourceTrackerService {
         NMContainerStatus.newInstance(
           ContainerId.newContainerId(
             ApplicationAttemptId.newInstance(app.getApplicationId(), 2), 1),
-          ContainerState.COMPLETE, Resource.newInstance(1024, 1),
+          ContainerState.COMPLETE, Resource.newInstance(1024, 1, 1),
           "Dummy Completed", 0, Priority.newInstance(10), 1234);
     rm.getResourceTrackerService().handleNMContainerStatus(report, null);
     verify(handler, never()).handle((Event) any());
@@ -524,7 +526,7 @@ public class TestResourceTrackerService {
     currentAttempt.setMasterContainer(null);
     report = NMContainerStatus.newInstance(
           ContainerId.newContainerId(currentAttempt.getAppAttemptId(), 0),
-          ContainerState.COMPLETE, Resource.newInstance(1024, 1),
+          ContainerState.COMPLETE, Resource.newInstance(1024, 1, 1),
           "Dummy Completed", 0, Priority.newInstance(10), 1234);
     rm.getResourceTrackerService().handleNMContainerStatus(report, null);
     verify(handler, never()).handle((Event)any());
@@ -536,7 +538,7 @@ public class TestResourceTrackerService {
     report = NMContainerStatus.newInstance(
           ContainerId.newContainerId(
             ApplicationAttemptId.newInstance(app.getApplicationId(), 2), 1),
-          ContainerState.COMPLETE, Resource.newInstance(1024, 1),
+          ContainerState.COMPLETE, Resource.newInstance(1024, 1, 1),
           "Dummy Completed", 0, Priority.newInstance(10), 1234);
     try {
       rm.getResourceTrackerService().handleNMContainerStatus(report, null);
@@ -551,7 +553,7 @@ public class TestResourceTrackerService {
     currentAttempt.setMasterContainer(null);
     report = NMContainerStatus.newInstance(
       ContainerId.newContainerId(currentAttempt.getAppAttemptId(), 0),
-      ContainerState.COMPLETE, Resource.newInstance(1024, 1),
+      ContainerState.COMPLETE, Resource.newInstance(1024, 1, 1),
       "Dummy Completed", 0, Priority.newInstance(10), 1234);
     try {
       rm.getResourceTrackerService().handleNMContainerStatus(report, null);
@@ -628,7 +630,7 @@ public class TestResourceTrackerService {
     // reconnect of node with changed capability and running applications
     List<ApplicationId> runningApps = new ArrayList<ApplicationId>();
     runningApps.add(ApplicationId.newInstance(1, 0));
-    nm1 = rm.registerNode("host2:5678", 15360, 2, runningApps);
+    nm1 = rm.registerNode("host2:5678", 15360, 2, 2, runningApps);
     dispatcher.await();
     response = nm1.nodeHeartbeat(true);
     dispatcher.await();

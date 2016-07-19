@@ -18,27 +18,7 @@
 
 package org.apache.hadoop.yarn.applications.distributedshell;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.StringReader;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -99,7 +79,26 @@ import org.apache.hadoop.yarn.security.AMRMTokenIdentifier;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.log4j.LogManager;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * An ApplicationMaster for executing shell commands on a set of launched
@@ -217,6 +216,8 @@ public class ApplicationMaster {
   private int containerMemory = 10;
   // VirtualCores to request for the container on which the shell command will run
   private int containerVirtualCores = 1;
+  // GpuCores to request for the container
+  private int containerGpuCores = 0;
   // Priority of the request
   private int requestPriority;
 
@@ -358,6 +359,8 @@ public class ApplicationMaster {
         "Amount of memory in MB to be requested to run the shell command");
     opts.addOption("container_vcores", true,
         "Amount of virtual cores to be requested to run the shell command");
+    opts.addOption("container_gcores", true,
+        "Amount of gpu cores to ve requested");
     opts.addOption("num_containers", true,
         "No. of containers on which the shell command needs to be executed");
     opts.addOption("priority", true, "Application Priority. Default 0");
@@ -490,6 +493,7 @@ public class ApplicationMaster {
         "container_memory", "10"));
     containerVirtualCores = Integer.parseInt(cliParser.getOptionValue(
         "container_vcores", "1"));
+    containerGpuCores = Integer.parseInt(cliParser.getOptionValue("container_gcores", "0"));
     numTotalContainers = Integer.parseInt(cliParser.getOptionValue(
         "num_containers", "1"));
     if (numTotalContainers == 0) {
@@ -582,6 +586,9 @@ public class ApplicationMaster {
     int maxVCores = response.getMaximumResourceCapability().getVirtualCores();
     LOG.info("Max vcores capabililty of resources in this cluster " + maxVCores);
 
+    int maxGCores = response.getMaximumResourceCapability().getGpuCores();
+    LOG.info("Max gcores capability of resources in this cluster " + maxGCores);
+
     // A resource ask cannot exceed the max.
     if (containerMemory > maxMem) {
       LOG.info("Container memory specified above max threshold of cluster."
@@ -595,6 +602,13 @@ public class ApplicationMaster {
           + " Using max value." + ", specified=" + containerVirtualCores + ", max="
           + maxVCores);
       containerVirtualCores = maxVCores;
+    }
+
+    if (containerGpuCores > maxGCores) {
+      LOG.info("Container gpu cores specified above max threshold of cluster."
+          + " Using max value." + ", specified=" + containerGpuCores + ", max="
+          + maxGCores);
+      containerGpuCores = maxGCores;
     }
 
     List<Container> previousAMRunningContainers =
@@ -792,7 +806,9 @@ public class ApplicationMaster {
             + ", containerResourceMemory"
             + allocatedContainer.getResource().getMemory()
             + ", containerResourceVirtualCores"
-            + allocatedContainer.getResource().getVirtualCores());
+            + allocatedContainer.getResource().getVirtualCores()
+            + ", containerResourceGpuCores"
+            + allocatedContainer.getResource().getGpuCores());
         // + ", containerToken"
         // +allocatedContainer.getContainerToken().getIdentifier().toString());
 
@@ -1056,7 +1072,7 @@ public class ApplicationMaster {
     // Set up resource type requirements
     // For now, memory and CPU are supported so we set memory and cpu requirements
     Resource capability = Resource.newInstance(containerMemory,
-      containerVirtualCores);
+      containerVirtualCores, containerGpuCores);
 
     ContainerRequest request = new ContainerRequest(capability, null, null,
         pri);

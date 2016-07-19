@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.yarn.client;
 
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.yarn.api.ApplicationClientProtocol;
@@ -45,6 +43,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
 
 public class TestApplicationClientProtocolOnHA extends ProtocolHATestBase {
   private YarnClient client = null;
@@ -169,6 +169,7 @@ public class TestApplicationClientProtocolOnHA extends ProtocolHATestBase {
     Resource capability = Records.newRecord(Resource.class);
     capability.setMemory(10);
     capability.setVirtualCores(1);
+    capability.setGpuCores(1);
     appContext.setResource(capability);
     ApplicationId appId = client.submitApplication(appContext);
     Assert.assertTrue(getActiveRM().getRMContext().getRMApps()

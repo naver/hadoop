@@ -18,15 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler;
 
-import static org.apache.hadoop.test.MetricsAsserts.assertCounter;
-import static org.apache.hadoop.test.MetricsAsserts.assertGauge;
-import static org.apache.hadoop.test.MetricsAsserts.getMetrics;
-import static org.apache.hadoop.test.MockitoMaker.make;
-import static org.apache.hadoop.test.MockitoMaker.stub;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.MetricsRecordBuilder;
 import org.apache.hadoop.metrics2.MetricsSource;
@@ -44,6 +35,13 @@ import org.apache.hadoop.yarn.util.resource.Resources;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.apache.hadoop.test.MetricsAsserts.*;
+import static org.apache.hadoop.test.MockitoMaker.make;
+import static org.apache.hadoop.test.MockitoMaker.stub;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestQueueMetrics {
   static final int GB = 1024; // MB
@@ -72,20 +70,20 @@ public class TestQueueMetrics {
     metrics.submitAppAttempt(user);
     checkApps(queueSource, 1, 1, 0, 0, 0, 0, true);
 
-    metrics.setAvailableResourcesToQueue(Resources.createResource(100*GB, 100));
-    metrics.incrPendingResources(user, 5, Resources.createResource(3*GB, 3));
+    metrics.setAvailableResourcesToQueue(Resources.createResource(100*GB, 100, 100));
+    metrics.incrPendingResources(user, 5, Resources.createResource(3*GB, 3, 3));
     // Available resources is set externally, as it depends on dynamic
     // configurable cluster/queue resources
-    checkResources(queueSource, 0, 0, 0, 0, 0, 100*GB, 100, 15*GB, 15, 5, 0, 0, 0);
+    checkResources(queueSource, 0, 0, 0, 0, 0, 0, 100*GB, 100, 100, 15*GB, 15, 15, 5, 0, 0, 0, 0);
 
     metrics.runAppAttempt(app.getApplicationId(), user);
     checkApps(queueSource, 1, 0, 1, 0, 0, 0, true);
 
-    metrics.allocateResources(user, 3, Resources.createResource(2*GB, 2), true);
-    checkResources(queueSource, 6*GB, 6, 3, 3, 0, 100*GB, 100, 9*GB, 9, 2, 0, 0, 0);
+    metrics.allocateResources(user, 3, Resources.createResource(2*GB, 2, 2), true);
+    checkResources(queueSource, 6*GB, 6, 6, 3, 3, 0, 100*GB, 100, 100, 9*GB, 9, 9, 2, 0, 0, 0, 0);
 
-    metrics.releaseResources(user, 1, Resources.createResource(2*GB, 2));
-    checkResources(queueSource, 4*GB, 4, 2, 3, 1, 100*GB, 100, 9*GB, 9, 2, 0, 0, 0);
+    metrics.releaseResources(user, 1, Resources.createResource(2*GB, 2, 2));
+    checkResources(queueSource, 4*GB, 4, 4, 2, 3, 1, 100*GB, 100, 100, 9*GB, 9, 9, 2, 0, 0, 0, 0);
 
     metrics.finishAppAttempt(
         app.getApplicationId(), app.isPending(), app.getUser());
@@ -169,25 +167,25 @@ public class TestQueueMetrics {
     checkApps(queueSource, 1, 1, 0, 0, 0, 0, true);
     checkApps(userSource, 1, 1, 0, 0, 0, 0, true);
 
-    metrics.setAvailableResourcesToQueue(Resources.createResource(100*GB, 100));
-    metrics.setAvailableResourcesToUser(user, Resources.createResource(10*GB, 10));
-    metrics.incrPendingResources(user, 5, Resources.createResource(3*GB, 3));
+    metrics.setAvailableResourcesToQueue(Resources.createResource(100*GB, 100, 100));
+    metrics.setAvailableResourcesToUser(user, Resources.createResource(10*GB, 10, 10));
+    metrics.incrPendingResources(user, 5, Resources.createResource(3*GB, 3, 3));
     // Available resources is set externally, as it depends on dynamic
     // configurable cluster/queue resources
-    checkResources(queueSource, 0, 0, 0, 0, 0,  100*GB, 100, 15*GB, 15, 5, 0, 0, 0);
-    checkResources(userSource, 0, 0, 0, 0, 0, 10*GB, 10, 15*GB, 15, 5, 0, 0, 0);
+    checkResources(queueSource, 0, 0, 0, 0, 0, 0,  100*GB, 100, 100, 15*GB, 15, 15, 5, 0, 0, 0, 0);
+    checkResources(userSource, 0, 0, 0, 0, 0, 0, 10*GB, 10, 10, 15*GB, 15, 15, 5, 0, 0, 0, 0);
 
     metrics.runAppAttempt(app.getApplicationId(), user);
     checkApps(queueSource, 1, 0, 1, 0, 0, 0, true);
     checkApps(userSource, 1, 0, 1, 0, 0, 0, true);
 
-    metrics.allocateResources(user, 3, Resources.createResource(2*GB, 2), true);
-    checkResources(queueSource, 6*GB, 6, 3, 3, 0, 100*GB, 100, 9*GB, 9, 2, 0, 0, 0);
-    checkResources(userSource, 6*GB, 6, 3, 3, 0, 10*GB, 10, 9*GB, 9, 2, 0, 0, 0);
+    metrics.allocateResources(user, 3, Resources.createResource(2*GB, 2, 2), true);
+    checkResources(queueSource, 6*GB, 6, 6, 3, 3, 0, 100*GB, 100, 100, 9*GB, 9, 9, 2, 0, 0, 0, 0);
+    checkResources(userSource, 6*GB, 6, 6, 3, 3, 0, 10*GB, 10, 10, 9*GB, 9, 9, 2, 0, 0, 0, 0);
 
-    metrics.releaseResources(user, 1, Resources.createResource(2*GB, 2));
-    checkResources(queueSource, 4*GB, 4, 2, 3, 1, 100*GB, 100, 9*GB, 9, 2, 0, 0, 0);
-    checkResources(userSource, 4*GB, 4, 2, 3, 1, 10*GB, 10, 9*GB, 9, 2, 0, 0, 0);
+    metrics.releaseResources(user, 1, Resources.createResource(2*GB, 2, 2));
+    checkResources(queueSource, 4*GB, 4, 4, 2, 3, 1, 100*GB, 100, 100, 9*GB, 9, 9, 2, 0, 0, 0, 0);
+    checkResources(userSource, 4*GB, 4, 4, 2, 3, 1, 10*GB, 10, 10, 9*GB, 9, 9, 2, 0, 0, 0, 0);
 
     metrics.finishAppAttempt(
         app.getApplicationId(), app.isPending(), app.getUser());
@@ -228,35 +226,35 @@ public class TestQueueMetrics {
     checkApps(userSource, 1, 1, 0, 0, 0, 0, true);
     checkApps(parentUserSource, 1, 1, 0, 0, 0, 0, true);
 
-    parentMetrics.setAvailableResourcesToQueue(Resources.createResource(100*GB, 100));
-    metrics.setAvailableResourcesToQueue(Resources.createResource(100*GB, 100));
-    parentMetrics.setAvailableResourcesToUser(user, Resources.createResource(10*GB, 10));
-    metrics.setAvailableResourcesToUser(user, Resources.createResource(10*GB, 10));
-    metrics.incrPendingResources(user, 5, Resources.createResource(3*GB, 3));
-    checkResources(queueSource, 0, 0, 0, 0, 0, 100*GB, 100, 15*GB, 15, 5, 0, 0, 0);
-    checkResources(parentQueueSource, 0, 0, 0, 0, 0, 100*GB, 100, 15*GB, 15, 5, 0, 0, 0);
-    checkResources(userSource, 0, 0, 0, 0, 0, 10*GB, 10, 15*GB, 15, 5, 0, 0, 0);
-    checkResources(parentUserSource, 0, 0, 0, 0, 0, 10*GB, 10, 15*GB, 15, 5, 0, 0, 0);
+    parentMetrics.setAvailableResourcesToQueue(Resources.createResource(100*GB, 100, 100));
+    metrics.setAvailableResourcesToQueue(Resources.createResource(100*GB, 100, 100));
+    parentMetrics.setAvailableResourcesToUser(user, Resources.createResource(10*GB, 10, 10));
+    metrics.setAvailableResourcesToUser(user, Resources.createResource(10*GB, 10, 10));
+    metrics.incrPendingResources(user, 5, Resources.createResource(3*GB, 3, 3));
+    checkResources(queueSource, 0, 0, 0, 0, 0, 0, 100*GB, 100, 100, 15*GB, 15, 15, 5, 0, 0, 0, 0);
+    checkResources(parentQueueSource, 0, 0, 0, 0, 0, 0, 100*GB, 100, 100, 15*GB, 15, 15, 5, 0, 0, 0, 0);
+    checkResources(userSource, 0, 0, 0, 0, 0, 0, 10*GB, 10, 10, 15*GB, 15, 15, 5, 0, 0, 0, 0);
+    checkResources(parentUserSource, 0, 0, 0, 0, 0, 0, 10*GB, 10, 10, 15*GB, 15, 15, 5, 0, 0, 0, 0);
 
     metrics.runAppAttempt(app.getApplicationId(), user);
     checkApps(queueSource, 1, 0, 1, 0, 0, 0, true);
     checkApps(userSource, 1, 0, 1, 0, 0, 0, true);
 
-    metrics.allocateResources(user, 3, Resources.createResource(2*GB, 2), true);
-    metrics.reserveResource(user, Resources.createResource(3*GB, 3));
+    metrics.allocateResources(user, 3, Resources.createResource(2*GB, 2, 2), true);
+    metrics.reserveResource(user, Resources.createResource(3*GB, 3, 3));
     // Available resources is set externally, as it depends on dynamic
     // configurable cluster/queue resources
-    checkResources(queueSource, 6*GB, 6, 3, 3, 0, 100*GB, 100, 9*GB, 9, 2, 3*GB, 3, 1);
-    checkResources(parentQueueSource, 6*GB, 6, 3, 3, 0,  100*GB, 100, 9*GB, 9, 2, 3*GB, 3, 1);
-    checkResources(userSource, 6*GB, 6, 3, 3, 0, 10*GB, 10, 9*GB, 9, 2, 3*GB, 3, 1);
-    checkResources(parentUserSource, 6*GB, 6, 3, 3, 0, 10*GB, 10, 9*GB, 9, 2, 3*GB, 3, 1);
+    checkResources(queueSource, 6*GB, 6, 6, 3, 3, 0, 100*GB, 100, 100, 9*GB, 9, 9, 2, 3*GB, 3, 3, 1);
+    checkResources(parentQueueSource, 6*GB, 6, 6, 3, 3, 0,  100*GB, 100, 100, 9*GB, 9, 9, 2, 3*GB, 3, 3, 1);
+    checkResources(userSource, 6*GB, 6, 6, 3, 3, 0, 10*GB, 10, 10, 9*GB, 9, 9, 2, 3*GB, 3, 3, 1);
+    checkResources(parentUserSource, 6*GB, 6, 6, 3, 3, 0, 10*GB, 10, 10, 9*GB, 9, 9, 2, 3*GB, 3, 3, 1);
 
-    metrics.releaseResources(user, 1, Resources.createResource(2*GB, 2));
-    metrics.unreserveResource(user, Resources.createResource(3*GB, 3));
-    checkResources(queueSource, 4*GB, 4, 2, 3, 1, 100*GB, 100, 9*GB, 9, 2, 0, 0, 0);
-    checkResources(parentQueueSource, 4*GB, 4, 2, 3, 1, 100*GB, 100, 9*GB, 9, 2, 0, 0, 0);
-    checkResources(userSource, 4*GB, 4, 2, 3, 1, 10*GB, 10, 9*GB, 9, 2, 0, 0, 0);
-    checkResources(parentUserSource, 4*GB, 4, 2, 3, 1, 10*GB, 10, 9*GB, 9, 2, 0, 0, 0);
+    metrics.releaseResources(user, 1, Resources.createResource(2*GB, 2, 2));
+    metrics.unreserveResource(user, Resources.createResource(3*GB, 3, 3));
+    checkResources(queueSource, 4*GB, 4, 4, 2, 3, 1, 100*GB, 100, 100, 9*GB, 9, 9, 2, 0, 0, 0, 0);
+    checkResources(parentQueueSource, 4*GB, 4, 4, 2, 3, 1, 100*GB, 100, 100, 9*GB, 9, 9, 2, 0, 0, 0, 0);
+    checkResources(userSource, 4*GB, 4, 4, 2, 3, 1, 10*GB, 10, 10, 9*GB, 9, 9, 2, 0, 0, 0, 0);
+    checkResources(parentUserSource, 4*GB, 4, 4, 2, 3, 1, 10*GB, 10, 10, 9*GB, 9, 9, 2, 0, 0, 0, 0);
 
     metrics.finishAppAttempt(
         app.getApplicationId(), app.isPending(), app.getUser());
@@ -347,23 +345,27 @@ public class TestQueueMetrics {
   }
 
   public static void checkResources(MetricsSource source, int allocatedMB,
-      int allocatedCores, int allocCtnrs, long aggreAllocCtnrs,
-      long aggreReleasedCtnrs, int availableMB, int availableCores, int pendingMB,
-      int pendingCores, int pendingCtnrs, int reservedMB, int reservedCores,
-      int reservedCtnrs) {
+      int allocatedCores, int allocatedGCores, int allocCtnrs, long aggreAllocCtnrs,
+      long aggreReleasedCtnrs, int availableMB, int availableCores, int availableGCores, int pendingMB,
+      int pendingCores, int pendingGCores, int pendingCtnrs, int reservedMB, int reservedCores,
+      int reservedGCores, int reservedCtnrs) {
     MetricsRecordBuilder rb = getMetrics(source);
     assertGauge("AllocatedMB", allocatedMB, rb);
     assertGauge("AllocatedVCores", allocatedCores, rb);
+    assertGauge("AllocatedGCores", allocatedGCores, rb);
     assertGauge("AllocatedContainers", allocCtnrs, rb);
     assertCounter("AggregateContainersAllocated", aggreAllocCtnrs, rb);
     assertCounter("AggregateContainersReleased", aggreReleasedCtnrs, rb);
     assertGauge("AvailableMB", availableMB, rb);
     assertGauge("AvailableVCores", availableCores, rb);
+    assertGauge("AvailableGCores", availableGCores, rb);
     assertGauge("PendingMB", pendingMB, rb);
     assertGauge("PendingVCores", pendingCores, rb);
+    assertGauge("PendingGCores", pendingGCores, rb);
     assertGauge("PendingContainers", pendingCtnrs, rb);
     assertGauge("ReservedMB", reservedMB, rb);
     assertGauge("ReservedVCores", reservedCores, rb);
+    assertGauge("ReservedGCores", reservedGCores, rb);
     assertGauge("ReservedContainers", reservedCtnrs, rb);
   }
 

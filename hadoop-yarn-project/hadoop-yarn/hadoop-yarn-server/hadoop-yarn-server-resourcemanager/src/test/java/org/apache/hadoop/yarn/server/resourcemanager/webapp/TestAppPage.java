@@ -18,11 +18,9 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.webapp;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-
+import com.google.inject.Binder;
+import com.google.inject.Injector;
+import com.google.inject.Module;
 import org.apache.hadoop.yarn.api.ApplicationBaseProtocol;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
@@ -38,9 +36,10 @@ import org.apache.hadoop.yarn.webapp.YarnWebParams;
 import org.apache.hadoop.yarn.webapp.test.WebAppTests;
 import org.junit.Test;
 
-import com.google.inject.Binder;
-import com.google.inject.Injector;
-import com.google.inject.Module;
+import java.io.IOException;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestAppPage {
   @Test
@@ -64,7 +63,7 @@ public class TestAppPage {
     when(app.getFinishTime()).thenReturn(0L);
     when(app.createApplicationState()).thenReturn(YarnApplicationState.FAILED);
     
-    RMAppMetrics appMetrics = new RMAppMetrics(Resource.newInstance(0, 0), 0, 0, 0, 0);
+    RMAppMetrics appMetrics = new RMAppMetrics(Resource.newInstance(0, 0, 0), 0, 0, 0, 0, 0);
     when(app.getRMAppMetrics()).thenReturn(appMetrics);
     
     // initialize RM Context, and create RMApp, without creating RMAppAttempt

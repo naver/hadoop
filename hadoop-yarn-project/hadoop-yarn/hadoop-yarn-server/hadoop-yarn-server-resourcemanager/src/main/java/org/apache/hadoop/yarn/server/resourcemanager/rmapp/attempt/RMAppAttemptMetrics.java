@@ -18,13 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
@@ -34,6 +27,13 @@ import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.NodeType;
 import org.apache.hadoop.yarn.util.resource.Resources;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 public class RMAppAttemptMetrics {
   private static final Log LOG = LogFactory.getLog(RMAppAttemptMetrics.class);
@@ -50,6 +50,7 @@ public class RMAppAttemptMetrics {
   private WriteLock writeLock;
   private AtomicLong finishedMemorySeconds = new AtomicLong(0);
   private AtomicLong finishedVcoreSeconds = new AtomicLong(0);
+  private AtomicLong finishedGcoreSeconds = new AtomicLong(0);
   private RMContext rmContext;
 
   private int[][] localityStatistics =
@@ -113,6 +114,7 @@ public class RMAppAttemptMetrics {
   public AggregateAppResourceUsage getAggregateAppResourceUsage() {
     long memorySeconds = finishedMemorySeconds.get();
     long vcoreSeconds = finishedVcoreSeconds.get();
+    long gcoreSeconds = finishedGcoreSeconds.get();
 
     // Only add in the running containers if this is the active attempt.
     RMAppAttempt currentAttempt = rmContext.getRMApps()
@@ -123,15 +125,17 @@ public class RMAppAttemptMetrics {
       if (appResUsageReport != null) {
         memorySeconds += appResUsageReport.getMemorySeconds();
         vcoreSeconds += appResUsageReport.getVcoreSeconds();
+        gcoreSeconds += appResUsageReport.getGcoreSeconds();
       }
     }
-    return new AggregateAppResourceUsage(memorySeconds, vcoreSeconds);
+    return new AggregateAppResourceUsage(memorySeconds, vcoreSeconds, gcoreSeconds);
   }
 
   public void updateAggregateAppResourceUsage(long finishedMemorySeconds,
-                                        long finishedVcoreSeconds) {
+                                        long finishedVcoreSeconds, long finishedGcoreSeconds) {
     this.finishedMemorySeconds.addAndGet(finishedMemorySeconds);
     this.finishedVcoreSeconds.addAndGet(finishedVcoreSeconds);
+    this.finishedGcoreSeconds.addAndGet(finishedGcoreSeconds);
   }
 
   public void incNumAllocatedContainers(NodeType containerType,

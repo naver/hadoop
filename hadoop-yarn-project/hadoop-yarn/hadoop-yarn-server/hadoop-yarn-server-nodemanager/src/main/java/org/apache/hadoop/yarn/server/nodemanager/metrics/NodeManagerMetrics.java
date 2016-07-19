@@ -46,6 +46,9 @@ public class NodeManagerMetrics {
   @Metric("Current allocated Virtual Cores")
       MutableGaugeInt allocatedVCores;
   @Metric MutableGaugeInt availableVCores;
+  @Metric("Current allocated GPU Cores")
+      MutableGaugeInt allocatedGCores;
+  @Metric MutableGaugeInt availableGCores;
   @Metric("Container launch duration")
       MutableRate containerLaunchDuration;
 
@@ -103,6 +106,8 @@ public class NodeManagerMetrics {
     availableGB.set((int)Math.floor(availableMB/1024d));
     allocatedVCores.incr(res.getVirtualCores());
     availableVCores.decr(res.getVirtualCores());
+    allocatedGCores.incr(res.getGpuCores());
+    availableGCores.decr(res.getGpuCores());
   }
 
   public void releaseContainer(Resource res) {
@@ -113,12 +118,15 @@ public class NodeManagerMetrics {
     availableGB.set((int)Math.floor(availableMB/1024d));
     allocatedVCores.decr(res.getVirtualCores());
     availableVCores.incr(res.getVirtualCores());
+    allocatedGCores.decr(res.getGpuCores());
+    availableGCores.incr(res.getGpuCores());
   }
 
   public void addResource(Resource res) {
     availableMB = availableMB + res.getMemory();
     availableGB.incr((int)Math.floor(availableMB/1024d));
     availableVCores.incr(res.getVirtualCores());
+    availableGCores.incr(res.getGpuCores());
   }
 
   public void addContainerLaunchDuration(long value) {

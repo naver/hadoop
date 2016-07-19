@@ -18,11 +18,6 @@
 
 package org.apache.hadoop.yarn.conf;
 
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
@@ -33,6 +28,11 @@ import org.apache.hadoop.http.HttpConfig;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
+
+import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Public
 @Evolving
@@ -171,6 +171,9 @@ public class YarnConfiguration extends Configuration {
   public static final String RM_SCHEDULER_MINIMUM_ALLOCATION_VCORES =
       YARN_PREFIX + "scheduler.minimum-allocation-vcores";
     public static final int DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_VCORES = 1;
+  public static final String RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES =
+      YARN_PREFIX + "scheduler.minimum-allocation-gcores";
+  public static final int DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES = 0;
 
   /** Maximum request grant-able by the RM scheduler. */
   public static final String RM_SCHEDULER_MAXIMUM_ALLOCATION_MB =
@@ -179,7 +182,9 @@ public class YarnConfiguration extends Configuration {
   public static final String RM_SCHEDULER_MAXIMUM_ALLOCATION_VCORES =
       YARN_PREFIX + "scheduler.maximum-allocation-vcores";
   public static final int DEFAULT_RM_SCHEDULER_MAXIMUM_ALLOCATION_VCORES = 4;
-
+  public static final String RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES =
+      YARN_PREFIX + "scheduler.maximum-allocation-gcores";
+  public static final int DEFAULT_RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES = 8;
   /** Number of threads to handle scheduler interface.*/
   public static final String RM_SCHEDULER_CLIENT_THREAD_COUNT =
     RM_PREFIX + "scheduler.client.thread-count";
@@ -828,12 +833,18 @@ public class YarnConfiguration extends Configuration {
   /** Number of Virtual CPU Cores which can be allocated for containers.*/
   public static final String NM_VCORES = NM_PREFIX + "resource.cpu-vcores";
   public static final int DEFAULT_NM_VCORES = 8;
+  public static final String NM_GCORES = NM_PREFIX + "resource.gcores";
+  public static final int DEFAULT_NM_GCORES = 0;
 
   /** Percentage of overall CPU which can be allocated for containers. */
   public static final String NM_RESOURCE_PERCENTAGE_PHYSICAL_CPU_LIMIT =
       NM_PREFIX + "resource.percentage-physical-cpu-limit";
   public static final int DEFAULT_NM_RESOURCE_PERCENTAGE_PHYSICAL_CPU_LIMIT =
       100;
+  public static final String NM_RESOURCE_PERCENTAGE_GPU_LIMIT =
+      NM_PREFIX + "resource.percentage-gpu-limit";
+  public static final int DEFAULT_NM_RESOURCE_PERCENTAGE_GPU_LIMIT = 100;
+
   
   /** NM Webapp address.**/
   public static final String NM_WEBAPP_ADDRESS = NM_PREFIX + "webapp.address";

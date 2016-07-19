@@ -18,22 +18,9 @@
 
 package org.apache.hadoop.yarn.client.api.impl;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -69,9 +56,21 @@ import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.security.AMRMTokenIdentifier;
 import org.apache.hadoop.yarn.util.RackResolver;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 @Private
 @Unstable
@@ -113,18 +112,26 @@ public class AMRMClientImpl<T extends ContainerRequest> extends AMRMClient<T> {
   
   
   /**
-   * Class compares Resource by memory then cpu in reverse order
+   * Class compares Resource by memory then cpu then gpu in reverse order
    */
-  class ResourceReverseMemoryThenCpuComparator implements Comparator<Resource> {
+  class ResourceReverseMemoryThenCpuThenGpuComparator implements Comparator<Resource> {
     @Override
     public int compare(Resource arg0, Resource arg1) {
       int mem0 = arg0.getMemory();
       int mem1 = arg1.getMemory();
       int cpu0 = arg0.getVirtualCores();
       int cpu1 = arg1.getVirtualCores();
+      int gpu0 = arg0.getGpuCores();
+      int gpu1 = arg1.getGpuCores();
       if(mem0 == mem1) {
         if(cpu0 == cpu1) {
-          return 0;
+          if(gpu0 == gpu1) {
+            return 0;
+          }
+          if(gpu0 < gpu1) {
+            return 1;
+          }
+          return -1;
         }
         if(cpu0 < cpu1) {
           return 1;
@@ -143,8 +150,10 @@ public class AMRMClientImpl<T extends ContainerRequest> extends AMRMClient<T> {
     int mem1 = arg1.getMemory();
     int cpu0 = arg0.getVirtualCores();
     int cpu1 = arg1.getVirtualCores();
+    int gpu0 = arg0.getGpuCores();
+    int gpu1 = arg1.getGpuCores();
     
-    if(mem0 <= mem1 && cpu0 <= cpu1) { 
+    if(mem0 <= mem1 && cpu0 <= cpu1 && gpu0 <= gpu1) {
       return true;
     }
     return false; 
@@ -655,7 +664,7 @@ public class AMRMClientImpl<T extends ContainerRequest> extends AMRMClient<T> {
     if (reqMap == null) {
       // capabilities are stored in reverse sorted order. smallest last.
       reqMap = new TreeMap<Resource, ResourceRequestInfo>(
-          new ResourceReverseMemoryThenCpuComparator());
+          new ResourceReverseMemoryThenCpuThenGpuComparator());
       remoteRequests.put(resourceName, reqMap);
     }
     ResourceRequestInfo resourceRequestInfo = reqMap.get(capability);

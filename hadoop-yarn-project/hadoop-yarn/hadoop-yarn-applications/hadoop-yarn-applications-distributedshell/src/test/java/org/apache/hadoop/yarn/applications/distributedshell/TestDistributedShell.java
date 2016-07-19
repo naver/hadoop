@@ -18,21 +18,6 @@
 
 package org.apache.hadoop.yarn.applications.distributedshell;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -53,6 +38,21 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TestDistributedShell {
 
@@ -160,10 +160,14 @@ public class TestDistributedShell {
         "512",
         "--master_vcores",
         "2",
+        "--master_gcores",
+        "0",
         "--container_memory",
         "128",
         "--container_vcores",
-        "1"
+        "1",
+        "--container_gcores",
+        "0"
     };
     if (haveDomain) {
       String[] domainArgs = {
@@ -470,10 +474,14 @@ public class TestDistributedShell {
         "512",
         "--master_vcores",
         "2",
+        "--master_gcores",
+        "0",
         "--container_memory",
         "128",
         "--container_vcores",
-        "1"
+        "1",
+        "--container_gcores",
+        "0"
     };
 
     //Before run the DS, the default the log level is INFO
@@ -514,10 +522,14 @@ public class TestDistributedShell {
         "512",
         "--master_vcores",
         "2",
+        "--master_gcores",
+        "0",
         "--container_memory",
         "128",
         "--container_vcores",
-        "1"
+        "1",
+        "--container_gcores",
+        "0"
     };
 
     LOG.info("Initializing DS Client");
@@ -548,10 +560,14 @@ public class TestDistributedShell {
         "512",
         "--master_vcores",
         "2",
+        "--master_gcores",
+        "0",
         "--container_memory",
         "128",
         "--container_vcores",
-        "1"
+        "1",
+        "--container_gcores",
+        "0"
     };
 
     LOG.info("Initializing DS Client");
@@ -596,10 +612,14 @@ public class TestDistributedShell {
         "512",
         "--master_vcores",
         "2",
+        "--master_gcores",
+        "0",
         "--container_memory",
         "128",
         "--container_vcores",
-        "1"
+        "1",
+        "--container_gcores",
+        "0"
     };
 
     LOG.info("Initializing DS Client");
@@ -700,10 +720,14 @@ public class TestDistributedShell {
           "512",
           "--master_vcores",
           "-2",
+          "--master_gcores",
+          "-2",
           "--container_memory",
           "128",
           "--container_vcores",
-          "1"
+          "1",
+          "--container_gcores",
+          "0"
       };
       client.init(args);
       Assert.fail("Exception is expected");
@@ -751,10 +775,14 @@ public class TestDistributedShell {
           "512",
           "--master_vcores",
           "2",
+          "--master_gcores",
+          "0",
           "--container_memory",
           "128",
           "--container_vcores",
-          "1"
+          "1",
+          "--container_gcores",
+          "0"
       };
       client.init(args);
       Assert.fail("Exception is expected");
@@ -818,10 +846,14 @@ public class TestDistributedShell {
         "512",
         "--master_vcores",
         "2",
+        "--master_gcores",
+        "0",
         "--container_memory",
         "128",
         "--container_vcores",
         "1",
+        "--container_gcores",
+        "0",
         "--debug"
     };
 

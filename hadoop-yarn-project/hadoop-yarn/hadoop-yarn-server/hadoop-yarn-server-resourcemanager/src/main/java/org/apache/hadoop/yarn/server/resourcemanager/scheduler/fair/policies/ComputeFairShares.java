@@ -17,13 +17,13 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.policies;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceType;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FSQueue;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.Schedulable;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Contains logic for computing the fair shares. A {@link Schedulable}'s fair
@@ -258,6 +258,8 @@ public class ComputeFairShares {
       return resource.getMemory();
     case CPU:
       return resource.getVirtualCores();
+    case GPU:
+      return resource.getGpuCores();
     default:
       throw new IllegalArgumentException("Invalid resource");
     }
@@ -270,6 +272,9 @@ public class ComputeFairShares {
       break;
     case CPU:
       resource.setVirtualCores(val);
+      break;
+    case GPU:
+      resource.setGpuCores(val);
       break;
     default:
       throw new IllegalArgumentException("Invalid resource");

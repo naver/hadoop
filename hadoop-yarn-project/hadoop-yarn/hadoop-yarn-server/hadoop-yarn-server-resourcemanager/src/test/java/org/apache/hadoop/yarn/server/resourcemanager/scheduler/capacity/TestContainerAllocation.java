@@ -18,10 +18,9 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -61,9 +60,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 
 public class TestContainerAllocation {
@@ -92,8 +91,8 @@ public class TestContainerAllocation {
     rm.start();
 
     // Register node1
-    MockNM nm1 = rm.registerNode("127.0.0.1:1234", 2 * GB, 4);
-    MockNM nm2 = rm.registerNode("127.0.0.1:2234", 3 * GB, 4);
+    MockNM nm1 = rm.registerNode("127.0.0.1:1234", 2 * GB, 4, 4);
+    MockNM nm2 = rm.registerNode("127.0.0.1:2234", 3 * GB, 4, 4);
 
     nm1.nodeHeartbeat(true);
     nm2.nodeHeartbeat(true);

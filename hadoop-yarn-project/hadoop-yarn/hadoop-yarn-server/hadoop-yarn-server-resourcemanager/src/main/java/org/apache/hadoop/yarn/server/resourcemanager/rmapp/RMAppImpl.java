@@ -18,22 +18,7 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.rmapp;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -95,7 +80,21 @@ import org.apache.hadoop.yarn.util.SystemClock;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.hadoop.yarn.webapp.util.WebAppUtils;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class RMAppImpl implements RMApp, Recoverable {
@@ -604,6 +603,7 @@ public class RMAppImpl implements RMApp, Recoverable {
         RMAppMetrics rmAppMetrics = getRMAppMetrics();
         appUsageReport.setMemorySeconds(rmAppMetrics.getMemorySeconds());
         appUsageReport.setVcoreSeconds(rmAppMetrics.getVcoreSeconds());
+        appUsageReport.setGcoreSeconds(rmAppMetrics.getGcoreSeconds());
       }
 
       if (currentApplicationAttemptId == null) {
@@ -1306,6 +1306,7 @@ public class RMAppImpl implements RMApp, Recoverable {
     int numNonAMContainerPreempted = 0;
     long memorySeconds = 0;
     long vcoreSeconds = 0;
+    long gcoreSeconds = 0;
     for (RMAppAttempt attempt : attempts.values()) {
       if (null != attempt) {
         RMAppAttemptMetrics attemptMetrics =
@@ -1321,12 +1322,13 @@ public class RMAppImpl implements RMApp, Recoverable {
             attempt.getRMAppAttemptMetrics().getAggregateAppResourceUsage();
         memorySeconds += resUsage.getMemorySeconds();
         vcoreSeconds += resUsage.getVcoreSeconds();
+        gcoreSeconds += resUsage.getGcoreSeconds();
       }
     }
 
     return new RMAppMetrics(resourcePreempted,
         numNonAMContainerPreempted, numAMContainerPreempted,
-        memorySeconds, vcoreSeconds);
+        memorySeconds, vcoreSeconds, gcoreSeconds);
   }
 
   @Private

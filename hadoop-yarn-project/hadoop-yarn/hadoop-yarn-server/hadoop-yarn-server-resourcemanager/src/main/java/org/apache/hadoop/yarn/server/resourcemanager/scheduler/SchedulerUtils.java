@@ -17,10 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
@@ -41,7 +38,9 @@ import org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsMana
 import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
 import org.apache.hadoop.yarn.util.resource.Resources;
 
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Utilities shared by schedulers. 
@@ -256,7 +255,7 @@ public class SchedulerUtils {
 
   /**
    * Utility method to validate a resource request, by insuring that the
-   * requested memory/vcore is non-negative and not greater than max
+   * requested memory/vcore/gcore is non-negative and not greater than max
    * 
    * @throws InvalidResourceRequestException when there is invalid request
    */
@@ -280,6 +279,16 @@ public class SchedulerUtils {
           + ", requestedVirtualCores="
           + resReq.getCapability().getVirtualCores()
           + ", maxVirtualCores=" + maximumResource.getVirtualCores());
+    }
+    if (resReq.getCapability().getGpuCores() < 0 ||
+        resReq.getCapability().getGpuCores() >
+        maximumResource.getGpuCores()) {
+      throw new InvalidResourceRequestException("Invalid resource request"
+          + ", requested gpu cores < 0"
+          + ", or requested gpu cores > max configured"
+          + ", requestedGpuCores="
+          + resReq.getCapability().getGpuCores()
+          + ", maxGpuCores=" + maximumResource.getGpuCores());
     }
     String labelExp = resReq.getNodeLabelExpression();
 

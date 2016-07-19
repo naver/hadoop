@@ -18,13 +18,6 @@
 
 package org.apache.hadoop.yarn;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
@@ -47,6 +40,13 @@ import org.apache.hadoop.yarn.server.api.records.NodeStatus;
 import org.apache.hadoop.yarn.server.api.records.impl.pb.MasterKeyPBImpl;
 import org.apache.hadoop.yarn.server.api.records.impl.pb.NodeStatusPBImpl;
 import org.junit.Test;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Simple test classes from org.apache.hadoop.yarn.server.api
@@ -133,6 +133,7 @@ public class TestYarnServerApiClasses {
     Resource resource = recordFactory.newRecordInstance(Resource.class);
     resource.setMemory(10000);
     resource.setVirtualCores(2);
+    resource.setGpuCores(3);
     original.setResource(resource);
     RegisterNodeManagerRequestPBImpl copy = new RegisterNodeManagerRequestPBImpl(
         original.getProto());
@@ -141,6 +142,7 @@ public class TestYarnServerApiClasses {
     assertEquals(9090, copy.getNodeId().getPort());
     assertEquals(10000, copy.getResource().getMemory());
     assertEquals(2, copy.getResource().getVirtualCores());
+    assertEquals(3, copy.getResource().getGpuCores());
 
   }
 

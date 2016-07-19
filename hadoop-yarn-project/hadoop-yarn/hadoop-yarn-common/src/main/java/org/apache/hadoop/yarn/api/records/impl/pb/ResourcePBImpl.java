@@ -80,10 +80,25 @@ public class ResourcePBImpl extends Resource {
   }
 
   @Override
+  public int getGpuCores() {
+    ResourceProtoOrBuilder p = viaProto ? proto : builder;
+    return (p.getGpuCores());
+  }
+
+  @Override
+  public void setGpuCores(int gCores) {
+    maybeInitBuilder();
+    builder.setGpuCores((gCores));
+  }
+
+  @Override
   public int compareTo(Resource other) {
     int diff = this.getMemory() - other.getMemory();
     if (diff == 0) {
       diff = this.getVirtualCores() - other.getVirtualCores();
+      if (diff == 0) {
+        diff = this.getGpuCores() - other.getGpuCores();
+      }
     }
     return diff;
   }

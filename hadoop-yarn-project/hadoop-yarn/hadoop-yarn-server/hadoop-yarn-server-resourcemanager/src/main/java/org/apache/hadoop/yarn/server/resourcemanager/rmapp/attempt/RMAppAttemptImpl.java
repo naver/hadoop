@@ -18,25 +18,7 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt;
 
-import static org.apache.hadoop.yarn.util.StringHelper.pjoin;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-
-import javax.crypto.SecretKey;
-
-import org.apache.commons.lang.StringUtils;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -71,11 +53,11 @@ import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.RMServerUtils;
 import org.apache.hadoop.yarn.server.resourcemanager.amlauncher.AMLauncherEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.amlauncher.AMLauncherEventType;
-import org.apache.hadoop.yarn.server.resourcemanager.recovery.records.ApplicationAttemptStateData;
-import org.apache.hadoop.yarn.server.resourcemanager.recovery.records.ApplicationStateData;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore.RMState;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.Recoverable;
+import org.apache.hadoop.yarn.server.resourcemanager.recovery.records.ApplicationAttemptStateData;
+import org.apache.hadoop.yarn.server.resourcemanager.recovery.records.ApplicationStateData;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppEventType;
@@ -103,7 +85,22 @@ import org.apache.hadoop.yarn.state.StateMachine;
 import org.apache.hadoop.yarn.state.StateMachineFactory;
 import org.apache.hadoop.yarn.webapp.util.WebAppUtils;
 
-import com.google.common.annotations.VisibleForTesting;
+import javax.crypto.SecretKey;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+
+import static org.apache.hadoop.yarn.util.StringHelper.pjoin;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class RMAppAttemptImpl implements RMAppAttempt, Recoverable {
@@ -817,6 +814,7 @@ public class RMAppAttemptImpl implements RMAppAttempt, Recoverable {
           this.attemptMetrics.getAggregateAppResourceUsage();
       report.setMemorySeconds(resUsage.getMemorySeconds());
       report.setVcoreSeconds(resUsage.getVcoreSeconds());
+      report.setGcoreSeconds(resUsage.getGcoreSeconds());
       return report;
     } finally {
       this.readLock.unlock();
@@ -848,7 +846,7 @@ public class RMAppAttemptImpl implements RMAppAttempt, Recoverable {
     this.startTime = attemptState.getStartTime();
     this.finishTime = attemptState.getFinishTime();
     this.attemptMetrics.updateAggregateAppResourceUsage(
-        attemptState.getMemorySeconds(),attemptState.getVcoreSeconds());
+        attemptState.getMemorySeconds(),attemptState.getVcoreSeconds(), attemptState.getGcoreSeconds());
   }
 
   public void transferStateFromPreviousAttempt(RMAppAttempt attempt) {
@@ -1165,7 +1163,7 @@ public class RMAppAttemptImpl implements RMAppAttempt, Recoverable {
             startTime, stateToBeStored, finalTrackingUrl, diags,
             finalStatus, exitStatus,
           getFinishTime(), resUsage.getMemorySeconds(),
-          resUsage.getVcoreSeconds());
+          resUsage.getVcoreSeconds(), resUsage.getGcoreSeconds());
     LOG.info("Updating application attempt " + applicationAttemptId
         + " with final state: " + targetedFinalState + ", and exit status: "
         + exitStatus);

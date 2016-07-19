@@ -18,20 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.rmcontainer;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -67,6 +53,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class TestRMContainerImpl {
 
@@ -88,7 +81,7 @@ public class TestRMContainerImpl {
     ContainerId containerId = BuilderUtils.newContainerId(appAttemptId, 1);
     ContainerAllocationExpirer expirer = mock(ContainerAllocationExpirer.class);
 
-    Resource resource = BuilderUtils.newResource(512, 1);
+    Resource resource = BuilderUtils.newResource(512, 1, 1);
     Priority priority = BuilderUtils.newPriority(5);
 
     Container container = BuilderUtils.newContainer(containerId, nodeId,
@@ -184,7 +177,7 @@ public class TestRMContainerImpl {
     ContainerId containerId = BuilderUtils.newContainerId(appAttemptId, 1);
     ContainerAllocationExpirer expirer = mock(ContainerAllocationExpirer.class);
 
-    Resource resource = BuilderUtils.newResource(512, 1);
+    Resource resource = BuilderUtils.newResource(512, 1, 1);
     Priority priority = BuilderUtils.newPriority(5);
 
     Container container = BuilderUtils.newContainer(containerId, nodeId,

@@ -17,14 +17,6 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler;
 
-import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
@@ -35,9 +27,18 @@ import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.junit.After;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestSchedulerApplicationAttempt {
 
@@ -72,7 +73,7 @@ public class TestSchedulerApplicationAttempt {
     assertEquals(0x30000000001L, app.getNewContainerId());
     
     // Resource request
-    Resource requestedResource = Resource.newInstance(1536, 2);
+    Resource requestedResource = Resource.newInstance(1536, 2, 2);
     Priority requestedPriority = Priority.newInstance(2);
     ResourceRequest request = ResourceRequest.newInstance(requestedPriority,
         ResourceRequest.ANY, requestedResource, 3);
@@ -87,7 +88,7 @@ public class TestSchedulerApplicationAttempt {
     
     // Reserved container
     Priority prio1 = Priority.newInstance(1);
-    Resource reservedResource = Resource.newInstance(2048, 3);
+    Resource reservedResource = Resource.newInstance(2048, 3, 3);
     RMContainer container2 = createReservedRMContainer(appAttId, 1, reservedResource,
         node.getNodeID(), prio1);
     Map<NodeId, RMContainer> reservations = new HashMap<NodeId, RMContainer>();
@@ -95,28 +96,31 @@ public class TestSchedulerApplicationAttempt {
     app.reservedContainers.put(prio1, reservations);
     oldMetrics.reserveResource(user, reservedResource);
     
-    checkQueueMetrics(oldMetrics, 1, 1, 1536, 2, 2048, 3, 3072, 4);
-    checkQueueMetrics(newMetrics, 0, 0, 0, 0, 0, 0, 0, 0);
-    checkQueueMetrics(parentMetrics, 1, 1, 1536, 2, 2048, 3, 3072, 4);
+    checkQueueMetrics(oldMetrics, 1, 1, 1536, 2, 2, 2048, 3, 3, 3072, 4, 4);
+    checkQueueMetrics(newMetrics, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    checkQueueMetrics(parentMetrics, 1, 1, 1536, 2, 2, 2048, 3, 3, 3072, 4, 4);
     
     app.move(newQueue);
     
-    checkQueueMetrics(oldMetrics, 0, 0, 0, 0, 0, 0, 0, 0);
-    checkQueueMetrics(newMetrics, 1, 1, 1536, 2, 2048, 3, 3072, 4);
-    checkQueueMetrics(parentMetrics, 1, 1, 1536, 2, 2048, 3, 3072, 4);
+    checkQueueMetrics(oldMetrics, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    checkQueueMetrics(newMetrics, 1, 1, 1536, 2, 2, 2048, 3, 3, 3072, 4, 4);
+    checkQueueMetrics(parentMetrics, 1, 1, 1536, 2, 2, 2048, 3, 3, 3072, 4, 4);
   }
   
   private void checkQueueMetrics(QueueMetrics metrics, int activeApps,
-      int runningApps, int allocMb, int allocVcores, int reservedMb,
-      int reservedVcores, int pendingMb, int pendingVcores) {
+      int runningApps, int allocMb, int allocVcores, int allocGcores, int reservedMb,
+      int reservedVcores, int reservedGcores, int pendingMb, int pendingVcores, int pendingGcores) {
     assertEquals(activeApps, metrics.getActiveApps());
     assertEquals(runningApps, metrics.getAppsRunning());
     assertEquals(allocMb, metrics.getAllocatedMB());
     assertEquals(allocVcores, metrics.getAllocatedVirtualCores());
+    assertEquals(allocGcores, metrics.getAllocatedGpuCores());
     assertEquals(reservedMb, metrics.getReservedMB());
     assertEquals(reservedVcores, metrics.getReservedVirtualCores());
+    assertEquals(reservedGcores, metrics.getReservedGpuCores());
     assertEquals(pendingMb, metrics.getPendingMB());
     assertEquals(pendingVcores, metrics.getPendingVirtualCores());
+    assertEquals(pendingGcores, metrics.getPendingGpuCores());
   }
   
   private SchedulerNode createNode() {

@@ -17,11 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.applicationsmanager;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.yarn.MockApps;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
@@ -46,7 +42,10 @@ import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttempt;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
 import org.apache.hadoop.yarn.util.Records;
 
-import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @InterfaceAudience.Private
 public abstract class MockAsm extends MockApps {
@@ -178,7 +177,7 @@ public abstract class MockAsm extends MockApps {
 
     @Override
     public RMAppMetrics getRMAppMetrics() {
-      return new RMAppMetrics(Resource.newInstance(0, 0), 0, 0, 0, 0);
+      return new RMAppMetrics(Resource.newInstance(0, 0, 0), 0, 0, 0, 0, 0);
     }
 
     @Override
@@ -283,7 +282,7 @@ public abstract class MockAsm extends MockApps {
           String clientUserName, boolean allowAccess) {
         ApplicationResourceUsageReport usageReport =
             ApplicationResourceUsageReport.newInstance(0, 0, null, null, null, 
-            0, 0);
+            0, 0, 0);
         ApplicationReport report = ApplicationReport.newInstance(
             getApplicationId(), appAttemptId, getUser(), getQueue(), 
             getName(), null, 0, null, null, getDiagnostics().toString(), 

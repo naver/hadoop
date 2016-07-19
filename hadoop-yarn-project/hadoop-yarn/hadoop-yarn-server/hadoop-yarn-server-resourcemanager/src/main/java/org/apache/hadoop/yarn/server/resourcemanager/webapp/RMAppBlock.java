@@ -18,10 +18,7 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.webapp;
 
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI._INFO_WRAP;
-
-import java.util.Collection;
-
+import com.google.inject.Inject;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptReport;
@@ -41,7 +38,9 @@ import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.TBODY;
 import org.apache.hadoop.yarn.webapp.util.WebAppUtils;
 import org.apache.hadoop.yarn.webapp.view.InfoBlock;
 
-import com.google.inject.Inject;
+import java.util.Collection;
+
+import static org.apache.hadoop.yarn.webapp.view.JQueryUI._INFO_WRAP;
 
 public class RMAppBlock extends AppBlock{
 
@@ -97,9 +96,10 @@ public class RMAppBlock extends AppBlock{
         ._("Number of Non-AM Containers Preempted from Current Attempt:",
           attemptNumNonAMContainerPreempted)
         ._("Aggregate Resource Allocation:",
-          String.format("%d MB-seconds, %d vcore-seconds",
+          String.format("%d MB-seconds, %d vcore-seconds, %d gcore-seconds",
               appMetrics == null ? "N/A" : appMetrics.getMemorySeconds(),
-              appMetrics == null ? "N/A" : appMetrics.getVcoreSeconds()));
+              appMetrics == null ? "N/A" : appMetrics.getVcoreSeconds()),
+              appMetrics == null ? "N/A" : appMetrics.getGcoreSeconds());
     pdiv._();
   }
 

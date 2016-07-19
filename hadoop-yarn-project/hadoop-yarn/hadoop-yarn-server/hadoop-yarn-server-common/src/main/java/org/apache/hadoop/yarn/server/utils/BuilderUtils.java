@@ -18,16 +18,7 @@
 
 package org.apache.hadoop.yarn.server.utils;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.net.NetUtils;
@@ -64,7 +55,15 @@ import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Builder utilities to construct various objects.
@@ -394,7 +393,7 @@ public class BuilderUtils {
   public static ApplicationResourceUsageReport newApplicationResourceUsageReport(
       int numUsedContainers, int numReservedContainers, Resource usedResources,
       Resource reservedResources, Resource neededResources, long memorySeconds, 
-      long vcoreSeconds) {
+      long vcoreSeconds, long gcoreSeconds) {
     ApplicationResourceUsageReport report =
         recordFactory.newRecordInstance(ApplicationResourceUsageReport.class);
     report.setNumUsedContainers(numUsedContainers);
@@ -404,6 +403,7 @@ public class BuilderUtils {
     report.setNeededResources(neededResources);
     report.setMemorySeconds(memorySeconds);
     report.setVcoreSeconds(vcoreSeconds);
+    report.setGcoreSeconds(gcoreSeconds);
     return report;
   }
 
@@ -411,6 +411,15 @@ public class BuilderUtils {
     Resource resource = recordFactory.newRecordInstance(Resource.class);
     resource.setMemory(memory);
     resource.setVirtualCores(vCores);
+    resource.setGpuCores(0);
+    return resource;
+  }
+
+  public static Resource newResource(int memory, int vCores, int gCores) {
+    Resource resource = recordFactory.newRecordInstance(Resource.class);
+    resource.setMemory(memory);
+    resource.setVirtualCores(vCores);
+    resource.setGpuCores(gCores);
     return resource;
   }
 
