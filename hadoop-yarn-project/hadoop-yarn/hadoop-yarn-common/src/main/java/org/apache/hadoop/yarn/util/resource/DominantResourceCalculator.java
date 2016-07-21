@@ -17,12 +17,13 @@
 */
 package org.apache.hadoop.yarn.util.resource;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
 import org.apache.hadoop.yarn.api.records.Resource;
 
-import java.util.Iterator;
-import java.util.TreeSet;
+import java.util.Arrays;
 
 /**
  * A {@link ResourceCalculator} which uses the concept of  
@@ -48,31 +49,35 @@ import java.util.TreeSet;
 @Private
 @Unstable
 public class DominantResourceCalculator extends ResourceCalculator {
-  
+
+  private static final Log LOG = LogFactory.getLog(DominantResourceCalculator.class);
+
   @Override
   public int compare(Resource clusterResource, Resource lhs, Resource rhs) {
     
     if (lhs.equals(rhs)) {
       return 0;
     }
-    
-    TreeSet<Float> lhsValues = new TreeSet<Float>();
-    lhsValues.add((float) lhs.getMemory() / clusterResource.getMemory());
-    lhsValues.add((float) lhs.getVirtualCores() / clusterResource.getVirtualCores());
-    lhsValues.add((float) lhs.getGpuCores() / clusterResource.getGpuCores());
-    TreeSet<Float> rhsValues = new TreeSet<Float>();
-    rhsValues.add((float) rhs.getMemory() / clusterResource.getMemory());
-    rhsValues.add((float) rhs.getVirtualCores() / clusterResource.getVirtualCores());
-    rhsValues.add((float) rhs.getGpuCores() / clusterResource.getGpuCores());
 
-    Iterator<Float> lhsIter = lhsValues.descendingIterator();
-    Iterator<Float> rhsIter = rhsValues.descendingIterator();
+    float[] lValues = new float[] {
+      (float) lhs.getMemory() / clusterResource.getMemory(),
+      (float) lhs.getVirtualCores() / clusterResource.getVirtualCores(),
+      (clusterResource.getGpuCores() != 0) ? (float) lhs.getGpuCores() / clusterResource.getGpuCores() : 0.0f };
+    Arrays.sort(lValues);
+
+    float[] rValues = new float[] {
+      (float) rhs.getMemory() / clusterResource.getMemory(),
+      (float) rhs.getVirtualCores() / clusterResource.getVirtualCores(),
+      (clusterResource.getGpuCores() != 0) ? (float) rhs.getGpuCores() / clusterResource.getGpuCores() : 0.0f };
+    Arrays.sort(rValues);
 
     int diff = 0;
-    while (lhsIter.hasNext() && diff == 0) {
-      if (lhsIter.next() < rhsIter.next()) {
+    for(int i = 0; i < 3; i++) {
+      float l = lValues[i];
+      float r = rValues[i];
+      if (l < r) {
         diff = -1;
-      } else if (lhsIter.next() > rhsIter.next()) {
+      } else if (l > r) {
         diff = 1;
       }
     }
@@ -108,7 +113,7 @@ public class DominantResourceCalculator extends ResourceCalculator {
   
   @Override
   public boolean isInvalidDivisor(Resource r) {
-    if (r.getMemory() == 0.0f || r.getVirtualCores() == 0.0f) {
+    if (r.getMemory() == 0.0f || r.getVirtualCores() == 0.0f || r.getGpuCores() == 0.0f) {
       return true;
     }
     return false;
