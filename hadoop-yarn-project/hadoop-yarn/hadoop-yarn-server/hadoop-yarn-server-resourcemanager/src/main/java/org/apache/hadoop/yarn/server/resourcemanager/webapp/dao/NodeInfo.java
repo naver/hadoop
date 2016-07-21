@@ -18,19 +18,18 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.webapp.dao;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNodeReport;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
 
 @XmlRootElement(name = "node")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -49,6 +48,8 @@ public class NodeInfo {
   protected long availMemoryMB;
   protected long usedVirtualCores;
   protected long availableVirtualCores;
+  protected long usedGpuCores;
+  protected long availableGpuCores;
   protected ArrayList<String> nodeLabels = new ArrayList<String>();
 
   public NodeInfo() {
@@ -66,6 +67,8 @@ public class NodeInfo {
       this.availMemoryMB = report.getAvailableResource().getMemory();
       this.usedVirtualCores = report.getUsedResource().getVirtualCores();
       this.availableVirtualCores = report.getAvailableResource().getVirtualCores();
+      this.usedGpuCores = report.getUsedResource().getGpuCores();
+      this.availableGpuCores = report.getAvailableResource().getGpuCores();
     }
     this.id = id.toString();
     this.rack = ni.getRackName();
@@ -134,6 +137,14 @@ public class NodeInfo {
 
   public long getAvailableVirtualCores() {
     return this.availableVirtualCores;
+  }
+
+  public long getUsedGpuCores() {
+    return this.usedGpuCores;
+  }
+
+  public long getAvailableGpuCores() {
+    return this.availableGpuCores;
   }
 
   public ArrayList<String> getNodeLabels() {

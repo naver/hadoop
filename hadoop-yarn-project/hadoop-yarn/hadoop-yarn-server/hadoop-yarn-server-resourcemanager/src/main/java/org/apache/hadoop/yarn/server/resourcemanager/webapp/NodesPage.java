@@ -18,15 +18,7 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.webapp;
 
-import static org.apache.hadoop.yarn.webapp.YarnWebParams.NODE_STATE;
-import static org.apache.hadoop.yarn.webapp.YarnWebParams.NODE_LABEL;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.DATATABLES;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.DATATABLES_ID;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.initID;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.tableInit;
-
-import java.util.Collection;
-
+import com.google.inject.Inject;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
@@ -43,7 +35,11 @@ import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.TBODY;
 import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.TR;
 import org.apache.hadoop.yarn.webapp.view.HtmlBlock;
 
-import com.google.inject.Inject;
+import java.util.Collection;
+
+import static org.apache.hadoop.yarn.webapp.YarnWebParams.NODE_LABEL;
+import static org.apache.hadoop.yarn.webapp.YarnWebParams.NODE_STATE;
+import static org.apache.hadoop.yarn.webapp.view.JQueryUI.*;
 
 class NodesPage extends RmView {
 
@@ -78,6 +74,8 @@ class NodesPage extends RmView {
               .th(".mem", "Mem Avail")
               .th(".vcores", "VCores Used")
               .th(".vcores", "VCores Avail")
+              .th(".gcores", "GCores Used")
+              .th(".gcores", "GCores Avail")
               .th(".nodeManagerVersion", "Version")._()._().tbody();
       NodeState stateFilter = null;
       if (type != null && !type.isEmpty()) {
@@ -144,6 +142,8 @@ class NodesPage extends RmView {
             ._(StringUtils.byteDesc(availableMemory * BYTES_IN_MB))._()
             .td(String.valueOf(info.getUsedVirtualCores()))
             .td(String.valueOf(info.getAvailableVirtualCores()))
+            .td(String.valueOf(info.getUsedGpuCores()))
+            .td(String.valueOf(info.getAvailableGpuCores()))
             .td(ni.getNodeManagerVersion())._();
       }
       tbody._()._();

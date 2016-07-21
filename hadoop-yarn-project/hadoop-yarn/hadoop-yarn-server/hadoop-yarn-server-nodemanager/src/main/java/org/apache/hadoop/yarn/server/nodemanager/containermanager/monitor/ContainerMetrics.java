@@ -45,6 +45,7 @@ public class ContainerMetrics implements MetricsSource {
   public static final String PMEM_LIMIT_METRIC_NAME = "pMemLimitMBs";
   public static final String VMEM_LIMIT_METRIC_NAME = "vMemLimitMBs";
   public static final String VCORE_LIMIT_METRIC_NAME = "vCoreLimit";
+  public static final String GCORE_LIMIT_METRIC_NAME = "gCoreLimit";
   public static final String PMEM_USAGE_METRIC_NAME = "pMemUsageMBs";
   private static final String PHY_CPU_USAGE_METRIC_NAME = "pCpuUsagePercent";
 
@@ -73,6 +74,9 @@ public class ContainerMetrics implements MetricsSource {
 
   @Metric
   public MutableGaugeInt cpuVcoreLimit;
+
+  @Metric
+  public MutableGaugeInt gpuGcoreLimit;
 
   static final MetricsInfo RECORD_INFO =
       info("ContainerResource", "Resource limit and usage by container");
@@ -122,6 +126,8 @@ public class ContainerMetrics implements MetricsSource {
         VMEM_LIMIT_METRIC_NAME, "Virtual memory limit in MBs", 0);
     this.cpuVcoreLimit = registry.newGauge(
         VCORE_LIMIT_METRIC_NAME, "CPU limit in number of vcores", 0);
+    this.gpuGcoreLimit = registry.newGauge(
+        GCORE_LIMIT_METRIC_NAME, "GPU limit in number of gcores", 0);
   }
 
   ContainerMetrics tag(MetricsInfo info, ContainerId containerId) {
@@ -207,10 +213,11 @@ public class ContainerMetrics implements MetricsSource {
     registry.tag(PROCESSID_INFO, processId);
   }
 
-  public void recordResourceLimit(int vmemLimit, int pmemLimit, int cpuVcores) {
+  public void recordResourceLimit(int vmemLimit, int pmemLimit, int cpuVcores, int gpuGcores) {
     this.vMemLimitMbs.set(vmemLimit);
     this.pMemLimitMbs.set(pmemLimit);
     this.cpuVcoreLimit.set(cpuVcores);
+    this.gpuGcoreLimit.set(gpuGcores);
   }
 
   private synchronized void scheduleTimerTaskIfRequired() {

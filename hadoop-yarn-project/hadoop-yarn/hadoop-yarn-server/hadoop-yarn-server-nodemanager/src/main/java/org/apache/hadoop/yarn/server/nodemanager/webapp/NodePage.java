@@ -18,11 +18,7 @@
 
 package org.apache.hadoop.yarn.server.nodemanager.webapp;
 
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.ACCORDION;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.initID;
-
-import java.util.Date;
-
+import com.google.inject.Inject;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.server.nodemanager.Context;
 import org.apache.hadoop.yarn.server.nodemanager.ResourceView;
@@ -32,7 +28,10 @@ import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.HTML;
 import org.apache.hadoop.yarn.webapp.view.HtmlBlock;
 import org.apache.hadoop.yarn.webapp.view.InfoBlock;
 
-import com.google.inject.Inject;
+import java.util.Date;
+
+import static org.apache.hadoop.yarn.webapp.view.JQueryUI.ACCORDION;
+import static org.apache.hadoop.yarn.webapp.view.JQueryUI.initID;
 
 public class NodePage extends NMView {
 
@@ -74,7 +73,9 @@ public class NodePage extends NMView {
           ._("Pmem enforcement enabled",
               info.isPmemCheckEnabled())
            ._("Total VCores allocated for Containers",
-              String.valueOf(info.getTotalVCoresAllocated())) 
+              String.valueOf(info.getTotalVCoresAllocated()))
+           ._("Total GCores allocated for Containers",
+              String.valueOf(info.getTotalGCoresAllocated()))
           ._("NodeHealthyStatus",
               info.getHealthStatus())
           ._("LastNodeHealthTime", new Date(

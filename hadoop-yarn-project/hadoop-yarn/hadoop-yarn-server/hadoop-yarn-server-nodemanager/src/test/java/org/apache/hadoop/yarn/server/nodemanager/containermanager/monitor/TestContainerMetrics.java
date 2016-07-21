@@ -26,7 +26,6 @@ import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -87,9 +86,10 @@ public class TestContainerMetrics {
     int anyPmemLimit = 1024;
     int anyVmemLimit = 2048;
     int anyVcores = 10;
+    int anyGcores = 10;
     String anyProcessId = "1234";
 
-    metrics.recordResourceLimit(anyVmemLimit, anyPmemLimit, anyVcores);
+    metrics.recordResourceLimit(anyVmemLimit, anyPmemLimit, anyVcores, anyGcores);
     metrics.recordProcessId(anyProcessId);
 
     Thread.sleep(110);

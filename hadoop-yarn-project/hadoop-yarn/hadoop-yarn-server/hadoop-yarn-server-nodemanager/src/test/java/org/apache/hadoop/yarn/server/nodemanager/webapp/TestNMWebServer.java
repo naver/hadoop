@@ -18,14 +18,6 @@
 
 package org.apache.hadoop.yarn.server.nodemanager.webapp;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
@@ -58,6 +50,14 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestNMWebServer {
 
@@ -92,6 +92,10 @@ public class TestNMWebServer {
       }
       @Override
       public long getVCoresAllocatedForContainers() {
+        return 0;
+      }
+      @Override
+      public long getGCoresAllocatedForContainers() {
         return 0;
       }
       @Override
@@ -155,6 +159,10 @@ public class TestNMWebServer {
       }
       @Override
       public long getVCoresAllocatedForContainers() {
+        return 0;
+      }
+      @Override
+      public long getGCoresAllocatedForContainers() {
         return 0;
       }
       @Override
