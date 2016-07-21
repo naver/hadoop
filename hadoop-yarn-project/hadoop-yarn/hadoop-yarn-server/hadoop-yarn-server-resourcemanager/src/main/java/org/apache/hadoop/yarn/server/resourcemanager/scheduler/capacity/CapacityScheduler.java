@@ -1614,7 +1614,7 @@ public class CapacityScheduler extends
       return EnumSet.of(SchedulerResourceTypes.MEMORY);
     }
     return EnumSet
-      .of(SchedulerResourceTypes.MEMORY, SchedulerResourceTypes.CPU);
+      .of(SchedulerResourceTypes.MEMORY, SchedulerResourceTypes.CPU, SchedulerResourceTypes.GPU);
   }
   
   @Override

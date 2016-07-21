@@ -98,8 +98,8 @@ public class RMAppBlock extends AppBlock{
         ._("Aggregate Resource Allocation:",
           String.format("%d MB-seconds, %d vcore-seconds, %d gcore-seconds",
               appMetrics == null ? "N/A" : appMetrics.getMemorySeconds(),
-              appMetrics == null ? "N/A" : appMetrics.getVcoreSeconds()),
-              appMetrics == null ? "N/A" : appMetrics.getGcoreSeconds());
+              appMetrics == null ? "N/A" : appMetrics.getVcoreSeconds(),
+              appMetrics == null ? "N/A" : appMetrics.getGcoreSeconds()));
     pdiv._();
   }
 

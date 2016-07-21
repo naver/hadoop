@@ -17,11 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.webapp;
 
-import static org.apache.hadoop.yarn.util.StringHelper.join;
-import static org.apache.hadoop.yarn.webapp.YarnWebParams.CONTAINER_ID;
-
-import java.security.PrivilegedExceptionAction;
-
+import com.google.inject.Inject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -36,7 +32,10 @@ import org.apache.hadoop.yarn.util.Times;
 import org.apache.hadoop.yarn.webapp.view.HtmlBlock;
 import org.apache.hadoop.yarn.webapp.view.InfoBlock;
 
-import com.google.inject.Inject;
+import java.security.PrivilegedExceptionAction;
+
+import static org.apache.hadoop.yarn.util.StringHelper.join;
+import static org.apache.hadoop.yarn.webapp.YarnWebParams.CONTAINER_ID;
 
 public class ContainerBlock extends HtmlBlock {
 
@@ -119,7 +118,8 @@ public class ContainerBlock extends HtmlBlock {
       ._(
         "Resource:",
         container.getAllocatedMB() + " Memory, "
-            + container.getAllocatedVCores() + " VCores")
+            + container.getAllocatedVCores() + " VCores, "
+            + container.getAllocatedGCores() + " GCores")
       ._("Logs:", container.getLogUrl() == null ? "#" : container.getLogUrl(),
           container.getLogUrl() == null ? "N/A" : "Logs")
       ._("Diagnostics:", container.getDiagnosticsInfo() == null ?

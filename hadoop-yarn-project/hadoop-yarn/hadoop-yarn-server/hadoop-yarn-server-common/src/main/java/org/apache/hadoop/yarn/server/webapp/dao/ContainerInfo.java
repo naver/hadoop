@@ -18,16 +18,15 @@
 
 package org.apache.hadoop.yarn.server.webapp.dao;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Evolving;
-
 import org.apache.hadoop.yarn.api.records.ContainerReport;
 import org.apache.hadoop.yarn.api.records.ContainerState;
 import org.apache.hadoop.yarn.util.Times;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @Public
 @Evolving
@@ -38,6 +37,7 @@ public class ContainerInfo {
   protected String containerId;
   protected int allocatedMB;
   protected int allocatedVCores;
+  protected int allocatedGCores;
   protected String assignedNodeId;
   protected int priority;
   protected long startedTime;
@@ -58,6 +58,7 @@ public class ContainerInfo {
     if (container.getAllocatedResource() != null) {
       allocatedMB = container.getAllocatedResource().getMemory();
       allocatedVCores = container.getAllocatedResource().getVirtualCores();
+      allocatedGCores = container.getAllocatedResource().getGpuCores();
     }
     if (container.getAssignedNode() != null) {
       assignedNodeId = container.getAssignedNode().toString();
@@ -83,6 +84,10 @@ public class ContainerInfo {
 
   public int getAllocatedVCores() {
     return allocatedVCores;
+  }
+
+  public int getAllocatedGCores() {
+    return allocatedGCores;
   }
 
   public String getAssignedNodeId() {
