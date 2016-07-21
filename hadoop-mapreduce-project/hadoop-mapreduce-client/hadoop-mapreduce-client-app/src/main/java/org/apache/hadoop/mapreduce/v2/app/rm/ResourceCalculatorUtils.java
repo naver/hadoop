@@ -35,8 +35,15 @@ public class ResourceCalculatorUtils {
   public static int computeAvailableContainers(Resource available,
       Resource required, EnumSet<SchedulerResourceTypes> resourceTypes) {
     if (resourceTypes.contains(SchedulerResourceTypes.CPU)) {
-      return Math.min(available.getMemory() / required.getMemory(),
-        available.getVirtualCores() / required.getVirtualCores());
+      if (required.getGpuCores() != 0) {
+        return Math.min(available.getMemory() / required.getMemory(),
+                available.getVirtualCores() / required.getVirtualCores());
+      }
+      else {
+        return Math.min(available.getMemory() / required.getMemory(),
+                Math.min(available.getVirtualCores() / required.getVirtualCores(),
+                        available.getGpuCores() / required.getGpuCores()));
+      }
     }
     return available.getMemory() / required.getMemory();
   }
@@ -44,8 +51,15 @@ public class ResourceCalculatorUtils {
   public static int divideAndCeilContainers(Resource required, Resource factor,
       EnumSet<SchedulerResourceTypes> resourceTypes) {
     if (resourceTypes.contains(SchedulerResourceTypes.CPU)) {
-      return Math.max(divideAndCeil(required.getMemory(), factor.getMemory()),
-        divideAndCeil(required.getVirtualCores(), factor.getVirtualCores()));
+      if (factor.getGpuCores() != 0) {
+        return Math.max(divideAndCeil(required.getMemory(), factor.getMemory()),
+                divideAndCeil(required.getVirtualCores(), factor.getVirtualCores()));
+      }
+      else {
+        return Math.max(divideAndCeil(required.getMemory(), factor.getMemory()),
+                Math.max(divideAndCeil(required.getVirtualCores(), factor.getVirtualCores()),
+                        divideAndCeil(required.getGpuCores(), factor.getGpuCores())));
+      }
     }
     return divideAndCeil(required.getMemory(), factor.getMemory());
   }

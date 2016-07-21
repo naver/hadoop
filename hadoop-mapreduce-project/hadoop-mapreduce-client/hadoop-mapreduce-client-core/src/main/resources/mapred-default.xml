@@ -465,6 +465,14 @@
 </property>
 
 <property>
+  <name>mapreduce.map.gpu.cores</name>
+  <value>0</value>
+  <description>The number of gpu cores to request from the scheduler for
+  each map task.
+  </description>
+</property>
+
+<property>
   <name>mapreduce.reduce.memory.mb</name>
   <value>1024</value>
   <description>The amount of memory to request from the scheduler for each
@@ -476,6 +484,14 @@
   <name>mapreduce.reduce.cpu.vcores</name>
   <value>1</value>
   <description>The number of virtual cores to request from the scheduler for
+  each reduce task.
+  </description>
+</property>
+
+<property>
+  <name>mapreduce.reduce.gpu.cores</name>
+  <value>0</value>
+  <description>The number of gpu cores to request from the scheduler for
   each reduce task.
   </description>
 </property>

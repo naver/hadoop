@@ -664,6 +664,7 @@ public class TestJobImpl {
     conf.setInt(MRJobConfig.NUM_REDUCES, 0);           
     conf.setInt(MRJobConfig.REDUCE_MEMORY_MB, 2048);
     conf.setInt(MRJobConfig.REDUCE_CPU_VCORES, 10);
+    conf.setInt(MRJobConfig.REDUCE_GPU_CORES, 10);
     isUber = testUberDecision(conf);
     Assert.assertTrue(isUber);
   }

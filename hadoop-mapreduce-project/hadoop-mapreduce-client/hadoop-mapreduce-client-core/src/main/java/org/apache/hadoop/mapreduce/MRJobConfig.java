@@ -263,6 +263,9 @@ public interface MRJobConfig {
   public static final String MAP_CPU_VCORES = "mapreduce.map.cpu.vcores";
   public static final int DEFAULT_MAP_CPU_VCORES = 1;
 
+  public static final String MAP_GPU_CORES = "mapreduce.map.gpu.cores";
+  public static final int DEFAULT_MAP_GPU_CORES = 0;
+
   public static final String MAP_ENV = "mapreduce.map.env";
 
   public static final String MAP_JAVA_OPTS = "mapreduce.map.java.opts";
@@ -310,6 +313,9 @@ public interface MRJobConfig {
 
   public static final String REDUCE_CPU_VCORES = "mapreduce.reduce.cpu.vcores";
   public static final int DEFAULT_REDUCE_CPU_VCORES = 1;
+
+  public static final String REDUCE_GPU_CORES = "mapreduce.reduce.gpu.cores";
+  public static final int DEFAULT_REDUCE_GPU_CORES = 0;
 
   public static final String REDUCE_MEMORY_TOTAL_BYTES = "mapreduce.reduce.memory.totalbytes";
 
