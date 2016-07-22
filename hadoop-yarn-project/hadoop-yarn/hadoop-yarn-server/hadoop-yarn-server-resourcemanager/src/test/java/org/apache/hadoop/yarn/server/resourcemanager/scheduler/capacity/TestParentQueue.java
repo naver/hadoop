@@ -18,24 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -59,6 +41,15 @@ import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class TestParentQueue {
 
@@ -85,11 +76,11 @@ public class TestParentQueue {
     when(csContext.getConf()).thenReturn(conf);
     when(csContext.getConfiguration()).thenReturn(csConf);
     when(csContext.getMinimumResourceCapability()).thenReturn(
-        Resources.createResource(GB, 1));
+        Resources.createResource(GB, 1, 1));
     when(csContext.getMaximumResourceCapability()).thenReturn(
-        Resources.createResource(16*GB, 32));
+        Resources.createResource(16*GB, 32, 32));
     when(csContext.getClusterResource()).
-        thenReturn(Resources.createResource(100 * 16 * GB, 100 * 32));
+        thenReturn(Resources.createResource(100 * 16 * GB, 100 * 32, 100 * 32));
     when(csContext.getApplicationComparator()).
     thenReturn(CapacityScheduler.applicationComparator);
     when(csContext.getQueueComparator()).
@@ -118,7 +109,7 @@ public class TestParentQueue {
   private FiCaSchedulerApp getMockApplication(int appId, String user) {
     FiCaSchedulerApp application = mock(FiCaSchedulerApp.class);
     doReturn(user).when(application).getUser();
-    doReturn(Resources.createResource(0, 0)).when(application).getHeadroom();
+    doReturn(Resources.createResource(0, 0, 0)).when(application).getHeadroom();
     return application;
   }
 
@@ -221,7 +212,7 @@ public class TestParentQueue {
     
     final Resource clusterResource = 
         Resources.createResource(numNodes * (memoryPerNode*GB),
-            numNodes * coresPerNode);
+            numNodes * coresPerNode, numNodes * coresPerNode);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     // Start testing
@@ -443,7 +434,7 @@ public class TestParentQueue {
     
     final Resource clusterResource = 
         Resources.createResource(numNodes * (memoryPerNode*GB), 
-            numNodes * coresPerNode);
+            numNodes * coresPerNode, numNodes * coresPerNode);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     // Start testing
@@ -616,7 +607,7 @@ public class TestParentQueue {
     
     final Resource clusterResource = 
         Resources.createResource(numNodes * (memoryPerNode*GB), 
-            numNodes * coresPerNode);
+            numNodes * coresPerNode, numNodes * coresPerNode);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     // Start testing
@@ -685,7 +676,7 @@ public class TestParentQueue {
     
     final Resource clusterResource = 
         Resources.createResource(numNodes * (memoryPerNode*GB),
-            numNodes * coresPerNode);
+            numNodes * coresPerNode, numNodes * coresPerNode);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     // Start testing

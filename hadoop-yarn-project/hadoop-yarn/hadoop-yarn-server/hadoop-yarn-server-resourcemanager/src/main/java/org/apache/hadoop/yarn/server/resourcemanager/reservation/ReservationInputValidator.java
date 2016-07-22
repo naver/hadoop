@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.reservation;
 
-import java.util.List;
-
 import org.apache.hadoop.yarn.api.protocolrecords.ReservationDeleteRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.ReservationSubmissionRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.ReservationUpdateRequest;
@@ -36,6 +34,8 @@ import org.apache.hadoop.yarn.server.resourcemanager.RMAuditLogger.AuditConstant
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.Queue;
 import org.apache.hadoop.yarn.util.Clock;
 import org.apache.hadoop.yarn.util.resource.Resources;
+
+import java.util.List;
 
 public class ReservationInputValidator {
 
@@ -125,7 +125,7 @@ public class ReservationInputValidator {
     }
     // compute minimum duration and max gang size
     long minDuration = 0;
-    Resource maxGangSize = Resource.newInstance(0, 0);
+    Resource maxGangSize = Resource.newInstance(0, 0, 0);
     ReservationRequestInterpreter type =
         contract.getReservationRequests().getInterpreter();
     for (ReservationRequest rr : resReq) {

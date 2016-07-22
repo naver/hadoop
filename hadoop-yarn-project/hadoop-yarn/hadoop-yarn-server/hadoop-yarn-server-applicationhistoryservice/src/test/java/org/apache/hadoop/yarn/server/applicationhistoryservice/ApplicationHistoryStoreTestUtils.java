@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.yarn.server.applicationhistoryservice;
 
-import java.io.IOException;
-
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
@@ -36,6 +34,8 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.records.Applicati
 import org.apache.hadoop.yarn.server.applicationhistoryservice.records.ApplicationStartData;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.records.ContainerFinishData;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.records.ContainerStartData;
+
+import java.io.IOException;
 
 public class ApplicationHistoryStoreTestUtils {
 
@@ -72,7 +72,7 @@ public class ApplicationHistoryStoreTestUtils {
   protected void writeContainerStartData(ContainerId containerId)
       throws IOException {
     store.containerStarted(ContainerStartData.newInstance(containerId,
-      Resource.newInstance(0, 0), NodeId.newInstance("localhost", 0),
+      Resource.newInstance(0, 0, 0), NodeId.newInstance("localhost", 0),
       Priority.newInstance(containerId.getId()), 0));
   }
 

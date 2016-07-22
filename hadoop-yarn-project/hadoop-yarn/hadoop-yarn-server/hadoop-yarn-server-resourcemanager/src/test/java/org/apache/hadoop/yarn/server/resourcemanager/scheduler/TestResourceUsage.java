@@ -18,10 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -29,6 +25,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
 
 @RunWith(Parameterized.class)
 public class TestResourceUsage {
@@ -112,15 +112,15 @@ public class TestResourceUsage {
     check(0, 0, res);
 
     // Add 1,1 should returns 1,1
-    inc(usage, suffix, Resource.newInstance(1, 1), label);
+    inc(usage, suffix, Resource.newInstance(1, 1, 1), label);
     check(1, 1, get(usage, suffix, label));
 
     // Set 2,2
-    set(usage, suffix, Resource.newInstance(2, 2), label);
+    set(usage, suffix, Resource.newInstance(2, 2, 2), label);
     check(2, 2, get(usage, suffix, label));
 
     // dec 2,2
-    dec(usage, suffix, Resource.newInstance(2, 2), label);
+    dec(usage, suffix, Resource.newInstance(2, 2, 2), label);
     check(0, 0, get(usage, suffix, label));
   }
 

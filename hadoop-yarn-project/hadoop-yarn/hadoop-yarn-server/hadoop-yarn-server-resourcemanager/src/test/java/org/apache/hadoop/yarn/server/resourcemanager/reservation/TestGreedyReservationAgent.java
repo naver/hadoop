@@ -17,18 +17,6 @@
  *******************************************************************************/
 package org.apache.hadoop.yarn.server.resourcemanager.reservation;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.ReservationRequest;
@@ -47,13 +35,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mortbay.log.Log;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+
 public class TestGreedyReservationAgent {
 
   ReservationAgent agent;
   InMemoryPlan plan;
-  Resource minAlloc = Resource.newInstance(1024, 1);
+  Resource minAlloc = Resource.newInstance(1024, 1, 1);
   ResourceCalculator res = new DefaultResourceCalculator();
-  Resource maxAlloc = Resource.newInstance(1024 * 8, 8);
+  Resource maxAlloc = Resource.newInstance(1024 * 8, 8, 8);
   Random rand = new Random();
   long step;
 
@@ -66,7 +64,7 @@ public class TestGreedyReservationAgent {
 
     // setting completely loose quotas
     long timeWindow = 1000000L;
-    Resource clusterCapacity = Resource.newInstance(100 * 1024, 100);
+    Resource clusterCapacity = Resource.newInstance(100 * 1024, 100, 100);
     step = 1000L;
     ReservationSystemTestUtil testUtil = new ReservationSystemTestUtil();
     String reservationQ = testUtil.getFullReservationQueueName();
@@ -98,7 +96,7 @@ public class TestGreedyReservationAgent {
     rr.setArrival(5 * step);
     rr.setDeadline(20 * step);
     ReservationRequest r = ReservationRequest.newInstance(
-        Resource.newInstance(2048, 2), 10, 5, 10 * step);
+        Resource.newInstance(2048, 2, 2), 10, 5, 10 * step);
     ReservationRequests reqs = new ReservationRequestsPBImpl();
     reqs.setReservationResources(Collections.singletonList(r));
     rr.setReservationRequests(reqs);
@@ -122,7 +120,7 @@ public class TestGreedyReservationAgent {
       assertTrue(
           "Agent-based allocation unexpected",
           Resources.equals(cs.getResourcesAtTime(i),
-              Resource.newInstance(2048 * 10, 2 * 10)));
+              Resource.newInstance(2048 * 10, 2 * 10, 2 * 10)));
     }
 
   }
@@ -148,9 +146,9 @@ public class TestGreedyReservationAgent {
     ReservationRequests reqs = new ReservationRequestsPBImpl();
     reqs.setInterpreter(ReservationRequestInterpreter.R_ORDER);
     ReservationRequest r = ReservationRequest.newInstance(
-        Resource.newInstance(2048, 2), 10, 1, 10 * step);
+        Resource.newInstance(2048, 2, 2), 10, 1, 10 * step);
     ReservationRequest r2 = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), 10, 10, 20 * step);
+        Resource.newInstance(1024, 1, 1), 10, 10, 20 * step);
     List<ReservationRequest> list = new ArrayList<ReservationRequest>();
     list.add(r);
     list.add(r2);
@@ -204,9 +202,9 @@ public class TestGreedyReservationAgent {
     ReservationRequests reqs = new ReservationRequestsPBImpl();
     reqs.setInterpreter(ReservationRequestInterpreter.R_ORDER_NO_GAP);
     ReservationRequest r = ReservationRequest.newInstance(
-        Resource.newInstance(2048, 2), 10, 1, 10);
+        Resource.newInstance(2048, 2, 2), 10, 1, 10);
     ReservationRequest r2 = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), 10, 10, 20);
+        Resource.newInstance(1024, 1, 1), 10, 10, 20);
     List<ReservationRequest> list = new ArrayList<ReservationRequest>();
     list.add(r);
     list.add(r2);
@@ -249,9 +247,9 @@ public class TestGreedyReservationAgent {
     ReservationRequests reqs = new ReservationRequestsPBImpl();
     reqs.setInterpreter(ReservationRequestInterpreter.R_ORDER_NO_GAP);
     ReservationRequest r = ReservationRequest.newInstance(
-        Resource.newInstance(2048, 2), 10, 1, 10 * step);
+        Resource.newInstance(2048, 2, 2), 10, 1, 10 * step);
     ReservationRequest r2 = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), 10, 10, 20 * step);
+        Resource.newInstance(1024, 1, 1), 10, 10, 20 * step);
     List<ReservationRequest> list = new ArrayList<ReservationRequest>();
     list.add(r);
     list.add(r2);
@@ -296,7 +294,7 @@ public class TestGreedyReservationAgent {
     ReservationRequests reqs = new ReservationRequestsPBImpl();
     reqs.setInterpreter(ReservationRequestInterpreter.R_ALL);
     ReservationRequest r = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), 200, 10, 10 * step);
+        Resource.newInstance(1024, 1, 1), 200, 10, 10 * step);
 
     List<ReservationRequest> list = new ArrayList<ReservationRequest>();
     list.add(r);
@@ -337,11 +335,11 @@ public class TestGreedyReservationAgent {
     ReservationRequests reqs = new ReservationRequestsPBImpl();
     reqs.setInterpreter(ReservationRequestInterpreter.R_ANY);
     ReservationRequest r = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), 5, 5, 10 * step);
+        Resource.newInstance(1024, 1, 1), 5, 5, 10 * step);
     ReservationRequest r2 = ReservationRequest.newInstance(
-        Resource.newInstance(2048, 2), 10, 5, 10 * step);
+        Resource.newInstance(2048, 2, 2), 10, 5, 10 * step);
     ReservationRequest r3 = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), 110, 110, 10 * step);
+        Resource.newInstance(1024, 1, 1), 110, 110, 10 * step);
 
     List<ReservationRequest> list = new ArrayList<ReservationRequest>();
     list.add(r);
@@ -383,10 +381,10 @@ public class TestGreedyReservationAgent {
 
     // longer than arrival-deadline
     ReservationRequest r1 = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), 35, 5, 30);
+        Resource.newInstance(1024, 1, 1), 35, 5, 30);
     // above max cluster size
     ReservationRequest r2 = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), 110, 110, 10);
+        Resource.newInstance(1024, 1, 1), 110, 110, 10);
 
     List<ReservationRequest> list = new ArrayList<ReservationRequest>();
     list.add(r1);
@@ -426,9 +424,9 @@ public class TestGreedyReservationAgent {
     ReservationRequests reqs = new ReservationRequestsPBImpl();
     reqs.setInterpreter(ReservationRequestInterpreter.R_ALL);
     ReservationRequest r = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), 5, 5, 10 * step);
+        Resource.newInstance(1024, 1, 1), 5, 5, 10 * step);
     ReservationRequest r2 = ReservationRequest.newInstance(
-        Resource.newInstance(2048, 2), 10, 10, 20 * step);
+        Resource.newInstance(2048, 2, 2), 10, 10, 20 * step);
 
     List<ReservationRequest> list = new ArrayList<ReservationRequest>();
     list.add(r);
@@ -469,9 +467,9 @@ public class TestGreedyReservationAgent {
     ReservationRequests reqs = new ReservationRequestsPBImpl();
     reqs.setInterpreter(ReservationRequestInterpreter.R_ALL);
     ReservationRequest r = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), 55, 5, 10);
+        Resource.newInstance(1024, 1, 1), 55, 5, 10);
     ReservationRequest r2 = ReservationRequest.newInstance(
-        Resource.newInstance(2048, 2), 55, 5, 20);
+        Resource.newInstance(2048, 2, 2), 55, 5, 20);
 
     List<ReservationRequest> list = new ArrayList<ReservationRequest>();
     list.add(r);
@@ -535,7 +533,7 @@ public class TestGreedyReservationAgent {
     for (long i = start; i < end; i++) {
       res = res
           && Resources.equals(cs.getResourcesAtTime(i),
-              Resource.newInstance(mem * containers, cores * containers));
+              Resource.newInstance(mem * containers, cores * containers, cores * containers));
     }
     return res;
   }
@@ -543,7 +541,7 @@ public class TestGreedyReservationAgent {
   public void testStress(int numJobs) throws PlanningException, IOException {
 
     long timeWindow = 1000000L;
-    Resource clusterCapacity = Resource.newInstance(500 * 100 * 1024, 500 * 32);
+    Resource clusterCapacity = Resource.newInstance(500 * 100 * 1024, 500 * 32, 500 * 32);
     step = 1000L;
     ReservationSystemTestUtil testUtil = new ReservationSystemTestUtil();
     CapacityScheduler scheduler = testUtil.mockCapacityScheduler(500 * 100);

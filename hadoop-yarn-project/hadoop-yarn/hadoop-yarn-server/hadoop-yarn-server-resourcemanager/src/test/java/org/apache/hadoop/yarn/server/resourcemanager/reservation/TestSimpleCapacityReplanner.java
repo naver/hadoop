@@ -17,16 +17,6 @@
  *******************************************************************************/
 package org.apache.hadoop.yarn.server.resourcemanager.reservation;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.ReservationRequest;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -37,14 +27,22 @@ import org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator;
 import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
 import org.junit.Test;
 
+import java.util.Map;
+import java.util.TreeMap;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class TestSimpleCapacityReplanner {
 
   @Test
   public void testReplanningPlanCapacityLoss() throws PlanningException {
 
-    Resource clusterCapacity = Resource.newInstance(100 * 1024, 10);
-    Resource minAlloc = Resource.newInstance(1024, 1);
-    Resource maxAlloc = Resource.newInstance(1024 * 8, 8);
+    Resource clusterCapacity = Resource.newInstance(100 * 1024, 10, 10);
+    Resource minAlloc = Resource.newInstance(1024, 1, 1);
+    Resource maxAlloc = Resource.newInstance(1024 * 8, 8, 8);
 
     ResourceCalculator res = new DefaultResourceCalculator();
     long step = 1L;
@@ -118,7 +116,7 @@ public class TestSimpleCapacityReplanner {
             minAlloc)));
 
     // remove some of the resources (requires replanning)
-    plan.setTotalCapacity(Resource.newInstance(70 * 1024, 70));
+    plan.setTotalCapacity(Resource.newInstance(70 * 1024, 70, 70));
 
     when(clock.getTime()).thenReturn(0L);
 
@@ -152,7 +150,7 @@ public class TestSimpleCapacityReplanner {
         new TreeMap<ReservationInterval, ReservationRequest>();
     for (int i = 0; i < alloc.length; i++) {
       req.put(new ReservationInterval(startTime + i, startTime + i + 1),
-          ReservationRequest.newInstance(Resource.newInstance(1024, 1),
+          ReservationRequest.newInstance(Resource.newInstance(1024, 1, 1),
               alloc[i]));
     }
     return req;

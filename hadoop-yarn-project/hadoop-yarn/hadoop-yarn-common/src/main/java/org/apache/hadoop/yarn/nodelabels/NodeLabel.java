@@ -18,12 +18,13 @@
 
 package org.apache.hadoop.yarn.nodelabels;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.util.resource.Resources;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class NodeLabel implements Comparable<NodeLabel> {
   private Resource resource;
@@ -32,7 +33,7 @@ public class NodeLabel implements Comparable<NodeLabel> {
   private Set<NodeId> nodeIds;
 
   public NodeLabel(String labelName) {
-    this(labelName, Resource.newInstance(0, 0), 0);
+    this(labelName, Resource.newInstance(0, 0, 0), 0);
   }
   
   protected NodeLabel(String labelName, Resource res, int activeNMs) {

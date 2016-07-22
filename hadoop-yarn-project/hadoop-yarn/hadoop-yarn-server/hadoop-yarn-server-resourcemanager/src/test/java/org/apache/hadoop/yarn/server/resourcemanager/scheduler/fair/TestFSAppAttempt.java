@@ -19,12 +19,10 @@
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.server.resourcemanager.MockRM;
-import static org.junit.Assert.assertEquals;
-
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.Priority;
+import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.server.resourcemanager.MockRM;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.NodeType;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.QueueMetrics;
@@ -36,6 +34,8 @@ import org.apache.hadoop.yarn.util.resource.Resources;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestFSAppAttempt extends FairSchedulerTestBase {
 
@@ -199,17 +199,17 @@ public class TestFSAppAttempt extends FairSchedulerTestBase {
 
     final FSLeafQueue mockQueue = Mockito.mock(FSLeafQueue.class);
 
-    final Resource queueMaxResources = Resource.newInstance(5 * 1024, 3);
-    final Resource queueFairShare = Resources.createResource(4096, 2);
-    final Resource queueUsage = Resource.newInstance(2048, 2);
+    final Resource queueMaxResources = Resource.newInstance(5 * 1024, 3, 3);
+    final Resource queueFairShare = Resources.createResource(4096, 2, 2);
+    final Resource queueUsage = Resource.newInstance(2048, 2, 2);
 
     final Resource queueStarvation =
         Resources.subtract(queueFairShare, queueUsage);
     final Resource queueMaxResourcesAvailable =
         Resources.subtract(queueMaxResources, queueUsage);
 
-    final Resource clusterResource = Resources.createResource(8192, 8);
-    final Resource clusterUsage = Resources.createResource(2048, 2);
+    final Resource clusterResource = Resources.createResource(8192, 8, 8);
+    final Resource clusterUsage = Resources.createResource(2048, 2, 2);
     final Resource clusterAvailable =
         Resources.subtract(clusterResource, clusterUsage);
 

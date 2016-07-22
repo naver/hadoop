@@ -17,10 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.policies;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Comparator;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -31,7 +28,9 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.SchedulingPo
 import org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator;
 import org.apache.hadoop.yarn.util.resource.Resources;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Comparator;
 
 /**
  * Makes scheduling decisions by trying to equalize shares of memory.
@@ -121,7 +120,7 @@ public class FairSharePolicy extends SchedulingPolicy {
         queueFairShare.getMemory() - queueUsage.getMemory(), 0);
     Resource headroom = Resources.createResource(
         Math.min(maxAvailable.getMemory(), queueAvailableMemory),
-        maxAvailable.getVirtualCores());
+        maxAvailable.getVirtualCores(), maxAvailable.getGpuCores());
     return headroom;
   }
 

@@ -17,17 +17,6 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.reservation;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.Collections;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.AccessControlException;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
@@ -55,6 +44,13 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
+
+import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class TestCapacitySchedulerPlanFollower extends TestSchedulerPlanFollowerBase {
 
@@ -96,9 +92,9 @@ public class TestCapacitySchedulerPlanFollower extends TestSchedulerPlanFollower
     when(csContext.getMinimumResourceCapability()).thenReturn(minAlloc);
     when(csContext.getMaximumResourceCapability()).thenReturn(maxAlloc);
     when(csContext.getClusterResource()).thenReturn(
-        Resources.createResource(100 * 16 * GB, 100 * 32));
+        Resources.createResource(100 * 16 * GB, 100 * 32, 100 * 32));
     when(scheduler.getClusterResource()).thenReturn(
-        Resources.createResource(125 * GB, 125));
+        Resources.createResource(125 * GB, 125, 125));
     when(csContext.getResourceCalculator()).thenReturn(
         new DefaultResourceCalculator());
     RMContainerTokenSecretManager containerTokenSecretManager =

@@ -18,17 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,6 +49,17 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerUtils;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerApp;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerNode;
 import org.apache.hadoop.yarn.util.resource.Resources;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Private
 @Evolving
@@ -378,7 +378,7 @@ public class ParentQueue extends AbstractCSQueue {
   public synchronized CSAssignment assignContainers(Resource clusterResource,
       FiCaSchedulerNode node, ResourceLimits resourceLimits) {
     CSAssignment assignment = 
-        new CSAssignment(Resources.createResource(0, 0), NodeType.NODE_LOCAL);
+        new CSAssignment(Resources.createResource(0, 0, 0), NodeType.NODE_LOCAL);
     Set<String> nodeLabels = node.getLabels();
     
     // if our queue cannot access this node, just return
@@ -397,7 +397,7 @@ public class ParentQueue extends AbstractCSQueue {
       // looking
       if (!super.canAssignToThisQueue(clusterResource, nodeLabels, resourceLimits,
           minimumAllocation, Resources.createResource(getMetrics()
-              .getReservedMB(), getMetrics().getReservedVirtualCores()))) {
+              .getReservedMB(), getMetrics().getReservedVirtualCores(), getMetrics().getReservedGpuCores()))) {
         break;
       }
       
@@ -491,7 +491,7 @@ public class ParentQueue extends AbstractCSQueue {
   private synchronized CSAssignment assignContainersToChildQueues(
       Resource cluster, FiCaSchedulerNode node, ResourceLimits limits) {
     CSAssignment assignment = 
-        new CSAssignment(Resources.createResource(0, 0), NodeType.NODE_LOCAL);
+        new CSAssignment(Resources.createResource(0, 0, 0), NodeType.NODE_LOCAL);
     
     printChildQueues();
 

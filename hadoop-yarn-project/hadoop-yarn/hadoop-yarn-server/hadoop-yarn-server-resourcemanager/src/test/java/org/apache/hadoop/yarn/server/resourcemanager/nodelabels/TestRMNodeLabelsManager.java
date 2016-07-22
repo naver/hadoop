@@ -18,12 +18,8 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.nodelabels;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -37,13 +33,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class TestRMNodeLabelsManager extends NodeLabelTestBase {
-  private final Resource EMPTY_RESOURCE = Resource.newInstance(0, 0);
-  private final Resource SMALL_RESOURCE = Resource.newInstance(100, 0);
-  private final Resource LARGE_NODE = Resource.newInstance(1000, 0);
+  private final Resource EMPTY_RESOURCE = Resource.newInstance(0, 0, 0);
+  private final Resource SMALL_RESOURCE = Resource.newInstance(100, 0, 0);
+  private final Resource LARGE_NODE = Resource.newInstance(1000, 0, 0);
   
   NullRMNodeLabelsManager mgr = null;
 
@@ -207,7 +206,7 @@ public class TestRMNodeLabelsManager extends NodeLabelTestBase {
   
   @Test(timeout=5000)
   public void testGetQueueResource() throws Exception {
-    Resource clusterResource = Resource.newInstance(9999, 1);
+    Resource clusterResource = Resource.newInstance(9999, 1, 1);
     
     /*
      * Node->Labels:
@@ -490,11 +489,11 @@ public class TestRMNodeLabelsManager extends NodeLabelTestBase {
   @Test(timeout = 5000)
   public void testPullRMNodeLabelsInfo() throws IOException {
     mgr.addToCluserNodeLabels(toSet("x", "y", "z"));
-    mgr.activateNode(NodeId.newInstance("n1", 1), Resource.newInstance(10, 0));
-    mgr.activateNode(NodeId.newInstance("n2", 1), Resource.newInstance(10, 0));
-    mgr.activateNode(NodeId.newInstance("n3", 1), Resource.newInstance(10, 0));
-    mgr.activateNode(NodeId.newInstance("n4", 1), Resource.newInstance(10, 0));
-    mgr.activateNode(NodeId.newInstance("n5", 1), Resource.newInstance(10, 0));
+    mgr.activateNode(NodeId.newInstance("n1", 1), Resource.newInstance(10, 0, 0));
+    mgr.activateNode(NodeId.newInstance("n2", 1), Resource.newInstance(10, 0, 0));
+    mgr.activateNode(NodeId.newInstance("n3", 1), Resource.newInstance(10, 0, 0));
+    mgr.activateNode(NodeId.newInstance("n4", 1), Resource.newInstance(10, 0, 0));
+    mgr.activateNode(NodeId.newInstance("n5", 1), Resource.newInstance(10, 0, 0));
     mgr.replaceLabelsOnNode(ImmutableMap.of(toNodeId("n1"), toSet("x"),
         toNodeId("n2"), toSet("x"), toNodeId("n3"), toSet("y")));
     
@@ -510,7 +509,7 @@ public class TestRMNodeLabelsManager extends NodeLabelTestBase {
   @Test(timeout = 5000)
   public void testLabelsToNodesOnNodeActiveDeactive() throws Exception {
     // Activate a node without assigning any labels
-    mgr.activateNode(NodeId.newInstance("n1", 1), Resource.newInstance(10, 0));
+    mgr.activateNode(NodeId.newInstance("n1", 1), Resource.newInstance(10, 0, 0));
     Assert.assertTrue(mgr.getLabelsToNodes().isEmpty());
     assertLabelsToNodesEquals(
         mgr.getLabelsToNodes(), transposeNodeToLabels(mgr.getNodeLabels()));
@@ -524,7 +523,7 @@ public class TestRMNodeLabelsManager extends NodeLabelTestBase {
         mgr.getLabelsToNodes(), transposeNodeToLabels(mgr.getNodeLabels()));
 
     // Activate a node for which host to label mapping exists
-    mgr.activateNode(NodeId.newInstance("n1", 2), Resource.newInstance(10, 0));
+    mgr.activateNode(NodeId.newInstance("n1", 2), Resource.newInstance(10, 0, 0));
     // p1 -> n1, n1:1, n1:2
     Assert.assertEquals(3, mgr.getLabelsToNodes().get("p1").size());
     assertLabelsToNodesEquals(

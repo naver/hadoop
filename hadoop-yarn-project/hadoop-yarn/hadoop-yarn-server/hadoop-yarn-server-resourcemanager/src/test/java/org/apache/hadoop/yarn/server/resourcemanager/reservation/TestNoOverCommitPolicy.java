@@ -17,11 +17,6 @@
  *******************************************************************************/
 package org.apache.hadoop.yarn.server.resourcemanager.reservation;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-
-import java.io.IOException;
-
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.MismatchedUserException;
@@ -32,6 +27,11 @@ import org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator;
 import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class TestNoOverCommitPolicy {
 
@@ -53,9 +53,9 @@ public class TestNoOverCommitPolicy {
     step = 1000L;
 
     initTime = System.currentTimeMillis();
-    minAlloc = Resource.newInstance(1024, 1);
+    minAlloc = Resource.newInstance(1024, 1, 1);
     res = new DefaultResourceCalculator();
-    maxAlloc = Resource.newInstance(1024 * 8, 8);
+    maxAlloc = Resource.newInstance(1024 * 8, 8, 8);
 
     mAgent = mock(ReservationAgent.class);
     ReservationSystemTestUtil testUtil = new ReservationSystemTestUtil();

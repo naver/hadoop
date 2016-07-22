@@ -17,15 +17,15 @@
  *******************************************************************************/
 package org.apache.hadoop.yarn.server.resourcemanager.reservation;
 
-import java.util.Collections;
-import java.util.Map;
-
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.ReservationRequest;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
 import org.apache.hadoop.yarn.util.resource.Resources;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * An in memory implementation of a reservation allocation using the
@@ -121,7 +121,7 @@ class InMemoryReservationAllocation implements ReservationAllocation {
   @Override
   public Resource getResourcesAtTime(long tick) {
     if (tick < startTime || tick >= endTime) {
-      return Resource.newInstance(0, 0);
+      return Resource.newInstance(0, 0, 0);
     }
     return Resources.clone(resourcesOverTime.getCapacityAtTime(tick));
   }

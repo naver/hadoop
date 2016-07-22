@@ -128,7 +128,7 @@ public class TestLeafQueue {
     when(rmApp.getRMAppAttempt((ApplicationAttemptId)Matchers.any())).thenReturn(null);
     amResourceRequest = mock(ResourceRequest.class);
     when(amResourceRequest.getCapability()).thenReturn(
-      Resources.createResource(0, 0));
+      Resources.createResource(0, 0, 0));
     when(rmApp.getAMResourceRequest()).thenReturn(amResourceRequest);
     Mockito.doReturn(rmApp).when(spyApps).get((ApplicationId)Matchers.any());
     when(spyRMContext.getRMApps()).thenReturn(spyApps);
@@ -145,11 +145,11 @@ public class TestLeafQueue {
     when(csContext.getConfiguration()).thenReturn(csConf);
     when(csContext.getConf()).thenReturn(conf);
     when(csContext.getMinimumResourceCapability()).
-        thenReturn(Resources.createResource(GB, 1));
+        thenReturn(Resources.createResource(GB, 1, 1));
     when(csContext.getMaximumResourceCapability()).
-        thenReturn(Resources.createResource(16*GB, 32));
+        thenReturn(Resources.createResource(16*GB, 32, 32));
     when(csContext.getClusterResource()).
-        thenReturn(Resources.createResource(100 * 16 * GB, 100 * 32));
+        thenReturn(Resources.createResource(100 * 16 * GB, 100 * 32, 100 * 32));
     when(csContext.getApplicationComparator()).
     thenReturn(CapacityScheduler.applicationComparator);
     when(csContext.getQueueComparator()).
@@ -293,16 +293,16 @@ public class TestLeafQueue {
     assertEquals(0.1, c.getAbsoluteMaximumCapacity(), epsilon);
 
 	  //Verify the value for getAMResourceLimit for queues with < .1 maxcap
-	  Resource clusterResource = Resource.newInstance(50 * GB, 50);
+	  Resource clusterResource = Resource.newInstance(50 * GB, 50, 50);
 	  
     a.updateClusterResource(clusterResource,
         new ResourceLimits(clusterResource));
-	  assertEquals(Resource.newInstance(1 * GB, 1), 
+	  assertEquals(Resource.newInstance(1 * GB, 1, 1),
 	    a.getAMResourceLimit());
     
 	  b.updateClusterResource(clusterResource,
         new ResourceLimits(clusterResource));
-	  assertEquals(Resource.newInstance(5 * GB, 1), 
+	  assertEquals(Resource.newInstance(5 * GB, 1, 1),
 	    b.getAMResourceLimit());
   }
  
@@ -338,7 +338,7 @@ public class TestLeafQueue {
 
     final int numNodes = 1;
     Resource clusterResource = 
-        Resources.createResource(numNodes * (8*GB), numNodes * 16);
+        Resources.createResource(numNodes * (8*GB), numNodes * 16, numNodes * 16);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     // Setup resource-requests
@@ -470,7 +470,7 @@ public class TestLeafQueue {
 
     final int numNodes = 1;
     Resource clusterResource = 
-        Resources.createResource(numNodes * (8*GB), numNodes * 16);
+        Resources.createResource(numNodes * (8*GB), numNodes * 16, numNodes * 16);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     // Setup resource-requests
@@ -617,7 +617,7 @@ public class TestLeafQueue {
     
     final int numNodes = 2;
     Resource clusterResource = 
-        Resources.createResource(numNodes * (8*GB), numNodes * 16);
+        Resources.createResource(numNodes * (8*GB), numNodes * 16, numNodes * 16);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
  
     // Setup resource-requests
@@ -688,7 +688,7 @@ public class TestLeafQueue {
     FiCaSchedulerNode node_1 = TestUtils.getMockNode(host_1, DEFAULT_RACK, 0, 8*GB);
 
     final int numNodes = 2;
-    Resource clusterResource = Resources.createResource(numNodes * (8*GB), 1);
+    Resource clusterResource = Resources.createResource(numNodes * (8*GB), 1, 1);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     //our test plan contains three cases
@@ -866,7 +866,7 @@ public class TestLeafQueue {
       0, 16*GB);
 
     final int numNodes = 2;
-    Resource clusterResource = Resources.createResource(numNodes * (16*GB), 1);
+    Resource clusterResource = Resources.createResource(numNodes * (16*GB), 1, 1);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     Priority priority = TestUtils.createMockPriority(1);
@@ -954,7 +954,7 @@ public class TestLeafQueue {
     FiCaSchedulerNode node_1 = TestUtils.getMockNode(host_1, DEFAULT_RACK, 0, 8*GB);
     
     final int numNodes = 2;
-    Resource clusterResource = Resources.createResource(numNodes * (8*GB), 1);
+    Resource clusterResource = Resources.createResource(numNodes * (8*GB), 1, 1);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
  
     // Setup resource-requests
@@ -1076,7 +1076,7 @@ public class TestLeafQueue {
     
     final int numNodes = 1;
     Resource clusterResource = 
-        Resources.createResource(numNodes * (8*GB), numNodes * 16);
+        Resources.createResource(numNodes * (8*GB), numNodes * 16, numNodes * 16);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
     
     // Setup resource-requests
@@ -1255,7 +1255,7 @@ public class TestLeafQueue {
     
     final int numNodes = 2;
     Resource clusterResource = 
-        Resources.createResource(numNodes * (4*GB), numNodes * 16);
+        Resources.createResource(numNodes * (4*GB), numNodes * 16, numNodes * 16);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
     
     // Setup resource-requests
@@ -1370,7 +1370,7 @@ public class TestLeafQueue {
 
     final int numNodes = 3;
     Resource clusterResource = 
-        Resources.createResource(numNodes * (4*GB), numNodes * 16);
+        Resources.createResource(numNodes * (4*GB), numNodes * 16, numNodes * 16);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     // Setup resource-requests
@@ -1482,12 +1482,12 @@ public class TestLeafQueue {
     
     final int numNodes = 3;
     Resource clusterResource = 
-        Resources.createResource(numNodes * (4*GB), numNodes * 16);
+        Resources.createResource(numNodes * (4*GB), numNodes * 16, numNodes * 16);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
     when(csContext.getMaximumResourceCapability()).thenReturn(
-        Resources.createResource(4*GB, 16));
+        Resources.createResource(4*GB, 16, 16));
     when(a.getMaximumAllocation()).thenReturn(
-        Resources.createResource(4*GB, 16));
+        Resources.createResource(4*GB, 16, 16));
     when(a.getMinimumAllocationFactor()).thenReturn(0.25f); // 1G / 4G 
     
     // Setup resource-requests
@@ -1616,7 +1616,7 @@ public class TestLeafQueue {
 
     final int numNodes = 3;
     Resource clusterResource = 
-        Resources.createResource(numNodes * (8*GB), numNodes * 16);
+        Resources.createResource(numNodes * (8*GB), numNodes * 16, numNodes * 16);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
     
     // Setup resource-requests and submit
@@ -1765,7 +1765,7 @@ public class TestLeafQueue {
 
     final int numNodes = 3;
     Resource clusterResource = 
-        Resources.createResource(numNodes * (8*GB), 1);
+        Resources.createResource(numNodes * (8*GB), 1, 1);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
     
     // Setup resource-requests and submit
@@ -1900,7 +1900,7 @@ public class TestLeafQueue {
     
     final int numNodes = 3;
     Resource clusterResource = Resources.createResource(
-        numNodes * (8*GB), numNodes * 16);
+        numNodes * (8*GB), numNodes * 16, numNodes * 16);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     // Setup resource-requests and submit
@@ -1986,7 +1986,7 @@ public class TestLeafQueue {
     final String user_e = "user_e";
     
     when(amResourceRequest.getCapability()).thenReturn(
-      Resources.createResource(1 * GB, 0));
+      Resources.createResource(1 * GB, 0, 0));
 
     // Submit applications
     final ApplicationAttemptId appAttemptId_0 =
@@ -2067,7 +2067,7 @@ public class TestLeafQueue {
     final String user_e = "user_e";
     
     when(amResourceRequest.getCapability()).thenReturn(
-      Resources.createResource(1 * GB, 0));
+      Resources.createResource(1 * GB, 0, 0));
 
     // Submit applications
     final ApplicationAttemptId appAttemptId_0 =
@@ -2095,7 +2095,7 @@ public class TestLeafQueue {
     assertEquals(2, e.activeApplications.size());
     assertEquals(1, e.pendingApplications.size());
 
-    Resource clusterResource = Resources.createResource(200 * 16 * GB, 100 * 32); 
+    Resource clusterResource = Resources.createResource(200 * 16 * GB, 100 * 32, 100 * 32);
     e.updateClusterResource(clusterResource,
         new ResourceLimits(clusterResource));
 
@@ -2178,7 +2178,7 @@ public class TestLeafQueue {
     
     final int numNodes = 4;
     Resource clusterResource = Resources.createResource(
-        numNodes * (8*GB), numNodes * 1);
+        numNodes * (8*GB), numNodes * 1, numNodes * 1);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     // Setup resource-requests
@@ -2375,7 +2375,7 @@ public class TestLeafQueue {
       throws Exception {
     CapacitySchedulerConfiguration csConf = new CapacitySchedulerConfiguration();
     Resource clusterResource = Resources
-        .createResource(100 * 16 * GB, 100 * 32);
+        .createResource(100 * 16 * GB, 100 * 32, 100 * 32);
     CapacitySchedulerContext csContext = mockCSContext(csConf, clusterResource);
     when(csContext.getRMContext()).thenReturn(rmContext);
     csConf.setFloat(CapacitySchedulerConfiguration.
@@ -2385,21 +2385,21 @@ public class TestLeafQueue {
     csConf.setCapacity(CapacitySchedulerConfiguration.ROOT + "." + A, 80);
     LeafQueue a = new LeafQueue(csContext, A, root, null);
     assertEquals(0.1f, a.getMaxAMResourcePerQueuePercent(), 1e-3f);
-    assertEquals(a.getAMResourceLimit(), Resources.createResource(160 * GB, 1));
+    assertEquals(a.getAMResourceLimit(), Resources.createResource(160 * GB, 1, 1));
     
     csConf.setFloat(CapacitySchedulerConfiguration.
         MAXIMUM_APPLICATION_MASTERS_RESOURCE_PERCENT, 0.2f);
     LeafQueue newA = new LeafQueue(csContext, A, root, null);
     a.reinitialize(newA, clusterResource);
     assertEquals(0.2f, a.getMaxAMResourcePerQueuePercent(), 1e-3f);
-    assertEquals(a.getAMResourceLimit(), Resources.createResource(320 * GB, 1));
+    assertEquals(a.getAMResourceLimit(), Resources.createResource(320 * GB, 1, 1));
 
     Resource newClusterResource = Resources.createResource(100 * 20 * GB,
-        100 * 32);
+        100 * 32, 100 * 32);
     a.updateClusterResource(newClusterResource, 
         new ResourceLimits(newClusterResource));
     //  100 * 20 * 0.2 = 400
-    assertEquals(a.getAMResourceLimit(), Resources.createResource(400 * GB, 1));
+    assertEquals(a.getAMResourceLimit(), Resources.createResource(400 * GB, 1, 1));
   }
   
   @Test
@@ -2433,7 +2433,7 @@ public class TestLeafQueue {
 
     final int numNodes = 1;
     Resource clusterResource =
-        Resources.createResource(numNodes * (8 * GB), numNodes * 16);
+        Resources.createResource(numNodes * (8 * GB), numNodes * 16, numNodes * 16);
     when(csContext.getNumClusterNodes()).thenReturn(numNodes);
 
     // Setup resource-requests
@@ -2543,9 +2543,9 @@ public class TestLeafQueue {
     when(csContext.getResourceCalculator()).thenReturn(resourceCalculator);
     when(csContext.getClusterResource()).thenReturn(clusterResource);
     when(csContext.getMinimumResourceCapability()).thenReturn(
-        Resources.createResource(GB, 1));
+        Resources.createResource(GB, 1, 1));
     when(csContext.getMaximumResourceCapability()).thenReturn(
-        Resources.createResource(2 * GB, 2));
+        Resources.createResource(2 * GB, 2, 2));
     return csContext;
   }
 

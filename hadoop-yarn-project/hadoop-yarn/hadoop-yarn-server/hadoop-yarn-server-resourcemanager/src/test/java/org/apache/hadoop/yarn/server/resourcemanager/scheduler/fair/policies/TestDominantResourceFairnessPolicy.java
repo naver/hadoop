@@ -83,7 +83,7 @@ public class TestDominantResourceFairnessPolicy {
     Resource usage = BuilderUtils.newResource(memUsage, cpuUsage, gpuUsage);
     Resource minShare = BuilderUtils.newResource(minMemShare, minCpuShare, minGpuShare);
     return new FakeSchedulable(minShare,
-        Resources.createResource(Integer.MAX_VALUE, Integer.MAX_VALUE),
+        Resources.createResource(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE),
         weights, Resources.none(), usage, 0l);
   }
   

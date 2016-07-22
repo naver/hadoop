@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.reservation;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.ReservationRequest;
@@ -34,6 +28,12 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.Plan
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This Agent employs a simple greedy placement strategy, placing the various
@@ -179,7 +179,7 @@ public class GreedyReservationAgent implements ReservationAgent {
     // create reservation with above allocations if not null/empty
 
     ReservationRequest ZERO_RES =
-        ReservationRequest.newInstance(Resource.newInstance(0, 0), 0);
+        ReservationRequest.newInstance(Resource.newInstance(0, 0, 0), 0);
 
     long firstStartTime = findEarliestTime(allocations.keySet());
     
@@ -285,7 +285,7 @@ public class GreedyReservationAgent implements ReservationAgent {
         // As we run along we will logically remove the previous allocation for
         // this reservation
         // if one existed
-        Resource oldResCap = Resource.newInstance(0, 0);
+        Resource oldResCap = Resource.newInstance(0, 0, 0);
         if (oldResAllocation != null) {
           oldResCap = oldResAllocation.getResourcesAtTime(t);
         }

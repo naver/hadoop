@@ -40,9 +40,9 @@ public class RMAppAttemptMetrics {
 
   private ApplicationAttemptId attemptId = null;
   // preemption info
-  private Resource resourcePreempted = Resource.newInstance(0, 0);
+  private Resource resourcePreempted = Resource.newInstance(0, 0, 0);
   // application headroom
-  private volatile Resource applicationHeadroom = Resource.newInstance(0, 0);
+  private volatile Resource applicationHeadroom = Resource.newInstance(0, 0, 0);
   private AtomicInteger numNonAMContainersPreempted = new AtomicInteger(0);
   private AtomicBoolean isPreempted = new AtomicBoolean(false);
   

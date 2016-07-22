@@ -18,17 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.ahs;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
-import org.junit.Assert;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -64,8 +53,18 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.Capacity
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairSchedulerConfiguration;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestRMApplicationHistoryWriter {
 
@@ -168,7 +167,7 @@ public class TestRMApplicationHistoryWriter {
     when(container.getAllocatedNode()).thenReturn(
       NodeId.newInstance("test host", -100));
     when(container.getAllocatedResource()).thenReturn(
-      Resource.newInstance(-1, -1));
+      Resource.newInstance(-1, -1, -1));
     when(container.getAllocatedPriority()).thenReturn(Priority.UNDEFINED);
     when(container.getCreationTime()).thenReturn(0L);
     when(container.getFinishTime()).thenReturn(1L);
@@ -299,7 +298,7 @@ public class TestRMApplicationHistoryWriter {
     Assert.assertNotNull(containerHD);
     Assert.assertEquals(NodeId.newInstance("test host", -100),
       containerHD.getAssignedNode());
-    Assert.assertEquals(Resource.newInstance(-1, -1),
+    Assert.assertEquals(Resource.newInstance(-1, -1, -1),
       containerHD.getAllocatedResource());
     Assert.assertEquals(Priority.UNDEFINED, containerHD.getPriority());
     Assert.assertEquals(0L, container.getCreationTime());

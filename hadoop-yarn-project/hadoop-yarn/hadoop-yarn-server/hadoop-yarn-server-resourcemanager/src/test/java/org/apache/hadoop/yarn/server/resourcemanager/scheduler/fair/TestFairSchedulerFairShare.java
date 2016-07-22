@@ -18,14 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Collection;
-
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.server.resourcemanager.MockNodes;
 import org.apache.hadoop.yarn.server.resourcemanager.MockRM;
@@ -37,6 +29,14 @@ import org.apache.hadoop.yarn.util.resource.Resources;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestFairSchedulerFairShare extends FairSchedulerTestBase {
   private final static String ALLOC_FILE = new File(TEST_DIR,
@@ -59,10 +59,10 @@ public class TestFairSchedulerFairShare extends FairSchedulerTestBase {
 
   private void createClusterWithQueuesAndOneNode(int mem, String policy)
       throws IOException {
-    createClusterWithQueuesAndOneNode(mem, 0, policy);
+    createClusterWithQueuesAndOneNode(mem, 0, 0, policy);
   }
 
-  private void createClusterWithQueuesAndOneNode(int mem, int vCores,
+  private void createClusterWithQueuesAndOneNode(int mem, int vCores, int gCores,
       String policy) throws IOException {
     PrintWriter out = new PrintWriter(new FileWriter(ALLOC_FILE));
     out.println("<?xml version=\"1.0\"?>");
@@ -91,7 +91,7 @@ public class TestFairSchedulerFairShare extends FairSchedulerTestBase {
     scheduler = (FairScheduler) resourceManager.getResourceScheduler();
 
     RMNode node1 = MockNodes.newNodeInfo(1,
-        Resources.createResource(mem, vCores), 1, "127.0.0.1");
+        Resources.createResource(mem, vCores, gCores), 1, "127.0.0.1");
     NodeAddedSchedulerEvent nodeEvent1 = new NodeAddedSchedulerEvent(node1);
     scheduler.handle(nodeEvent1);
   }
@@ -272,7 +272,8 @@ public class TestFairSchedulerFairShare extends FairSchedulerTestBase {
       throws IOException {
     int nodeMem = 16 * 1024;
     int nodeVCores = 10;
-    createClusterWithQueuesAndOneNode(nodeMem, nodeVCores, "drf");
+    int nodeGCores = 10;
+    createClusterWithQueuesAndOneNode(nodeMem, nodeVCores, nodeGCores, "drf");
 
     // Run apps in childA1,childA2 which are under parentA
     createSchedulingRequest(2 * 1024, "root.parentA.childA1", "user1");

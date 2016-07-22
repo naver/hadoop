@@ -18,6 +18,13 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.reservation;
 
+import com.google.gson.stream.JsonWriter;
+import org.apache.hadoop.yarn.api.records.ReservationRequest;
+import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.util.Records;
+import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
+import org.apache.hadoop.yarn.util.resource.Resources;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Iterator;
@@ -31,14 +38,6 @@ import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.hadoop.yarn.api.records.ReservationRequest;
-import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.util.Records;
-import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
-import org.apache.hadoop.yarn.util.resource.Resources;
-
-import com.google.gson.stream.JsonWriter;
-
 /**
  * This is a run length encoded sparse data structure that maintains resource
  * allocations over time
@@ -46,7 +45,7 @@ import com.google.gson.stream.JsonWriter;
 public class RLESparseResourceAllocation {
 
   private static final int THRESHOLD = 100;
-  private static final Resource ZERO_RESOURCE = Resource.newInstance(0, 0);
+  private static final Resource ZERO_RESOURCE = Resource.newInstance(0, 0, 0);
 
   private TreeMap<Long, Resource> cumulativeCapacity =
       new TreeMap<Long, Resource>();
@@ -98,7 +97,7 @@ public class RLESparseResourceAllocation {
       NavigableMap<Long, Resource> ticks =
           cumulativeCapacity.headMap(endKey, false);
       if (ticks != null && !ticks.isEmpty()) {
-        Resource updatedCapacity = Resource.newInstance(0, 0);
+        Resource updatedCapacity = Resource.newInstance(0, 0, 0);
         Entry<Long, Resource> lowEntry = ticks.floorEntry(startKey);
         if (lowEntry == null) {
           // This is the earliest starting interval
@@ -155,7 +154,7 @@ public class RLESparseResourceAllocation {
       List<ReservationRequest> ReservationRequests, Resource clusterResource) {
     ReservationRequest aggregateReservationRequest =
         Records.newRecord(ReservationRequest.class);
-    Resource capacity = Resource.newInstance(0, 0);
+    Resource capacity = Resource.newInstance(0, 0, 0);
     for (ReservationRequest ReservationRequest : ReservationRequests) {
       Resources.addTo(capacity, Resources.multiply(
           ReservationRequest.getCapability(),
@@ -194,7 +193,7 @@ public class RLESparseResourceAllocation {
       // Decrease all the capacities of overlapping intervals
       SortedMap<Long, Resource> overlapSet = ticks.tailMap(startKey);
       if (overlapSet != null && !overlapSet.isEmpty()) {
-        Resource updatedCapacity = Resource.newInstance(0, 0);
+        Resource updatedCapacity = Resource.newInstance(0, 0, 0);
         long currentKey = -1;
         for (Iterator<Entry<Long, Resource>> overlapEntries =
             overlapSet.entrySet().iterator(); overlapEntries.hasNext();) {

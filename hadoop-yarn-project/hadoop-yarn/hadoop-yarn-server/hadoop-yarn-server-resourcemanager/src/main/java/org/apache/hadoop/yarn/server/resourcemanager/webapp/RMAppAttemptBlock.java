@@ -18,11 +18,7 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.webapp;
 
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI._EVEN;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI._INFO_WRAP;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI._ODD;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI._TH;
-
+import com.google.inject.Inject;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -40,8 +36,10 @@ import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.DIV;
 import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.TABLE;
 import org.apache.hadoop.yarn.webapp.util.WebAppUtils;
 import org.apache.hadoop.yarn.webapp.view.InfoBlock;
-import com.google.inject.Inject;
+
 import java.util.List;
+
+import static org.apache.hadoop.yarn.webapp.view.JQueryUI.*;
 
 public class RMAppAttemptBlock extends AppAttemptBlock{
 
@@ -100,7 +98,7 @@ public class RMAppAttemptBlock extends AppAttemptBlock{
   }
 
   private Resource getTotalResource(List<ResourceRequest> requests) {
-    Resource totalResource = Resource.newInstance(0, 0);
+    Resource totalResource = Resource.newInstance(0, 0, 0);
     if (requests == null) {
       return totalResource;
     }

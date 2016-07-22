@@ -18,6 +18,18 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.nodelabels;
 
+import com.google.common.collect.ImmutableSet;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.yarn.api.records.NodeId;
+import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
+import org.apache.hadoop.yarn.nodelabels.NodeLabel;
+import org.apache.hadoop.yarn.security.YarnAuthorizationProvider;
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeLabelsUpdateSchedulerEvent;
+import org.apache.hadoop.yarn.util.resource.Resources;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,19 +43,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.yarn.api.records.NodeId;
-import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
-import org.apache.hadoop.yarn.nodelabels.NodeLabel;
-import org.apache.hadoop.yarn.security.YarnAuthorizationProvider;
-import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeLabelsUpdateSchedulerEvent;
-import org.apache.hadoop.yarn.util.resource.Resources;
-
-import com.google.common.collect.ImmutableSet;
-
 public class RMNodeLabelsManager extends CommonNodeLabelsManager {
   
   protected static class Queue {
@@ -53,7 +52,7 @@ public class RMNodeLabelsManager extends CommonNodeLabelsManager {
     protected Queue() {
       acccessibleNodeLabels =
           Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
-      resource = Resource.newInstance(0, 0);
+      resource = Resource.newInstance(0, 0, 0);
     }
   }
 
@@ -243,7 +242,7 @@ public class RMNodeLabelsManager extends CommonNodeLabelsManager {
         } else {
           // set nm is not running, and its resource = 0
           nm.running = false;
-          nm.resource = Resource.newInstance(0, 0);
+          nm.resource = Resource.newInstance(0, 0, 0);
         }
       }
       

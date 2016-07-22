@@ -202,7 +202,7 @@ public class TestTaskAttempt{
     conf.setInt(MRJobConfig.REDUCE_MEMORY_MB, reduceMemMb);
     conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB, 
       minContainerSize);
-    app.setClusterInfo(new ClusterInfo(Resource.newInstance(10240, 1)));
+    app.setClusterInfo(new ClusterInfo(Resource.newInstance(10240, 1, 0)));
 
     Job job = app.submit(conf);
     app.waitForState(job, JobState.RUNNING);

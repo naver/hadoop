@@ -803,8 +803,8 @@ public abstract class ProtocolHATestBase extends ClientBaseWithFixes {
 
     public RegisterApplicationMasterResponse
     createFakeRegisterApplicationMasterResponse() {
-      Resource minCapability = Resource.newInstance(2048, 2);
-      Resource maxCapability = Resource.newInstance(4096, 4);
+      Resource minCapability = Resource.newInstance(2048, 2, 0);
+      Resource maxCapability = Resource.newInstance(4096, 4, 4);
       Map<ApplicationAccessType, String> acls =
           new HashMap<ApplicationAccessType, String>();
       acls.put(ApplicationAccessType.MODIFY_APP, "*");

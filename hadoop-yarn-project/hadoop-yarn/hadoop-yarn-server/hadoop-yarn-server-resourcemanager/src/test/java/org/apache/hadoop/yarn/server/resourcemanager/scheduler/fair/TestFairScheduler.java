@@ -3916,7 +3916,7 @@ public class TestFairScheduler extends FairSchedulerTestBase {
 
     // Wait until app gets resources
     while (app.getCurrentConsumption()
-            .equals(Resources.createResource(1024, 1))) { }
+            .equals(Resources.createResource(1024, 1, 1))) { }
 
     Assert.assertEquals(2048, app.getCurrentConsumption().getMemory());
     Assert.assertEquals(2, app.getCurrentConsumption().getVirtualCores());

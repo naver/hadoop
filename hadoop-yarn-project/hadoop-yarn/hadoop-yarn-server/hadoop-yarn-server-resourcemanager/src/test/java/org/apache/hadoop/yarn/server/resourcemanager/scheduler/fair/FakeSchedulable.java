@@ -65,7 +65,7 @@ public class FakeSchedulable implements Schedulable {
   }
   
   public FakeSchedulable(Resource minShare, ResourceWeights weights) {
-    this(minShare, Resources.createResource(Integer.MAX_VALUE, Integer.MAX_VALUE),
+    this(minShare, Resources.createResource(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE),
         weights, Resources.createResource(0, 0, 0), Resources.createResource(0, 0, 0), 0);
   }
   

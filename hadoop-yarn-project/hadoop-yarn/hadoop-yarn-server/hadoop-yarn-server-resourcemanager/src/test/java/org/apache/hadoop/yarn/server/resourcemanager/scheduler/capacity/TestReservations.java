@@ -18,21 +18,6 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
@@ -70,6 +55,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.*;
 
 public class TestReservations {
 
@@ -115,11 +109,11 @@ public class TestReservations {
     when(csContext.getConfiguration()).thenReturn(csConf);
     when(csContext.getConf()).thenReturn(conf);
     when(csContext.getMinimumResourceCapability()).thenReturn(
-        Resources.createResource(GB, 1));
+        Resources.createResource(GB, 1, 1));
     when(csContext.getMaximumResourceCapability()).thenReturn(
-        Resources.createResource(16 * GB, 12));
+        Resources.createResource(16 * GB, 12, 12));
     when(csContext.getClusterResource()).thenReturn(
-        Resources.createResource(100 * 16 * GB, 100 * 12));
+        Resources.createResource(100 * 16 * GB, 100 * 12, 100 * 12));
     when(csContext.getApplicationComparator()).thenReturn(
         CapacityScheduler.applicationComparator);
     when(csContext.getQueueComparator()).thenReturn(
@@ -657,7 +651,7 @@ public class TestReservations {
 
     // Setup resource-requests
     Priority priorityMap = TestUtils.createMockPriority(5);
-    Resource capability = Resources.createResource(2*GB, 0);
+    Resource capability = Resources.createResource(2*GB, 0, 0);
 
     RMApplicationHistoryWriter writer = mock(RMApplicationHistoryWriter.class);
     SystemMetricsPublisher publisher = mock(SystemMetricsPublisher.class);
@@ -726,7 +720,7 @@ public class TestReservations {
 
     // Setup resource-requests
     Priority priorityMap = TestUtils.createMockPriority(5);
-    Resource capability = Resources.createResource(2 * GB, 0);
+    Resource capability = Resources.createResource(2 * GB, 0, 0);
 
     RMApplicationHistoryWriter writer = mock(RMApplicationHistoryWriter.class);
     SystemMetricsPublisher publisher = mock(SystemMetricsPublisher.class);
@@ -857,7 +851,7 @@ public class TestReservations {
 
     // allocate to queue so that the potential new capacity is greater then
     // absoluteMaxCapacity
-    Resource capability = Resources.createResource(32 * GB, 0);
+    Resource capability = Resources.createResource(32 * GB, 0, 0);
     ResourceLimits limits = new ResourceLimits(clusterResource);
     boolean res =
         a.canAssignToThisQueue(clusterResource,
@@ -880,7 +874,7 @@ public class TestReservations {
     assertEquals(5 * GB, node_0.getUsedResource().getMemory());
     assertEquals(3 * GB, node_1.getUsedResource().getMemory());
 
-    capability = Resources.createResource(5 * GB, 0);
+    capability = Resources.createResource(5 * GB, 0, 0);
     limits = new ResourceLimits(clusterResource);
     res =
         a.canAssignToThisQueue(clusterResource,
@@ -890,7 +884,7 @@ public class TestReservations {
     // 16GB total, 13GB consumed (8 allocated, 5 reserved). asking for 5GB so we would have to
     // unreserve 2GB to get the total 5GB needed.
     // also note vcore checks not enabled
-    assertEquals(Resources.createResource(2 * GB, 3), limits.getAmountNeededUnreserve());
+    assertEquals(Resources.createResource(2 * GB, 3, 3), limits.getAmountNeededUnreserve());
 
     // tell to not check reservations
     limits = new ResourceLimits(clusterResource);
@@ -1065,21 +1059,21 @@ public class TestReservations {
     assertEquals(3 * GB, node_1.getUsedResource().getMemory());
 
     // not over the limit
-    Resource limit = Resources.createResource(14 * GB, 0);
+    Resource limit = Resources.createResource(14 * GB, 0, 0);
     ResourceLimits userResourceLimits = new ResourceLimits(clusterResource);
     boolean res = a.canAssignToUser(clusterResource, user_0, limit, app_0, null, userResourceLimits);
     assertTrue(res);
     assertEquals(Resources.none(), userResourceLimits.getAmountNeededUnreserve());
 
     // set limit so it subtracts reservations and it can continue
-    limit = Resources.createResource(12 * GB, 0);
+    limit = Resources.createResource(12 * GB, 0, 0);
     userResourceLimits = new ResourceLimits(clusterResource);
     res = a.canAssignToUser(clusterResource, user_0, limit, app_0, null, userResourceLimits);
     assertTrue(res);
     // limit set to 12GB, we are using 13GB (8 allocated,  5 reserved), to get under limit
     // we need to unreserve 1GB
     // also note vcore checks not enabled
-    assertEquals(Resources.createResource(1 * GB, 4),
+    assertEquals(Resources.createResource(1 * GB, 4, 4),
         userResourceLimits.getAmountNeededUnreserve());
 
     refreshQueuesTurnOffReservationsContLook(a, csConf);
