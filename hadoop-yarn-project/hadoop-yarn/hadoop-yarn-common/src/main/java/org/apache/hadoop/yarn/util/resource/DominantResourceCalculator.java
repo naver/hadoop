@@ -154,7 +154,7 @@ public class DominantResourceCalculator extends ResourceCalculator {
         stepFactor.getVirtualCores()),
       maximumResource.getVirtualCores());
     int normalizedGCores = Math.min(
-      roundUp(
+      roundUpWithZero(
         Math.max(r.getGpuCores(), minimumResource.getGpuCores()),
         stepFactor.getGpuCores()),
       maximumResource.getGpuCores());
@@ -167,7 +167,7 @@ public class DominantResourceCalculator extends ResourceCalculator {
     return Resources.createResource(
         roundUp(r.getMemory(), stepFactor.getMemory()), 
         roundUp(r.getVirtualCores(), stepFactor.getVirtualCores()),
-            roundUp(r.getGpuCores(), stepFactor.getGpuCores())
+        roundUpWithZero(r.getGpuCores(), stepFactor.getGpuCores())
         );
   }
 
@@ -176,7 +176,7 @@ public class DominantResourceCalculator extends ResourceCalculator {
     return Resources.createResource(
         roundDown(r.getMemory(), stepFactor.getMemory()),
         roundDown(r.getVirtualCores(), stepFactor.getVirtualCores()),
-        roundDown(r.getGpuCores(), stepFactor.getGpuCores())
+        roundDownWithZero(r.getGpuCores(), stepFactor.getGpuCores())
         );
   }
 
@@ -189,7 +189,7 @@ public class DominantResourceCalculator extends ResourceCalculator {
         roundUp(
             (int)Math.ceil(r.getVirtualCores() * by), 
             stepFactor.getVirtualCores()),
-        roundUp(
+        roundUpWithZero(
             (int)Math.ceil(r.getGpuCores() * by),
             stepFactor.getGpuCores())
         );
@@ -207,7 +207,7 @@ public class DominantResourceCalculator extends ResourceCalculator {
             (int)(r.getVirtualCores() * by), 
             stepFactor.getVirtualCores()
         ),
-        roundDown(
+        roundDownWithZero(
             (int) (r.getGpuCores() * by),
             stepFactor.getGpuCores()
             )

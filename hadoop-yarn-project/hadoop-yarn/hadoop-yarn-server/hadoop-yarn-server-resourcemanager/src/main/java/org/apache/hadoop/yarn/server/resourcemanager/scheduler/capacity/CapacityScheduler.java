@@ -202,7 +202,7 @@ public class CapacityScheduler extends
       YarnConfiguration.RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES,
       YarnConfiguration.DEFAULT_RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES);
 
-    if (minGcores <= 0 || minGcores > maxGcores) {
+    if (minGcores < 0 || minGcores > maxGcores) {
       throw new YarnRuntimeException("Invalid resource scheduler gcores"
         + " allocation configuration"
         + ", " + YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES

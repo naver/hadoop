@@ -60,7 +60,7 @@ public class ProgressSplitsBlock {
 
   // this coordinates with LoggedTaskAttempt.SplitVectorKind
   int[][] burst() {
-    int[][] result = new int[4][];
+    int[][] result = new int[5][];
 
     result[WALLCLOCK_TIME_INDEX] = progressWallclockTime.getValues();
     result[CPU_TIME_INDEX] = progressCPUTime.getValues();
