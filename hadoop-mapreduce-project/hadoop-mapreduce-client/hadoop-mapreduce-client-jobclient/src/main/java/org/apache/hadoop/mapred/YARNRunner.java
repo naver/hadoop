@@ -18,16 +18,7 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -89,7 +80,15 @@ import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.security.client.RMDelegationTokenSelector;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 /**
  * This class enables the current JobClient (0.22 hadoop) to run on YARN.
@@ -345,6 +344,11 @@ public class YARNRunner implements ClientProtocol {
     capability.setVirtualCores(
         conf.getInt(
             MRJobConfig.MR_AM_CPU_VCORES, MRJobConfig.DEFAULT_MR_AM_CPU_VCORES
+            )
+        );
+    capability.setGpuCores(
+        conf.getInt(
+            MRJobConfig.MR_AM_GPU_GCORES, MRJobConfig.DEFAULT_MR_AM_GPU_GCORES
             )
         );
     LOG.debug("AppMaster capability = " + capability);

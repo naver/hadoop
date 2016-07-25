@@ -193,6 +193,24 @@ public class CapacityScheduler extends
         + "=" + maxVcores + ", min and max should be greater than 0"
         + ", max should be no smaller than min.");
     }
+
+    // validate scheduler gcores allocation setting
+    int minGcores = conf.getInt(
+      YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES,
+      YarnConfiguration.DEFAULT_RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES);
+    int maxGcores = conf.getInt(
+      YarnConfiguration.RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES,
+      YarnConfiguration.DEFAULT_RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES);
+
+    if (minGcores <= 0 || minGcores > maxGcores) {
+      throw new YarnRuntimeException("Invalid resource scheduler gcores"
+        + " allocation configuration"
+        + ", " + YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_GCORES
+        + "=" + minGcores
+        + ", " + YarnConfiguration.RM_SCHEDULER_MAXIMUM_ALLOCATION_GCORES
+        + "=" + maxGcores + ", min and max should be greater than 0"
+        + ", max should be no smaller than min.");
+    }
   }
 
   @Override

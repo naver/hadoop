@@ -17,8 +17,6 @@
  *******************************************************************************/
 package org.apache.hadoop.yarn.server.resourcemanager.reservation;
 
-import java.util.Date;
-
 import org.apache.hadoop.classification.InterfaceAudience.LimitedPrivate;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -27,6 +25,8 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.Plan
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningQuotaException;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.ResourceOverCommitException;
 import org.apache.hadoop.yarn.util.resource.Resources;
+
+import java.util.Date;
 
 /**
  * This policy enforces a time-extended notion of Capacity. In particular it
@@ -100,7 +100,7 @@ public class CapacityOverTimePolicy implements SharingPolicy {
 
     // define variable that will store integral of resources (need diff class to
     // avoid overflow issues for long/large allocations)
-    IntegralResource runningTot = new IntegralResource(0L, 0L);
+    IntegralResource runningTot = new IntegralResource(0L, 0L, 0L);
     IntegralResource maxAllowed = new IntegralResource(maxAvgRes);
     maxAllowed.multiplyBy(validWindow / step);
 
@@ -205,43 +205,52 @@ public class CapacityOverTimePolicy implements SharingPolicy {
   private static class IntegralResource {
     long memory;
     long vcores;
+    long gcores;
 
     public IntegralResource(Resource resource) {
       this.memory = resource.getMemory();
       this.vcores = resource.getVirtualCores();
+      this.gcores = resource.getGpuCores();
     }
 
-    public IntegralResource(long mem, long vcores) {
+    public IntegralResource(long mem, long vcores, long gcores) {
       this.memory = mem;
       this.vcores = vcores;
+      this.gcores = gcores;
     }
 
     public void add(Resource r) {
       memory += r.getMemory();
       vcores += r.getVirtualCores();
+      gcores += r.getGpuCores();
     }
 
     public void subtract(Resource r) {
       memory -= r.getMemory();
       vcores -= r.getVirtualCores();
+      gcores -= r.getGpuCores();
     }
 
     public void multiplyBy(long window) {
       memory = memory * window;
       vcores = vcores * window;
+      gcores = gcores * window;
     }
 
     public long compareTo(IntegralResource other) {
       long diff = memory - other.memory;
       if (diff == 0) {
         diff = vcores - other.vcores;
+        if (diff == 0) {
+            diff = gcores - other.gcores;
+        }
       }
       return diff;
     }
 
     @Override
     public String toString() {
-      return "<memory:" + memory + ", vCores:" + vcores + ">";
+      return "<memory:" + memory + ", vCores:" + vcores + ", gCores: " + gcores + ">";
     }
   }
 }

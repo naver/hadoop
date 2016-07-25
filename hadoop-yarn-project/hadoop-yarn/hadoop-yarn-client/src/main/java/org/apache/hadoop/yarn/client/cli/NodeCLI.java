@@ -212,7 +212,7 @@ public class NodeCLI extends YarnCLI {
       nodeReportStr.print("\tCPU-Capacity : ");
       nodeReportStr.println(nodeReport.getCapability().getVirtualCores() + " vcores");
       nodeReportStr.print("\tGPU-Used : ");
-      nodeReportStr.println((nodeReport.getUsed() == null) ? "0 vcores"
+      nodeReportStr.println((nodeReport.getUsed() == null) ? "0 gcores"
               : (nodeReport.getUsed().getGpuCores() + " gcores"));
       nodeReportStr.print("\tGPU-Capacity : ");
       nodeReportStr.println(nodeReport.getCapability().getGpuCores() + " gcores");

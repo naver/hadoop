@@ -155,6 +155,7 @@
           {"name": "counters", "type": "JhCounters"},
           {"name": "clockSplits", "type": { "type": "array", "items": "int"}},
           {"name": "cpuUsages", "type": { "type": "array", "items": "int"}},
+          {"name": "gpuUsages", "type": { "type": "array", "items": "int"}},
           {"name": "vMemKbytes", "type": { "type": "array", "items": "int"}},
           {"name": "physMemKbytes", "type": { "type": "array", "items": "int"}}
       ]
@@ -176,6 +177,7 @@
           {"name": "counters", "type": "JhCounters"},
           {"name": "clockSplits", "type": { "type": "array", "items": "int"}},
           {"name": "cpuUsages", "type": { "type": "array", "items": "int"}},
+          {"name": "gpuUsages", "type": { "type": "array", "items": "int"}},
           {"name": "vMemKbytes", "type": { "type": "array", "items": "int"}},
           {"name": "physMemKbytes", "type": { "type": "array", "items": "int"}}
       ]
@@ -224,6 +226,7 @@
           {"name": "counters", "type": ["null","JhCounters"], "default": null},
           {"name": "clockSplits", "type": { "type": "array", "items": "int"}},
           {"name": "cpuUsages", "type": { "type": "array", "items": "int"}},
+          {"name": "gpuUsages", "type": { "type": "array", "items": "int"}},
           {"name": "vMemKbytes", "type": { "type": "array", "items": "int"}},
           {"name": "physMemKbytes", "type": { "type": "array", "items": "int"}}
       ]

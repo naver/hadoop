@@ -505,6 +505,7 @@ public class JobBuilder {
         counters == null ? EMPTY_COUNTERS : counters);
     attempt.arraySetClockSplits(event.getClockSplits());
     attempt.arraySetCpuUsages(event.getCpuUsages());
+    attempt.arraySetGpuUsages(event.getGpuUsages());
     attempt.arraySetVMemKbytes(event.getVMemKbytes());
     attempt.arraySetPhysMemKbytes(event.getPhysMemKbytes());
     TaskAttemptUnsuccessfulCompletion t =
@@ -568,6 +569,7 @@ public class JobBuilder {
         .incorporateCounters(((ReduceAttemptFinished) event.getDatum()).counters);
     attempt.arraySetClockSplits(event.getClockSplits());
     attempt.arraySetCpuUsages(event.getCpuUsages());
+    attempt.arraySetGpuUsages(event.getGpuUsages());
     attempt.arraySetVMemKbytes(event.getVMemKbytes());
     attempt.arraySetPhysMemKbytes(event.getPhysMemKbytes());
   }
@@ -596,6 +598,7 @@ public class JobBuilder {
       .incorporateCounters(((MapAttemptFinished) event.getDatum()).counters);
     attempt.arraySetClockSplits(event.getClockSplits());
     attempt.arraySetCpuUsages(event.getCpuUsages());
+    attempt.arraySetGpuUsages(event.getGpuUsages());
     attempt.arraySetVMemKbytes(event.getVMemKbytes());
     attempt.arraySetPhysMemKbytes(event.getPhysMemKbytes());
   }

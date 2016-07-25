@@ -35,7 +35,7 @@ public class ResourceCalculatorUtils {
   public static int computeAvailableContainers(Resource available,
       Resource required, EnumSet<SchedulerResourceTypes> resourceTypes) {
     if (resourceTypes.contains(SchedulerResourceTypes.CPU)) {
-      if (required.getGpuCores() != 0) {
+      if (required.getGpuCores() == 0) {
         return Math.min(available.getMemory() / required.getMemory(),
                 available.getVirtualCores() / required.getVirtualCores());
       }
@@ -51,7 +51,7 @@ public class ResourceCalculatorUtils {
   public static int divideAndCeilContainers(Resource required, Resource factor,
       EnumSet<SchedulerResourceTypes> resourceTypes) {
     if (resourceTypes.contains(SchedulerResourceTypes.CPU)) {
-      if (factor.getGpuCores() != 0) {
+      if (factor.getGpuCores() == 0) {
         return Math.max(divideAndCeil(required.getMemory(), factor.getMemory()),
                 divideAndCeil(required.getVirtualCores(), factor.getVirtualCores()));
       }

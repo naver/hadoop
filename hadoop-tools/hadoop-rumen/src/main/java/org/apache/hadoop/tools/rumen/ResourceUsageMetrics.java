@@ -17,18 +17,19 @@
  */
 package org.apache.hadoop.tools.rumen;
 
+import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.io.WritableUtils;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.WritableUtils;
 
 /**
  * Captures the resource usage metrics.
  */
 public class ResourceUsageMetrics implements Writable, DeepCompare  {
   private long cumulativeCpuUsage;
+  private long cumulativeGpuUsage;
   private long virtualMemoryUsage;
   private long physicalMemoryUsage;
   private long heapUsage;
@@ -49,7 +50,21 @@ public class ResourceUsageMetrics implements Writable, DeepCompare  {
   public void setCumulativeCpuUsage(long usage) {
     cumulativeCpuUsage = usage;
   }
-  
+
+  /**
+   * Get the cumulative GPU usage.
+   */
+  public long getCumulativeGpuUsage() {
+    return cumulativeGpuUsage;
+  }
+
+  /**
+   * Set the cumulative GPU usage.
+   */
+  public void setCumulativeGpuUsage(long usage) {
+    cumulativeGpuUsage = usage;
+  }
+
   /**
    * Get the virtual memory usage.
    */
@@ -98,6 +113,7 @@ public class ResourceUsageMetrics implements Writable, DeepCompare  {
   public int size() {
     int size = 0;
     size += WritableUtils.getVIntSize(cumulativeCpuUsage);   // long #1
+    size += WritableUtils.getVIntSize(cumulativeGpuUsage);
     size += WritableUtils.getVIntSize(virtualMemoryUsage);   // long #2
     size += WritableUtils.getVIntSize(physicalMemoryUsage);  // long #3
     size += WritableUtils.getVIntSize(heapUsage);            // long #4
@@ -107,6 +123,7 @@ public class ResourceUsageMetrics implements Writable, DeepCompare  {
   @Override
   public void readFields(DataInput in) throws IOException {
     cumulativeCpuUsage = WritableUtils.readVLong(in);  // long #1
+    cumulativeGpuUsage = WritableUtils.readVLong(in);
     virtualMemoryUsage = WritableUtils.readVLong(in);  // long #2
     physicalMemoryUsage = WritableUtils.readVLong(in); // long #3
     heapUsage = WritableUtils.readVLong(in);           // long #4
@@ -116,6 +133,7 @@ public class ResourceUsageMetrics implements Writable, DeepCompare  {
   public void write(DataOutput out) throws IOException {
     //TODO Write resources version no too
     WritableUtils.writeVLong(out, cumulativeCpuUsage);  // long #1
+    WritableUtils.writeVLong(out, cumulativeGpuUsage);
     WritableUtils.writeVLong(out, virtualMemoryUsage);  // long #2
     WritableUtils.writeVLong(out, physicalMemoryUsage); // long #3
     WritableUtils.writeVLong(out, heapUsage);           // long #4
@@ -148,6 +166,8 @@ public class ResourceUsageMetrics implements Writable, DeepCompare  {
     ResourceUsageMetrics metrics2 = (ResourceUsageMetrics) other;
     compareMetric(getCumulativeCpuUsage(), metrics2.getCumulativeCpuUsage(), 
                   new TreePath(loc, "cumulativeCpu"));
+    compareMetric(getCumulativeGpuUsage(), metrics2.getCumulativeGpuUsage(),
+                  new TreePath(loc, "cumulativeGpu"));
     compareMetric(getVirtualMemoryUsage(), metrics2.getVirtualMemoryUsage(), 
                   new TreePath(loc, "virtualMemory"));
     compareMetric(getPhysicalMemoryUsage(), metrics2.getPhysicalMemoryUsage(), 

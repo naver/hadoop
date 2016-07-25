@@ -1888,6 +1888,14 @@
 </property>
 
 <property>
+  <name>yarn.app.mapreduce.am.resource.gpu-cores</name>
+  <value>0</value>
+  <description>
+      The number of GPU cores the MR AppMaster needs.
+  </description>
+</property>
+
+<property>
   <name>yarn.app.mapreduce.am.hard-kill-timeout-ms</name>
   <value>10000</value>
   <description>

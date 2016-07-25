@@ -1926,7 +1926,7 @@ public class LeafQueue extends AbstractCSQueue {
 
   // return a single Resource capturing the overal amount of pending resources
   public synchronized Resource getTotalResourcePending() {
-    Resource ret = BuilderUtils.newResource(0, 0);
+    Resource ret = BuilderUtils.newResource(0, 0, 0);
     for (FiCaSchedulerApp f : activeApplications) {
       Resources.addTo(ret, f.getTotalPendingRequests());
     }

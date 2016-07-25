@@ -51,6 +51,7 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
   int[][] allSplits;
   int[] clockSplits;
   int[] cpuUsages;
+  int[] gpuUsages;
   int[] vMemKbytes;
   int[] physMemKbytes;
 
@@ -91,6 +92,7 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
     this.allSplits = allSplits;
     this.clockSplits = ProgressSplitsBlock.arrayGetWallclockTime(allSplits);
     this.cpuUsages = ProgressSplitsBlock.arrayGetCPUTime(allSplits);
+    this.gpuUsages = ProgressSplitsBlock.arrayGetGPUTime(allSplits);
     this.vMemKbytes = ProgressSplitsBlock.arrayGetVMemKbytes(allSplits);
     this.physMemKbytes = ProgressSplitsBlock.arrayGetPhysMemKbytes(allSplits);
   }
@@ -145,6 +147,8 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
         .arrayGetWallclockTime(allSplits));
       datum.cpuUsages = AvroArrayUtils.toAvro(ProgressSplitsBlock
         .arrayGetCPUTime(allSplits));
+      datum.gpuUsages = AvroArrayUtils.toAvro(ProgressSplitsBlock
+        .arrayGetGPUTime(allSplits));
       datum.vMemKbytes = AvroArrayUtils.toAvro(ProgressSplitsBlock
         .arrayGetVMemKbytes(allSplits));
       datum.physMemKbytes = AvroArrayUtils.toAvro(ProgressSplitsBlock
@@ -168,6 +172,7 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
     this.counters = EventReader.fromAvro(datum.counters);
     this.clockSplits = AvroArrayUtils.fromAvro(datum.clockSplits);
     this.cpuUsages = AvroArrayUtils.fromAvro(datum.cpuUsages);
+    this.gpuUsages = AvroArrayUtils.fromAvro(datum.gpuUsages);
     this.vMemKbytes = AvroArrayUtils.fromAvro(datum.vMemKbytes);
     this.physMemKbytes = AvroArrayUtils.fromAvro(datum.physMemKbytes);
   }
@@ -215,6 +220,9 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
   }
   public int[] getCpuUsages() {
     return cpuUsages;
+  }
+  public int[] getGpuUsages() {
+    return gpuUsages;
   }
   public int[] getVMemKbytes() {
     return vMemKbytes;

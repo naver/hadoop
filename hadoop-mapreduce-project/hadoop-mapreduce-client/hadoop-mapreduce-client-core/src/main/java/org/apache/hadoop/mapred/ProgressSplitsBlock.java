@@ -31,6 +31,7 @@ import org.apache.hadoop.classification.InterfaceStability.Unstable;
 public class ProgressSplitsBlock {
   final PeriodicStatsAccumulator progressWallclockTime;
   final PeriodicStatsAccumulator progressCPUTime;
+  final PeriodicStatsAccumulator progressGPUTime;
   final PeriodicStatsAccumulator progressVirtualMemoryKbytes;
   final PeriodicStatsAccumulator progressPhysicalMemoryKbytes;
 
@@ -38,6 +39,7 @@ public class ProgressSplitsBlock {
 
   static final int WALLCLOCK_TIME_INDEX = 0;
   static final int CPU_TIME_INDEX = 1;
+  static final int GPU_TIME_INDEX = 4;
   static final int VIRTUAL_MEMORY_KBYTES_INDEX = 2;
   static final int PHYSICAL_MEMORY_KBYTES_INDEX = 3;
 
@@ -47,6 +49,8 @@ public class ProgressSplitsBlock {
     progressWallclockTime
       = new CumulativePeriodicStats(numberSplits);
     progressCPUTime
+      = new CumulativePeriodicStats(numberSplits);
+    progressGPUTime
       = new CumulativePeriodicStats(numberSplits);
     progressVirtualMemoryKbytes
       = new StatePeriodicStats(numberSplits);
@@ -60,6 +64,7 @@ public class ProgressSplitsBlock {
 
     result[WALLCLOCK_TIME_INDEX] = progressWallclockTime.getValues();
     result[CPU_TIME_INDEX] = progressCPUTime.getValues();
+    result[GPU_TIME_INDEX] = progressGPUTime.getValues();
     result[VIRTUAL_MEMORY_KBYTES_INDEX] = progressVirtualMemoryKbytes.getValues();
     result[PHYSICAL_MEMORY_KBYTES_INDEX] = progressPhysicalMemoryKbytes.getValues();
 
@@ -76,6 +81,10 @@ public class ProgressSplitsBlock {
 
   static public int[] arrayGetCPUTime(int[][] burstedBlock) {
     return arrayGet(burstedBlock, CPU_TIME_INDEX);
+  }
+
+  static public int[] arrayGetGPUTime(int[][] burstedBlock) {
+    return arrayGet(burstedBlock, GPU_TIME_INDEX);
   }
 
   static public int[] arrayGetVMemKbytes(int[][] burstedBlock) {

@@ -180,6 +180,8 @@ public class AppInfo {
           appMetrics.getNumNonAMContainersPreempted();
       preemptedResourceVCores =
           appMetrics.getResourcePreempted().getVirtualCores();
+      preemptedResourceGCores =
+          appMetrics.getResourcePreempted().getGpuCores();
       memorySeconds = appMetrics.getMemorySeconds();
       vcoreSeconds = appMetrics.getVcoreSeconds();
       gcoreSeconds = appMetrics.getGcoreSeconds();
