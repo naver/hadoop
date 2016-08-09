@@ -39,13 +39,6 @@ import static org.junit.Assert.assertTrue;
  */
 public class TestDominantResourceFairnessPolicy {
 
-  private Comparator<Schedulable> createComparator(int clusterMem,
-      int clusterCpu, int clusterGpu) {
-    DominantResourceFairnessPolicy policy = new DominantResourceFairnessPolicy();
-    policy.initialize(BuilderUtils.newResource(clusterMem, clusterCpu, clusterGpu));
-    return policy.getComparator();
-  }
-
   private Comparator<Schedulable> createComparator(Resource capacity) {
     Set<ResourceType> enabledResourceTypes = new HashSet<ResourceType>();
     for (ResourceType type : ResourceType.values()) {
@@ -61,105 +54,112 @@ public class TestDominantResourceFairnessPolicy {
     policy.initialize(capacity);
     return policy.getComparator();
   }
-    
-  private Schedulable createSchedulable(int memUsage, int cpuUsage, int gpuUsage) {
-    return createSchedulable(memUsage, cpuUsage, gpuUsage, ResourceWeights.NEUTRAL, 0, 0, 0);
-  }
-  
-  private Schedulable createSchedulable(int memUsage, int cpuUsage, int gpuUsage,
-      int minMemShare, int minCpuShare, int minGpuShare) {
-    return createSchedulable(memUsage, cpuUsage, gpuUsage, ResourceWeights.NEUTRAL,
-        minMemShare, minCpuShare, minGpuShare);
-  }
-  
-  private Schedulable createSchedulable(int memUsage, int cpuUsage, int gpuUsage,
-      ResourceWeights weights) {
-    return createSchedulable(memUsage, cpuUsage, gpuUsage, weights, 0, 0, 0);
+
+  private Comparator<Schedulable> createComparator(int clusterMem,
+      int clusterCpu) {
+    DominantResourceFairnessPolicy policy = new DominantResourceFairnessPolicy();
+    policy.initialize(BuilderUtils.newResource(clusterMem, clusterCpu));
+    return policy.getComparator();
   }
 
-  
-  private Schedulable createSchedulable(int memUsage, int cpuUsage, int gpuUsage,
-      ResourceWeights weights, int minMemShare, int minCpuShare, int minGpuShare) {
-    Resource usage = BuilderUtils.newResource(memUsage, cpuUsage, gpuUsage);
-    Resource minShare = BuilderUtils.newResource(minMemShare, minCpuShare, minGpuShare);
+  private Schedulable createSchedulable(int memUsage, int cpuUsage) {
+    return createSchedulable(memUsage, cpuUsage, ResourceWeights.NEUTRAL, 0, 0);
+  }
+
+  private Schedulable createSchedulable(int memUsage, int cpuUsage,
+      int minMemShare, int minCpuShare) {
+    return createSchedulable(memUsage, cpuUsage, ResourceWeights.NEUTRAL,
+        minMemShare, minCpuShare);
+  }
+
+  private Schedulable createSchedulable(int memUsage, int cpuUsage,
+      ResourceWeights weights) {
+    return createSchedulable(memUsage, cpuUsage, weights, 0, 0);
+  }
+
+
+  private Schedulable createSchedulable(int memUsage, int cpuUsage,
+      ResourceWeights weights, int minMemShare, int minCpuShare) {
+    Resource usage = BuilderUtils.newResource(memUsage, cpuUsage);
+    Resource minShare = BuilderUtils.newResource(minMemShare, minCpuShare);
     return new FakeSchedulable(minShare,
-        Resources.createResource(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE),
+        Resources.createResource(Integer.MAX_VALUE, Integer.MAX_VALUE),
         weights, Resources.none(), usage, 0l);
   }
-  
+
   @Test
   public void testSameDominantResource() {
-    assertTrue(createComparator(8000, 4, 4).compare(
-        createSchedulable(1000, 1, 1),
-        createSchedulable(2000, 1, 1)) < 0);
+    assertTrue(createComparator(8000, 4).compare(
+        createSchedulable(1000, 1),
+        createSchedulable(2000, 1)) < 0);
   }
-  
+
   @Test
   public void testDifferentDominantResource() {
-    assertTrue(createComparator(8000, 8, 8).compare(
-        createSchedulable(4000, 3, 3),
-        createSchedulable(2000, 5, 5)) < 0);
+    assertTrue(createComparator(8000, 8).compare(
+        createSchedulable(4000, 3),
+        createSchedulable(2000, 5)) < 0);
   }
-  
+
   @Test
   public void testOneIsNeedy() {
-    assertTrue(createComparator(8000, 8, 8).compare(
-        createSchedulable(2000, 5, 1, 0, 6, 0),
-        createSchedulable(4000, 3, 1, 0, 0, 0)) < 0);
+    assertTrue(createComparator(8000, 8).compare(
+        createSchedulable(2000, 5, 0, 6),
+        createSchedulable(4000, 3, 0, 0)) < 0);
   }
-  
+
   @Test
   public void testBothAreNeedy() {
-    assertTrue(createComparator(8000, 100, 100).compare(
+    assertTrue(createComparator(8000, 100).compare(
         // dominant share is 2000/8000
-        createSchedulable(2000, 5, 5),
+        createSchedulable(2000, 5),
         // dominant share is 4000/8000
-        createSchedulable(4000, 3, 3)) < 0);
-    assertTrue(createComparator(8000, 100, 100).compare(
+        createSchedulable(4000, 3)) < 0);
+    assertTrue(createComparator(8000, 100).compare(
         // dominant min share is 2/3
-        createSchedulable(2000, 5, 1, 3000, 6, 6),
+        createSchedulable(2000, 5, 3000, 6),
         // dominant min share is 4/5
-        createSchedulable(4000, 3, 1, 5000, 4, 4)) < 0);
+        createSchedulable(4000, 3, 5000, 4)) < 0);
   }
-  
+
   @Test
   public void testEvenWeightsSameDominantResource() {
-    assertTrue(createComparator(8000, 8, 20).compare(
-        createSchedulable(3000, 1, 2, new ResourceWeights(2.0f)),
-        createSchedulable(2000, 1, 2)) < 0);
-    assertTrue(createComparator(8000, 8, 20).compare(
-        createSchedulable(1000, 3, 6, new ResourceWeights(2.0f)),
-        createSchedulable(1000, 2, 4)) < 0);
+    assertTrue(createComparator(8000, 8).compare(
+        createSchedulable(3000, 1, new ResourceWeights(2.0f)),
+        createSchedulable(2000, 1)) < 0);
+    assertTrue(createComparator(8000, 8).compare(
+        createSchedulable(1000, 3, new ResourceWeights(2.0f)),
+        createSchedulable(1000, 2)) < 0);
   }
-  
+
   @Test
   public void testEvenWeightsDifferentDominantResource() {
-    assertTrue(createComparator(8000, 8, 20).compare(
-        createSchedulable(1000, 3, 6, new ResourceWeights(2.0f)),
-        createSchedulable(2000, 1, 1)) < 0);
-    assertTrue(createComparator(8000, 8, 8).compare(
-        createSchedulable(3000, 1, 1, new ResourceWeights(2.0f)),
-        createSchedulable(1000, 2, 2)) < 0);
+    assertTrue(createComparator(8000, 8).compare(
+        createSchedulable(1000, 3, new ResourceWeights(2.0f)),
+        createSchedulable(2000, 1)) < 0);
+    assertTrue(createComparator(8000, 8).compare(
+        createSchedulable(3000, 1, new ResourceWeights(2.0f)),
+        createSchedulable(1000, 2)) < 0);
   }
-  
+
   @Test
   public void testUnevenWeightsSameDominantResource() {
-    assertTrue(createComparator(8000, 8, 8).compare(
-        createSchedulable(3000, 1, 1, new ResourceWeights(3.0f, 2.0f, 1.0f)),
-        createSchedulable(2000, 1, 1)) < 0);
-    assertTrue(createComparator(8000, 8, 8).compare(
-        createSchedulable(1000, 3, 3, new ResourceWeights(1.0f, 2.0f, 3.0f)),
-        createSchedulable(1000, 2, 2)) < 0);
+    assertTrue(createComparator(8000, 8).compare(
+        createSchedulable(3000, 1, new ResourceWeights(2.0f, 1.0f)),
+        createSchedulable(2000, 1)) < 0);
+    assertTrue(createComparator(8000, 8).compare(
+        createSchedulable(1000, 3, new ResourceWeights(1.0f, 2.0f)),
+        createSchedulable(1000, 2)) < 0);
   }
-  
+
   @Test
   public void testUnevenWeightsDifferentDominantResource() {
-    assertTrue(createComparator(8000, 8, 8).compare(
-        createSchedulable(1000, 3, 3, new ResourceWeights(1.0f, 2.0f, 3.0f)),
-        createSchedulable(2000, 1, 1)) < 0);
-    assertTrue(createComparator(8000, 8, 8).compare(
-        createSchedulable(3000, 1, 1, new ResourceWeights(3.0f, 2.0f, 1.0f)),
-        createSchedulable(1000, 2, 2)) < 0);
+    assertTrue(createComparator(8000, 8).compare(
+        createSchedulable(1000, 3, new ResourceWeights(1.0f, 2.0f)),
+        createSchedulable(2000, 1)) < 0);
+    assertTrue(createComparator(8000, 8).compare(
+        createSchedulable(3000, 1, new ResourceWeights(2.0f, 1.0f)),
+        createSchedulable(1000, 2)) < 0);
   }
   
   @Test
@@ -176,7 +176,7 @@ public class TestDominantResourceFairnessPolicy {
     assertEquals(.5, shares.getWeight(ResourceType.CPU), .00001);
     assertEquals(.4, shares.getWeight(ResourceType.GPU), .00001);
     assertEquals(ResourceType.CPU, resourceOrder[0]);
-    assertEquals(ResourceType.MEMORY, resourceOrder[1]);
-    assertEquals(ResourceType.GPU, resourceOrder[2]);
+    assertEquals(ResourceType.GPU, resourceOrder[1]);
+    assertEquals(ResourceType.MEMORY, resourceOrder[2]);
   }
 }

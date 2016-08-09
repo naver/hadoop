@@ -35,6 +35,11 @@ public class ResourceWeights {
     weights[ResourceType.GPU.ordinal()] = gpuWeight;
   }
 
+  public ResourceWeights(float memoryWeight, float cpuWeight) {
+    weights[ResourceType.MEMORY.ordinal()] = memoryWeight;
+    weights[ResourceType.CPU.ordinal()] = cpuWeight;
+  }
+
   public ResourceWeights(float weight) {
     setWeight(weight);
   }
