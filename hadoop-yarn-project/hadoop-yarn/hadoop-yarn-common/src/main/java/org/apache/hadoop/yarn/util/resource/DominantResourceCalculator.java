@@ -60,14 +60,14 @@ public class DominantResourceCalculator extends ResourceCalculator {
     }
 
     float[] lValues = new float[] {
-      (float) lhs.getMemory() / clusterResource.getMemory(),
-      (float) lhs.getVirtualCores() / clusterResource.getVirtualCores(),
+      (clusterResource.getMemory() != 0) ? (float) lhs.getMemory() / clusterResource.getMemory() : lhs.getMemory(),
+      (clusterResource.getVirtualCores() != 0) ? (float) lhs.getVirtualCores() / clusterResource.getVirtualCores() : lhs.getVirtualCores(),
       (clusterResource.getGpuCores() != 0) ? (float) lhs.getGpuCores() / clusterResource.getGpuCores() : 0.0f };
     Arrays.sort(lValues);
 
     float[] rValues = new float[] {
-      (float) rhs.getMemory() / clusterResource.getMemory(),
-      (float) rhs.getVirtualCores() / clusterResource.getVirtualCores(),
+      (clusterResource.getMemory() != 0) ? (float) rhs.getMemory() / clusterResource.getMemory() : rhs.getMemory(),
+      (clusterResource.getVirtualCores() != 0) ? (float) rhs.getVirtualCores() / clusterResource.getVirtualCores() : rhs.getVirtualCores(),
       (clusterResource.getGpuCores() != 0) ? (float) rhs.getGpuCores() / clusterResource.getGpuCores() : 0.0f };
     Arrays.sort(rValues);
 
