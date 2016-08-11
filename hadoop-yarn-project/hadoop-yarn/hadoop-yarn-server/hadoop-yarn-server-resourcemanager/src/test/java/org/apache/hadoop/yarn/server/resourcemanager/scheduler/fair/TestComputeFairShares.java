@@ -194,17 +194,17 @@ public class TestComputeFairShares {
    */
   @Test
   public void testGPU() {
-    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 2),
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 20),
         new ResourceWeights(2.0f)));
     scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 0),
         new ResourceWeights(1.0f)));
-    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 1),
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 5),
         new ResourceWeights(1.0f)));
-    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 3),
+    scheds.add(new FakeSchedulable(Resources.createResource(0, 0, 15),
         new ResourceWeights(0.5f)));
     ComputeFairShares.computeShares(scheds,
-        Resources.createResource(0, 0, 8), ResourceType.GPU);
-    verifyGPUShares(2, 1, 1, 3);
+        Resources.createResource(0, 0, 45), ResourceType.GPU);
+    verifyGPUShares(20, 5, 5, 15);
   }
   
   /**
