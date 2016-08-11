@@ -27,8 +27,6 @@ import org.apache.hadoop.yarn.util.resource.Resources;
 import org.junit.Test;
 
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -39,26 +37,17 @@ import static org.junit.Assert.assertTrue;
  */
 public class TestDominantResourceFairnessPolicy {
 
-  private Comparator<Schedulable> createComparator(Resource capacity) {
-    Set<ResourceType> enabledResourceTypes = new HashSet<ResourceType>();
-    for (ResourceType type : ResourceType.values()) {
-      enabledResourceTypes.add(type);
-    }
-    return createComparator(capacity, enabledResourceTypes);
-  }
-
-  private Comparator<Schedulable> createComparator(Resource capacity,
-      Set<ResourceType> enabledResourceTypes) {
-    DominantResourceFairnessPolicy policy = new DominantResourceFairnessPolicy();
-    policy.setEnabledResourceTypes(enabledResourceTypes);
-    policy.initialize(capacity);
-    return policy.getComparator();
-  }
-
   private Comparator<Schedulable> createComparator(int clusterMem,
       int clusterCpu) {
     DominantResourceFairnessPolicy policy = new DominantResourceFairnessPolicy();
     policy.initialize(BuilderUtils.newResource(clusterMem, clusterCpu));
+    return policy.getComparator();
+  }
+
+  private Comparator<Schedulable> createComparator(int clusterMem,
+      int clusterCpu, int clusterGpu) {
+    DominantResourceFairnessPolicy policy = new DominantResourceFairnessPolicy();
+    policy.initialize(BuilderUtils.newResource(clusterMem, clusterCpu, clusterGpu));
     return policy.getComparator();
   }
 
@@ -169,7 +158,7 @@ public class TestDominantResourceFairnessPolicy {
     ResourceType[] resourceOrder = new ResourceType[3];
     ResourceWeights shares = new ResourceWeights();
     ((DominantResourceFairnessPolicy.DominantResourceFairnessComparator)
-        createComparator(capacity)).calculateShares(
+        createComparator(100, 10, 20)).calculateShares(
         used, capacity, shares, resourceOrder, ResourceWeights.NEUTRAL);
     
     assertEquals(.1, shares.getWeight(ResourceType.MEMORY), .00001);

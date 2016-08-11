@@ -18,18 +18,17 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.webapp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.EnumSet;
-
-import javax.ws.rs.core.MediaType;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
+import com.google.common.base.Joiner;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.servlet.GuiceServletContextListener;
+import com.google.inject.servlet.ServletModule;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.NodeState;
@@ -55,17 +54,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import com.google.common.base.Joiner;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.servlet.GuiceServletContextListener;
-import com.google.inject.servlet.ServletModule;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
-import com.sun.jersey.test.framework.WebAppDescriptor;
+import javax.ws.rs.core.MediaType;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.EnumSet;
+
+import static org.junit.Assert.*;
 
 public class TestRMWebServicesNodes extends JerseyTestBase {
 
@@ -651,13 +647,15 @@ public class TestRMWebServicesNodes extends JerseyTestBase {
           WebServicesTestUtils.getXmlLong(element, "availMemoryMB"),
           WebServicesTestUtils.getXmlLong(element, "usedVirtualCores"),
           WebServicesTestUtils.getXmlLong(element,  "availableVirtualCores"),
+          WebServicesTestUtils.getXmlLong(element, "usedGpuCores"),
+          WebServicesTestUtils.getXmlLong(element, "availableGpuCores"),
           WebServicesTestUtils.getXmlString(element, "version"));
     }
   }
 
   public void verifyNodeInfo(JSONObject nodeInfo, MockNM nm)
       throws JSONException, Exception {
-    assertEquals("incorrect number of elements", 13, nodeInfo.length());
+    assertEquals("incorrect number of elements", 15, nodeInfo.length());
 
     verifyNodeInfoGeneric(nm, nodeInfo.getString("state"),
         nodeInfo.getString("rack"),
@@ -667,6 +665,7 @@ public class TestRMWebServicesNodes extends JerseyTestBase {
         nodeInfo.getString("healthReport"), nodeInfo.getInt("numContainers"),
         nodeInfo.getLong("usedMemoryMB"), nodeInfo.getLong("availMemoryMB"),
         nodeInfo.getLong("usedVirtualCores"), nodeInfo.getLong("availableVirtualCores"),
+        nodeInfo.getLong("usedGpuCores"), nodeInfo.getLong("availableGpuCores"),
         nodeInfo.getString("version"));
 
   }
@@ -675,7 +674,7 @@ public class TestRMWebServicesNodes extends JerseyTestBase {
       String id, String nodeHostName,
       String nodeHTTPAddress, long lastHealthUpdate, String healthReport,
       int numContainers, long usedMemoryMB, long availMemoryMB, long usedVirtualCores, 
-      long availVirtualCores, String version)
+      long availVirtualCores, long usedGpuCores, long availGpuCores, String version)
       throws JSONException, Exception {
 
     RMNode node = rm.getRMContext().getRMNodes().get(nm.getNodeId());
@@ -713,6 +712,10 @@ public class TestRMWebServicesNodes extends JerseyTestBase {
           .getUsedResource().getVirtualCores(), usedVirtualCores);
       assertEquals("availVirtualCores doesn't match: " + availVirtualCores, report
           .getAvailableResource().getVirtualCores(), availVirtualCores);
+      assertEquals("usedGpuCores doesn't match: " + usedGpuCores, report
+          .getUsedResource().getGpuCores(), usedGpuCores);
+      assertEquals("availGpuCores doesn't match: " + availGpuCores, report
+          .getAvailableResource().getGpuCores(), availGpuCores);
     }
   }
 

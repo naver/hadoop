@@ -18,25 +18,16 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.webapp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.StringReader;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.servlet.GuiceServletContextListener;
+import com.google.inject.servlet.ServletModule;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.service.Service.STATE;
 import org.apache.hadoop.util.VersionInfo;
@@ -69,16 +60,21 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.servlet.GuiceServletContextListener;
-import com.google.inject.servlet.ServletModule;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
-import com.sun.jersey.test.framework.WebAppDescriptor;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestRMWebServices extends JerseyTestBase {
 
@@ -401,6 +397,10 @@ public class TestRMWebServices extends JerseyTestBase {
           WebServicesTestUtils.getXmlInt(element, "availableVirtualCores"),
           WebServicesTestUtils.getXmlInt(element, "allocatedVirtualCores"),
           WebServicesTestUtils.getXmlInt(element, "totalVirtualCores"),
+          WebServicesTestUtils.getXmlInt(element, "reservedGpuCores"),
+          WebServicesTestUtils.getXmlInt(element, "availableGpuCores"),
+          WebServicesTestUtils.getXmlInt(element, "allocatedGpuCores"),
+          WebServicesTestUtils.getXmlInt(element, "totalGpuCores"),
           WebServicesTestUtils.getXmlInt(element, "containersAllocated"),
           WebServicesTestUtils.getXmlInt(element, "totalMB"),
           WebServicesTestUtils.getXmlInt(element, "totalNodes"),
@@ -416,13 +416,15 @@ public class TestRMWebServices extends JerseyTestBase {
       Exception {
     assertEquals("incorrect number of elements", 1, json.length());
     JSONObject clusterinfo = json.getJSONObject("clusterMetrics");
-    assertEquals("incorrect number of elements", 23, clusterinfo.length());
+    assertEquals("incorrect number of elements", 27, clusterinfo.length());
     verifyClusterMetrics(
         clusterinfo.getInt("appsSubmitted"), clusterinfo.getInt("appsCompleted"),
         clusterinfo.getInt("reservedMB"), clusterinfo.getInt("availableMB"),
         clusterinfo.getInt("allocatedMB"),
         clusterinfo.getInt("reservedVirtualCores"), clusterinfo.getInt("availableVirtualCores"),
         clusterinfo.getInt("allocatedVirtualCores"), clusterinfo.getInt("totalVirtualCores"),
+        clusterinfo.getInt("reservedGpuCores"), clusterinfo.getInt("availableGpuCores"),
+        clusterinfo.getInt("allocatedGpuCores"), clusterinfo.getInt("totalGpuCores"),
         clusterinfo.getInt("containersAllocated"),
         clusterinfo.getInt("totalMB"), clusterinfo.getInt("totalNodes"),
         clusterinfo.getInt("lostNodes"), clusterinfo.getInt("unhealthyNodes"),
@@ -434,6 +436,8 @@ public class TestRMWebServices extends JerseyTestBase {
       int reservedMB, int availableMB,
       int allocMB, int reservedVirtualCores, int availableVirtualCores, 
       int allocVirtualCores, int totalVirtualCores,
+      int reservedGpuCores, int availableGpuCores,
+      int allocGpuCores, int totalGpuCores,
       int containersAlloc, int totalMB, int totalNodes,
       int lostNodes, int unhealthyNodes, int decommissionedNodes,
       int rebootedNodes, int activeNodes) throws JSONException, Exception {
@@ -446,6 +450,8 @@ public class TestRMWebServices extends JerseyTestBase {
         metrics.getAvailableMB() + metrics.getAllocatedMB();
     long totalVirtualCoresExpect = 
         metrics.getAvailableVirtualCores() + metrics.getAllocatedVirtualCores();
+    long totalGpuCoresExpect =
+        metrics.getAvailableGpuCores() + metrics.getAllocatedGpuCores();
     assertEquals("appsSubmitted doesn't match", 
         metrics.getAppsSubmitted(), submittedApps);
     assertEquals("appsCompleted doesn't match", 
@@ -462,6 +468,12 @@ public class TestRMWebServices extends JerseyTestBase {
         metrics.getAvailableVirtualCores(), availableVirtualCores);
     assertEquals("allocatedVirtualCores doesn't match",
         totalVirtualCoresExpect, allocVirtualCores);
+    assertEquals("reservedGpuCores doesn't match",
+        metrics.getReservedGpuCores(), reservedGpuCores);
+    assertEquals("availableGpuCores doesn't match",
+        metrics.getAvailableGpuCores(), availableGpuCores);
+    assertEquals("allocatedGpuCores doesn't match",
+        totalGpuCoresExpect, allocGpuCores);
     assertEquals("containersAllocated doesn't match", 0, containersAlloc);
     assertEquals("totalMB doesn't match", totalMBExpect, totalMB);
     assertEquals(

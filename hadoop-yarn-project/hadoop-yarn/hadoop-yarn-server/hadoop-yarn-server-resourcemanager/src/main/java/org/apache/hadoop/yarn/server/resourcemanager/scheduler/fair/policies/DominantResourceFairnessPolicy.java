@@ -30,7 +30,6 @@ import org.apache.hadoop.yarn.util.resource.Resources;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Set;
 
 import static org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceType.CPU;
 import static org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceType.MEMORY;
@@ -49,8 +48,6 @@ public class DominantResourceFairnessPolicy extends SchedulingPolicy {
 
   private DominantResourceFairnessComparator comparator =
       new DominantResourceFairnessComparator();
-
-  private Set<ResourceType> enabledResourceTypes;
 
   @Override
   public String getName() {
@@ -116,16 +113,9 @@ public class DominantResourceFairnessPolicy extends SchedulingPolicy {
     comparator.setClusterCapacity(clusterCapacity);
   }
 
-  public void setEnabledResourceTypes(Set<ResourceType> enabledResourceTypes) {
-    this.enabledResourceTypes = enabledResourceTypes;
-  }
-
-  public Set<ResourceType> getEnabledResourceTypes() {
-    return this.enabledResourceTypes;
-  }
-
-  public class DominantResourceFairnessComparator implements Comparator<Schedulable> {
-
+  public static class DominantResourceFairnessComparator implements Comparator<Schedulable> {
+    private static final int NUM_RESOURCES = ResourceType.values().length;
+    
     private Resource clusterCapacity;
 
     public void setClusterCapacity(Resource clusterCapacity) {
@@ -134,16 +124,12 @@ public class DominantResourceFairnessPolicy extends SchedulingPolicy {
 
     @Override
     public int compare(Schedulable s1, Schedulable s2) {
-      if (enabledResourceTypes == null || enabledResourceTypes.isEmpty()) {
-        return (int)(s1.getStartTime() - s2.getStartTime());
-      } 
-      
       ResourceWeights sharesOfCluster1 = new ResourceWeights();
       ResourceWeights sharesOfCluster2 = new ResourceWeights();
       ResourceWeights sharesOfMinShare1 = new ResourceWeights();
       ResourceWeights sharesOfMinShare2 = new ResourceWeights();
-      ResourceType[] resourceOrder1 = new ResourceType[enabledResourceTypes.size()];
-      ResourceType[] resourceOrder2 = new ResourceType[enabledResourceTypes.size()];
+      ResourceType[] resourceOrder1 = new ResourceType[NUM_RESOURCES];
+      ResourceType[] resourceOrder2 = new ResourceType[NUM_RESOURCES];
       
       // Calculate shares of the cluster for each resource both schedulables.
       calculateShares(s1.getResourceUsage(),
@@ -189,28 +175,19 @@ public class DominantResourceFairnessPolicy extends SchedulingPolicy {
      */
     void calculateShares(Resource resource, Resource pool,
         ResourceWeights shares, ResourceType[] resourceOrder, ResourceWeights weights) {
-      if (enabledResourceTypes.contains(ResourceType.MEMORY)) {
-        shares.setWeight(MEMORY, (float)resource.getMemory() /
-            (pool.getMemory() * weights.getWeight(MEMORY)));
-      }
-      if (enabledResourceTypes.contains(ResourceType.CPU)) {
-        shares.setWeight(CPU, (float) resource.getVirtualCores() /
-            (pool.getVirtualCores() * weights.getWeight(CPU)));
-      }
-      if (enabledResourceTypes.contains(ResourceType.GPU)) {
-        shares.setWeight(GPU, (float) resource.getGpuCores() /
-            (pool.getGpuCores() * weights.getWeight(GPU)));
-      }
-      if (resourceOrder == null) {
-        return;
-      }
+      shares.setWeight(MEMORY, (float)resource.getMemory() /
+          (pool.getMemory() * weights.getWeight(MEMORY)));
+      shares.setWeight(CPU, (float)resource.getVirtualCores() /
+          (pool.getVirtualCores() * weights.getWeight(CPU)));
+      shares.setWeight(GPU, (float) resource.getGpuCores() /
+          (pool.getGpuCores() * weights.getWeight(GPU)));
+      // sort order vector by resource share
+      if (resourceOrder != null) {
+        int position = 0;
 
-      int position = 0;
-      if (enabledResourceTypes.contains(ResourceType.MEMORY)) {
         resourceOrder[0] = MEMORY;
         position ++;
-      }
-      if (enabledResourceTypes.contains(ResourceType.CPU)) {
+
         if (position == 0) {
           resourceOrder[0] = CPU;
         } else {
@@ -222,8 +199,7 @@ public class DominantResourceFairnessPolicy extends SchedulingPolicy {
           }
         }
         position ++;
-      }
-      if (enabledResourceTypes.contains(ResourceType.GPU)) {
+
         int startIndex = 0;
         while (startIndex < position) {
           if (shares.getWeight(GPU) >=

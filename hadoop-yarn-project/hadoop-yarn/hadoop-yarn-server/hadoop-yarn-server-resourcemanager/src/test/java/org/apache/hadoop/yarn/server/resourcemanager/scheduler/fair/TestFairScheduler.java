@@ -4279,7 +4279,7 @@ public class TestFairScheduler extends FairSchedulerTestBase {
     FSLeafQueue targetQueue = queueMgr.getLeafQueue("queue2", true);
 
     ApplicationAttemptId appAttId =
-        createSchedulingRequest(1024, 1, 1, "queue1", "user1", 3);
+        createSchedulingRequest(1024, 1, 0, "queue1", "user1", 3);
     ApplicationId appId = appAttId.getApplicationId();
     RMNode node = MockNodes.newNodeInfo(1, Resources.createResource(1024));
     NodeAddedSchedulerEvent nodeEvent = new NodeAddedSchedulerEvent(node);
@@ -4287,9 +4287,9 @@ public class TestFairScheduler extends FairSchedulerTestBase {
     scheduler.handle(nodeEvent);
     scheduler.handle(updateEvent);
     
-    assertEquals(Resource.newInstance(1024, 1, 1), oldQueue.getResourceUsage());
+    assertEquals(Resource.newInstance(1024, 1, 0), oldQueue.getResourceUsage());
     scheduler.update();
-    assertEquals(Resource.newInstance(3072, 3, 3), oldQueue.getDemand());
+    assertEquals(Resource.newInstance(3072, 3, 0), oldQueue.getDemand());
     
     scheduler.moveApplication(appId, "queue2");
     FSAppAttempt app = scheduler.getSchedulerApp(appAttId);
@@ -4297,14 +4297,14 @@ public class TestFairScheduler extends FairSchedulerTestBase {
     assertFalse(oldQueue.isRunnableApp(app));
     assertTrue(targetQueue.isRunnableApp(app));
     assertEquals(Resource.newInstance(0, 0, 0), oldQueue.getResourceUsage());
-    assertEquals(Resource.newInstance(1024, 1, 1), targetQueue.getResourceUsage());
+    assertEquals(Resource.newInstance(1024, 1, 0), targetQueue.getResourceUsage());
     assertEquals(0, oldQueue.getNumRunnableApps());
     assertEquals(1, targetQueue.getNumRunnableApps());
     assertEquals(1, queueMgr.getRootQueue().getNumRunnableApps());
     
     scheduler.update();
     assertEquals(Resource.newInstance(0, 0, 0), oldQueue.getDemand());
-    assertEquals(Resource.newInstance(3072, 3, 3), targetQueue.getDemand());
+    assertEquals(Resource.newInstance(3072, 3, 0), targetQueue.getDemand());
   }
   
   @Test

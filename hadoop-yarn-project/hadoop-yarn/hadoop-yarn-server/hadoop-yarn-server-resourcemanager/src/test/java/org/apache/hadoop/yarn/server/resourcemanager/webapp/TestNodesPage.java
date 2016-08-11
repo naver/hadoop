@@ -17,9 +17,9 @@
  */
 package org.apache.hadoop.yarn.server.resourcemanager.webapp;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-
+import com.google.inject.Binder;
+import com.google.inject.Injector;
+import com.google.inject.Module;
 import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.ResourceManager;
@@ -29,9 +29,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.google.inject.Binder;
-import com.google.inject.Injector;
-import com.google.inject.Module;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * This tests the NodesPage block table that it should contain the table body
@@ -48,8 +47,8 @@ public class TestNodesPage {
 
   // Number of Actual Table Headers for NodesPage.NodesBlock might change in
   // future. In that case this value should be adjusted to the new value.
-  final int numberOfThInMetricsTable = 20;
-  final int numberOfActualTableHeaders = 13;
+  final int numberOfThInMetricsTable = 23;
+  final int numberOfActualTableHeaders = 15;
 
   private Injector injector;
   
