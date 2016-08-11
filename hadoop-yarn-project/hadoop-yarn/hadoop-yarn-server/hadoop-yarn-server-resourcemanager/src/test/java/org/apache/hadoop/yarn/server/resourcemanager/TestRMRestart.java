@@ -1985,7 +1985,7 @@ public class TestRMRestart extends ParameterizedSchedulerTestBase {
     ContainerId containerId = ContainerId.newContainerId(appAttemptId, id);
     NMContainerStatus containerReport =
         NMContainerStatus.newInstance(containerId, containerState,
-          Resource.newInstance(1024, 1, 1), "recover container", 0,
+          Resource.newInstance(1024, 1), "recover container", 0,
           Priority.newInstance(0), 0);
     return containerReport;
   }

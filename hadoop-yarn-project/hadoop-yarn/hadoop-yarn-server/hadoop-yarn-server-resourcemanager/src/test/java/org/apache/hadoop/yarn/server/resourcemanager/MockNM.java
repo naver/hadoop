@@ -67,10 +67,7 @@ public class MockNM {
 
   public MockNM(String nodeIdStr, int memory, int vcores,
       ResourceTrackerService resourceTracker) {
-    this(nodeIdStr, memory, vcores,
-        Math.max(1, (memory * YarnConfiguration.DEFAULT_NM_GCORES) /
-            YarnConfiguration.DEFAULT_NM_PMEM_MB),
-                resourceTracker);
+    this(nodeIdStr, memory, vcores, 0, resourceTracker);
   }
 
   public MockNM(String nodeIdStr, int memory, int vcores, int gcores, ResourceTrackerService resourceTracker) {
