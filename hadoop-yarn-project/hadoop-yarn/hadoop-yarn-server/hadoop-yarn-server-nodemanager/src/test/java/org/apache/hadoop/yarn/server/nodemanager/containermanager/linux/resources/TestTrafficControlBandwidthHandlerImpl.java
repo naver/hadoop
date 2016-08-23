@@ -104,7 +104,7 @@ public class TestTrafficControlBandwidthHandlerImpl {
       verifyNoMoreInteractions(cGroupsHandlerMock);
       verify(trafficControllerMock).bootstrap(eq(device),
           eq(ROOT_BANDWIDTH_MBIT),
-          eq(YARN_BANDWIDTH_MBIT));
+          eq(YARN_BANDWIDTH_MBIT), eq(CONTAINER_BANDWIDTH_MBIT), eq(false));
       verifyNoMoreInteractions(trafficControllerMock);
     } catch (ResourceHandlerException e) {
       LOG.error("Unexpected exception: " + e);

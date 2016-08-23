@@ -138,7 +138,7 @@ public class TestTrafficController {
 
     try {
       trafficController
-          .bootstrap(DEVICE, ROOT_BANDWIDTH_MBIT, YARN_BANDWIDTH_MBIT);
+          .bootstrap(DEVICE, ROOT_BANDWIDTH_MBIT, YARN_BANDWIDTH_MBIT, CONTAINER_BANDWIDTH_MBIT, false);
 
       ArgumentCaptor<PrivilegedOperation> opCaptor = ArgumentCaptor.forClass
           (PrivilegedOperation.class);
@@ -181,7 +181,7 @@ public class TestTrafficController {
           .thenReturn(DEFAULT_TC_STATE_EXAMPLE);
 
       trafficController
-          .bootstrap(DEVICE, ROOT_BANDWIDTH_MBIT, YARN_BANDWIDTH_MBIT);
+          .bootstrap(DEVICE, ROOT_BANDWIDTH_MBIT, YARN_BANDWIDTH_MBIT, CONTAINER_BANDWIDTH_MBIT, false);
 
       ArgumentCaptor<PrivilegedOperation> readOpCaptor = ArgumentCaptor.forClass
           (PrivilegedOperation.class);
@@ -227,7 +227,7 @@ public class TestTrafficController {
         privilegedOperationExecutorMock);
     try {
       trafficController
-          .bootstrap(DEVICE, ROOT_BANDWIDTH_MBIT, YARN_BANDWIDTH_MBIT);
+          .bootstrap(DEVICE, ROOT_BANDWIDTH_MBIT, YARN_BANDWIDTH_MBIT, CONTAINER_BANDWIDTH_MBIT, false);
 
       try {
         //Invalid op type for TC batch builder
@@ -269,7 +269,7 @@ public class TestTrafficController {
         privilegedOperationExecutorMock);
     try {
       trafficController
-          .bootstrap(DEVICE, ROOT_BANDWIDTH_MBIT, YARN_BANDWIDTH_MBIT);
+          .bootstrap(DEVICE, ROOT_BANDWIDTH_MBIT, YARN_BANDWIDTH_MBIT, CONTAINER_BANDWIDTH_MBIT, false);
 
       int classId = trafficController.getNextClassId();
 

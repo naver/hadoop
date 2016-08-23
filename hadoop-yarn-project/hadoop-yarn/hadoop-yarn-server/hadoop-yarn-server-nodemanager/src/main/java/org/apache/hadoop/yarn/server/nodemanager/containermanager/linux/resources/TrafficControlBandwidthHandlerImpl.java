@@ -119,7 +119,7 @@ public class TrafficControlBandwidthHandlerImpl
         .append(containerBandwidthMbit);
 
     LOG.info(logLine);
-    trafficController.bootstrap(device, rootBandwidthMbit, yarnBandwidthMbit);
+    trafficController.bootstrap(device, rootBandwidthMbit, yarnBandwidthMbit, containerBandwidthMbit, strictMode);
 
     return null;
   }

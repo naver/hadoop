@@ -119,7 +119,7 @@ import java.util.regex.Pattern;
    * Bootstrap tc configuration
    */
   public void bootstrap(String device, int rootBandwidthMbit, int
-      yarnBandwidthMbit)
+      yarnBandwidthMbit, int containerBandwidthMbit, boolean strictMode)
       throws ResourceHandlerException {
     if (device == null) {
       throw new ResourceHandlerException("device cannot be null!");
@@ -159,6 +159,9 @@ import java.util.regex.Pattern;
         //We already have the list of existing container classes, if any
         //that were created after bootstrapping
         reacquireContainerClasses(state);
+        wipeState(); //start over in case preview bootstrap was incomplete
+        initializeState();
+        recoverAcquireContainerClasses(containerBandwidthMbit, strictMode);
         return;
       } else {
         LOG.info("TC configuration is incomplete. Wiping tc state before proceeding");
@@ -180,6 +183,30 @@ import java.util.regex.Pattern;
         .addDefaultClass(defaultClassBandwidthMbit, rootBandwidthMbit)
             //yarn bandwidth is capped with rate = ceil
         .addYARNRootClass(yarnBandwidthMbit, yarnBandwidthMbit);
+    PrivilegedOperation op = builder.commitBatchToTempFile();
+
+    try {
+      privilegedOperationExecutor.executePrivilegedOperation(op, false);
+    } catch (PrivilegedOperationException e) {
+      LOG.warn("Failed to bootstrap outbound bandwidth configuration");
+
+      throw new ResourceHandlerException(
+          "Failed to bootstrap outbound bandwidth configuration", e);
+    }
+  }
+
+  private void recoverAcquireContainerClasses(int containerBandwidthMbit, boolean strictMode) throws ResourceHandlerException {
+    LOG.info("Recovering acquired container's tc state.");
+
+    BatchBuilder builder = new BatchBuilder(PrivilegedOperation.
+        OperationType.TC_MODIFY_STATE);
+
+    for (int i = this.classIdSet.nextSetBit(0); i >= 0; i = this.classIdSet.nextSetBit(i+1)) {
+      int classId = i + MIN_CONTAINER_CLASS_ID;
+      builder.addContainerClass(classId, containerBandwidthMbit, strictMode);
+      LOG.info("Recovered container classid: " + classId);
+    }
+
     PrivilegedOperation op = builder.commitBatchToTempFile();
 
     try {
