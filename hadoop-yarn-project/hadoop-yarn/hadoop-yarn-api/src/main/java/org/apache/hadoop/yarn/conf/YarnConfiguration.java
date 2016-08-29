@@ -1075,6 +1075,13 @@ public class YarnConfiguration extends Configuration {
   public static final String NM_NETWORK_RESOURCE_OUTBOUND_BANDWIDTH_YARN_MBIT =
       NM_NETWORK_RESOURCE_PREFIX + "outbound-bandwidth-yarn-mbit";
 
+  /** Specifies the total container on node. The guaranteed outbound bandwidth for each container based on this number **/
+  @Private
+  public static final String NM_NETWORK_RESOURCE_OUTBOUND_MAX_CONTAINER_COUNT =
+      NM_NETWORK_RESOURCE_PREFIX + "outbound-max-container-count";
+  @Private
+  public static final int DEFAULT_NM_NETWORK_RESOURCE_OUTBOUND_MAX_CONTAINER_COUNT = 50;
+
 
   /**
    * Interval of time the linux container executor should try cleaning up

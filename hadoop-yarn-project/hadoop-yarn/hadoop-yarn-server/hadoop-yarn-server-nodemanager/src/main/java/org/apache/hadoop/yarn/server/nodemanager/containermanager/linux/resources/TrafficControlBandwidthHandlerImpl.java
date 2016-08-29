@@ -46,10 +46,6 @@ public class TrafficControlBandwidthHandlerImpl
 
   private static final Log LOG = LogFactory
       .getLog(TrafficControlBandwidthHandlerImpl.class);
-  //In the absence of 'scheduling' support, we'll 'infer' the guaranteed
-  //outbound bandwidth for each container based on this number. This will
-  //likely go away once we add support on the RM for this resource type.
-  private static final int MAX_CONTAINER_COUNT = 50;
 
   private final PrivilegedOperationExecutor privilegedOperationExecutor;
   private final CGroupsHandler cGroupsHandler;
@@ -99,6 +95,10 @@ public class TrafficControlBandwidthHandlerImpl
         .DEFAULT_NM_NETWORK_RESOURCE_OUTBOUND_BANDWIDTH_MBIT);
     yarnBandwidthMbit = conf.getInt(YarnConfiguration
         .NM_NETWORK_RESOURCE_OUTBOUND_BANDWIDTH_YARN_MBIT, rootBandwidthMbit);
+
+    int MAX_CONTAINER_COUNT = conf.getInt(YarnConfiguration
+        .NM_NETWORK_RESOURCE_OUTBOUND_MAX_CONTAINER_COUNT, YarnConfiguration
+        .DEFAULT_NM_NETWORK_RESOURCE_OUTBOUND_MAX_CONTAINER_COUNT);
     containerBandwidthMbit = (int) Math.ceil((double) yarnBandwidthMbit /
         MAX_CONTAINER_COUNT);
 
