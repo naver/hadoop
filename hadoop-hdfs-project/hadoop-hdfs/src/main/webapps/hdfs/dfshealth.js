@@ -166,6 +166,23 @@
   function load_datanode_info() {
 
     var HELPERS = {
+      'helper_relative_time' : function (chunk, ctx, bodies, params) {
+        var value = dust.helpers.tap(params.value, chunk, ctx);
+        return chunk.write(moment().subtract(Number(value), 'seconds').format('ddd MMM DD HH:mm:ss ZZ YYYY'));
+      },
+      'helper_usage_bar' : function (chunk, ctx, bodies, params) {
+        var value = dust.helpers.tap(params.value, chunk, ctx);
+        var v = Number(value);
+        var r = null;
+        if (v < 70) {
+          r = 'progress-bar-success';
+        } else if (v < 85) {
+          r = 'progress-bar-warning';
+        } else {
+          r = "progress-bar-danger";
+        }
+        return chunk.write(r);
+      },
       'helper_lastcontact_tostring' : function (chunk, ctx, bodies, params) {
         var value = dust.helpers.tap(params.value, chunk, ctx);
         return chunk.write('' + new Date(Date.now()-1000*Number(value)));
@@ -183,8 +200,41 @@
         return res;
       }
 
+      function augment_live_nodes(nodes) {
+        for (var i = 0, e = nodes.length; i < e; ++i) {
+          var n = nodes[i];
+          n.usedPercentage = Math.round((n.used + n.nonDfsUsedSpace) * 1.0 / n.capacity * 100);
+
+          var addr = n.infoSecureAddr;
+          var position = addr.lastIndexOf(":");
+          var port = addr.substring(position + 1, addr.length);
+          n.secureMode = "off";
+          if (port != 0) {
+            n.secureMode = "on";
+          }
+
+          if (n.adminState === "In Service") {
+            n.state = "alive";
+          } else if (nodes[i].adminState === "Decommission In Progress") {
+            n.state = "decommisioning";
+          } else if (nodes[i].adminState === "Decommissioned") {
+            n.state = "decommissioned";
+          }
+        }
+      }
+      function augment_dead_nodes(nodes) {
+        for (var i = 0, e = nodes.length; i < e; ++i) {
+          if (nodes[i].decommissioned) {
+            nodes[i].state = "down-decommissioned";
+          } else {
+            nodes[i].state = "down";
+          }
+        }
+      }
       r.LiveNodes = node_map_to_array(JSON.parse(r.LiveNodes));
+      augment_live_nodes(r.LiveNodes);
       r.DeadNodes = node_map_to_array(JSON.parse(r.DeadNodes));
+      augment_dead_nodes(r.DeadNodes);
       r.DecomNodes = node_map_to_array(JSON.parse(r.DecomNodes));
       return r;
     }
