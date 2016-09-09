@@ -20,6 +20,7 @@
 <head>
 <meta http-equiv="X-UA-Compatible" content="IE=9" />
 <link rel="stylesheet" type="text/css" href="/static/bootstrap-3.0.2/css/bootstrap.min.css" />
+<link rel="stylesheet" type="text/css" href="/static/dataTables.bootstrap.css" />
 <link rel="stylesheet" type="text/css" href="/static/hadoop.css" />
 <title>Namenode information</title>
 </head>
@@ -253,14 +254,13 @@
 <div class="page-header"><h1>Datanode Information</h1></div>
 <div class="page-header"><h1><small>In operation</small></h1></div>
 <small>
-<table class="table">
+<table class="table" id="table-datanodes">
   <thead>
     <tr>
       <th>Node</th>
       <th>Last contact</th>
       <th>Admin State</th>
-      <th>Capacity</th>
-      <th>Used</th>
+      <th style="width:180px; text-align:center">Capacity</th>
       <th>Non DFS Used</th>
       <th>Remaining</th>
       <th>Blocks</th>
@@ -271,25 +271,31 @@
   </thead>
   {#LiveNodes}
   <tr>
-    <td>{name} ({xferaddr})</td>
-    <td>{lastContact}</td>
+    <td ng-value="{state}-{name}" class="dfshealth-node-icon dfshealth-node-{state}">{name} ({xferaddr})</td>
+    <td ng-value="{lastContact}">{lastContact}</td>
     <td>{adminState}</td>
-    <td>{capacity|fmt_bytes}</td>
-    <td>{used|fmt_bytes}</td>
-    <td>{nonDfsUsedSpace|fmt_bytes}</td>
+    <td ng-value="{usedPercentage}">
+      <div>
+        <div style="display:inline-block; float: left; padding-right: 10px;">{capacity|fmt_bytes}</div>
+        <div class="clearfix progress dfshealth-node-capacity-bar" title="Used: {used|fmt_bytes}">
+          <div class="progress-bar {#helper_usage_bar value="{usedPercentage}"/}" style="width: {usedPercentage}%">
+          </div>
+        </div>
+      </div>
+    </td>
+    <td ng-value="{nonDfsUsedSpace}">{nonDfsUsedSpace|fmt_bytes}</td>
     <td>{remaining|fmt_bytes}</td>
     <td>{numBlocks}</td>
-    <td>{blockPoolUsed|fmt_bytes} ({blockPoolUsedPercent|fmt_percentage})</td>
+    <td ng-value="{blockPoolUsedPercent}">{blockPoolUsed|fmt_bytes} ({blockPoolUsedPercent|fmt_percentage})</td>
     <td>{volfails}</td>
     <td>{version}</td>
   </tr>
   {/LiveNodes}
   {#DeadNodes}
   <tr class="danger">
-    <td>{name} ({xferaddr})</td>
+    <td ng-value="{state}-{name}" class="dfshealth-node-icon dfshealth-node-{state}">{name} ({xferaddr})</td>
     <td>{#helper_lastcontact_tostring value="{lastContact}"/}</td>
     <td>Dead{?decommissioned}, Decommissioned{/decommissioned}</td>
-    <td>-</td>
     <td>-</td>
     <td>-</td>
     <td>-</td>
@@ -388,7 +394,10 @@ There are no reported volume failures.
 </script>
 
 <script type="text/javascript" src="/static/jquery-1.10.2.min.js">
+</script><script type="text/javascript" src="/static/jquery.dataTables.min.js">
 </script><script type="text/javascript" src="/static/bootstrap-3.0.2/js/bootstrap.min.js">
+</script><script type="text/javascript" src="/static/dataTables.bootstrap.js">
+</script><script type="text/javascript" src="/static/moment.min.js">
 </script><script type="text/javascript" src="/static/dust-full-2.0.0.min.js">
 </script><script type="text/javascript" src="/static/dust-helpers-1.1.1.min.js">
 </script><script type="text/javascript" src="/static/dfs-dust.js">
