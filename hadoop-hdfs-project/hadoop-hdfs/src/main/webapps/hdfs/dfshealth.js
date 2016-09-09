@@ -247,17 +247,17 @@
         dust.render('datanode-info', base.push(data), function(err, out) {
           $('#tab-datanode').html(out);
           $('#table-datanodes').dataTable( {
-            'lengthMenu': [ [50, 100, -1], [50, 100, "All"] ],
+            'lengthMenu': [ [25, 50, 100, -1], [25, 50, 100, "All"] ],
             'columns': [
               { 'orderDataType': 'ng-value', 'searchable': true },
-              { 'orderDataType': 'ng-value', 'type': 'numeric' },
+              { 'orderDataType': 'ng-value', 'type': 'num' },
               { 'orderData': 2 },
-              { 'orderDataType': 'ng-value', 'type': 'numeric' },
-              { 'orderDataType': 'ng-value', 'type': 'numeric' },
-              { 'orderData': 5, 'type': 'numeric' },
-              { 'orderData': 6, 'type': 'numeric' },
-              { 'orderDataType': 'ng-value', 'type': 'numeric' },
-              { 'orderData': 8, 'type': 'numeric' },
+              { 'orderDataType': 'ng-value', 'type': 'num' },
+              { 'orderDataType': 'ng-value', 'type': 'num' },
+              { 'orderDataType': 'ng-value', 'type': 'num' },
+              { 'orderData': 6, 'type': 'num' },
+              { 'orderDataType': 'ng-value', 'type': 'num' },
+              { 'orderData': 8, 'type': 'num' },
               { 'orderData': 9 }
             ]});
           $('#ui-tabs a[href="#tab-datanode"]').tab('show');

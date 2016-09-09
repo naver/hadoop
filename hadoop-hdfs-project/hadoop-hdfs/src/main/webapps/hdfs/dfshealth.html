@@ -292,7 +292,7 @@
       </div>
     </td>
     <td ng-value="{nonDfsUsedSpace}">{nonDfsUsedSpace|fmt_bytes}</td>
-    <td>{remaining|fmt_bytes}</td>
+    <td ng-value="{remaining}">{remaining|fmt_bytes}</td>
     <td>{numBlocks}</td>
     <td ng-value="{blockPoolUsedPercent}">{blockPoolUsed|fmt_bytes} ({blockPoolUsedPercent|fmt_percentage})</td>
     <td>{volfails}</td>
@@ -302,7 +302,7 @@
   {#DeadNodes}
   <tr class="danger">
     <td ng-value="{state}-{name}" class="dfshealth-node-icon dfshealth-node-{state}">{name} ({xferaddr})</td>
-    <td>{#helper_lastcontact_tostring value="{lastContact}"/}</td>
+    <td ng-value="{lastContact}">{#helper_lastcontact_tostring value="{lastContact}"/}</td>
     <td>Dead{?decommissioned}, Decommissioned{/decommissioned}</td>
     <td>-</td>
     <td>-</td>
