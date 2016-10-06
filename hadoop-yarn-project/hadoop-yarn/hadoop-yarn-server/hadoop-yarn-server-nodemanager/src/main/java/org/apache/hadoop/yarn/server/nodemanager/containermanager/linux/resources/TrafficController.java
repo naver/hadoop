@@ -651,6 +651,13 @@ import java.util.regex.Pattern;
     public PrivilegedOperation commitBatchToTempFile()
         throws ResourceHandlerException {
       try {
+        File tmpDir = new File(tmpDirPath);
+        if (!(tmpDir.exists() || tmpDir.mkdirs())) {
+          LOG.warn("Unable to create directory: " + tmpDirPath);
+          throw new ResourceHandlerException("Unable to create directory: " +
+                  tmpDirPath);
+        }
+
         File tcCmds = File.createTempFile(TMP_FILE_PREFIX, TMP_FILE_SUFFIX, new
             File(tmpDirPath));
         Writer writer = new OutputStreamWriter(new FileOutputStream(tcCmds),
