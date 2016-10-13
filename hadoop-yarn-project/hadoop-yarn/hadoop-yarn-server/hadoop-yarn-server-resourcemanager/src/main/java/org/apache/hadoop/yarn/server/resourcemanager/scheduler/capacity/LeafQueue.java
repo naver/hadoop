@@ -1632,18 +1632,25 @@ public class LeafQueue extends AbstractCSQueue {
           }
         }
 
+        if (capability.getGpuCores() != 0) {
+            int queueCapacityGpu = clusterResource.getGpuCores();
+            int queueUsageGpu = queueUsage.getUsed().getGpuCores();
+            if (queueCapacityGpu - queueUsageGpu > 0) {
+                LOG.info("skip reserving container. other nodes can allocate the resource.");
+                return Resources.none();
+            }
+        }
         // Reserve by 'charging' in advance...
         reserve(application, priority, node, rmContainer, container);
 
-        LOG.info("Reserved container " + 
-            " application=" + application.getApplicationId() + 
-            " resource=" + request.getCapability() + 
-            " queue=" + this.toString() + 
-            " usedCapacity=" + getUsedCapacity() + 
-            " absoluteUsedCapacity=" + getAbsoluteUsedCapacity() + 
+        LOG.info("Reserved container " +
+            " application=" + application.getApplicationId() +
+            " resource=" + request.getCapability() +
+            " queue=" + this.toString() +
+            " usedCapacity=" + getUsedCapacity() +
+            " absoluteUsedCapacity=" + getAbsoluteUsedCapacity() +
             " used=" + queueUsage.getUsed() +
             " cluster=" + clusterResource);
-
         return request.getCapability();
       }
       return Resources.none();
