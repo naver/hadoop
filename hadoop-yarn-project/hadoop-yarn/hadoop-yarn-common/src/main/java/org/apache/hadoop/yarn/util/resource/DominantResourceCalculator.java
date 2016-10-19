@@ -87,8 +87,13 @@ public class DominantResourceCalculator extends ResourceCalculator {
 
   protected float getResourceAsValueMax( Resource clusterResource,
       Resource resource) {
-    return Math.max((float) resource.getMemory() / clusterResource.getMemory(),
+    float max = Math.max((float) resource.getMemory() / clusterResource.getMemory(),
         (float) resource.getVirtualCores() / clusterResource.getVirtualCores());
+    if (clusterResource.getGpuCores() != 0) {
+        return Math.max(max, (float)resource.getGpuCores() / clusterResource.getGpuCores());
+    } else {
+        return max;
+    }
   }
 
   @Override
