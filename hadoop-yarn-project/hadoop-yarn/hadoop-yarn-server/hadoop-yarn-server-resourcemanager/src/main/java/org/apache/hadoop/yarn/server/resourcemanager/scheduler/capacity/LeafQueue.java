@@ -1635,7 +1635,7 @@ public class LeafQueue extends AbstractCSQueue {
         if (capability.getGpuCores() != 0) {
             int queueCapacityGpu = clusterResource.getGpuCores();
             int queueUsageGpu = queueUsage.getUsed().getGpuCores();
-            if (queueCapacityGpu - queueUsageGpu > 0) {
+            if (queueCapacityGpu - queueUsageGpu >= capability.getGpuCores()) {
                 LOG.info("skip reserving container. other nodes can allocate the resource.");
                 return Resources.none();
             }
