@@ -283,7 +283,7 @@ char * get_value(const char* key) {
 
 /**
  * Function to return an array of values for a key.
- * Value delimiter is assumed to be a comma.
+ * Value delimiter is assumed to be a '%'.
  */
 char ** get_values(const char * key) {
   char *value = get_value(key);
