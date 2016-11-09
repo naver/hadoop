@@ -36,8 +36,6 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.privileg
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.privileged.PrivilegedOperationException;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.privileged.PrivilegedOperationExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.resources.CGroupsHandler;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.resources.ResourceHandlerException;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.resources.ResourceHandlerModule;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.docker.DockerClient;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.docker.DockerRunCommand;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.runtime.ContainerExecutionException;
@@ -78,6 +76,7 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
   private Configuration conf;
   private DockerClient dockerClient;
   private PrivilegedOperationExecutor privilegedOperationExecutor;
+  private CGroupsHandler cGroupsHandler;
   private Set<String> allowedNetworks = new HashSet<>();
   private String defaultNetwork;    
   private AccessControlList privilegedContainersAcl;
@@ -94,8 +93,9 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
   }
 
   public DockerLinuxContainerRuntime(PrivilegedOperationExecutor
-      privilegedOperationExecutor) {
+      privilegedOperationExecutor, CGroupsHandler cGroupsHandler) {
     this.privilegedOperationExecutor = privilegedOperationExecutor;
+    this.cGroupsHandler = cGroupsHandler;
   }
 
   @Override
@@ -152,30 +152,23 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     if (resourcesOptions.equals(
         (PrivilegedOperation.CGROUP_ARG_PREFIX + PrivilegedOperation
             .CGROUP_ARG_NO_TASKS))) {
-      if (LOG.isInfoEnabled()) {
-        LOG.info("no resource restrictions specified. not using docker's "
+      if (LOG.isDebugEnabled()) {
+          LOG.debug("no resource restrictions specified. not using docker's "
             + "cgroup options");
       }
     } else {
-      if (LOG.isInfoEnabled()) {
-        LOG.info("using docker's cgroups options");
+      if (LOG.isDebugEnabled()) {
+          LOG.debug("using docker's cgroups options");
       }
 
-      try {
-        CGroupsHandler cGroupsHandler = ResourceHandlerModule
-            .getCGroupsHandler(conf);
-        String cGroupPath = "/" + cGroupsHandler.getRelativePathForCGroup(
-            containerIdStr);
+      String cGroupPath = "/" + cGroupsHandler.getRelativePathForCGroup(
+          containerIdStr);
 
-        if (LOG.isInfoEnabled()) {
-          LOG.info("using cgroup parent: " + cGroupPath);
-        }
-
-        runCommand.setCGroupParent(cGroupPath);
-      } catch (ResourceHandlerException e) {
-        LOG.warn("unable to use cgroups handler. Exception: ", e);
-        throw new ContainerExecutionException(e);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("using cgroup parent: " + cGroupPath);
       }
+
+      runCommand.setCGroupParent(cGroupPath);
     }
   }
 
@@ -299,11 +292,7 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
 
     String resourcesOpts = ctx.getExecutionAttribute(RESOURCES_OPTIONS);
 
-    /** Disabling docker's cgroup parent support for the time being. Docker
-     * needs to use a more recent libcontainer that supports net_cls. In
-     * addition we also need to revisit current cgroup creation in YARN.
-     */
-    //addCGroupParentIfRequired(resourcesOpts, containerIdStr, runCommand);
+    addCGroupParentIfRequired(resourcesOpts, containerIdStr, runCommand);
 
    Path nmPrivateContainerScriptPath = ctx.getExecutionAttribute(
         NM_PRIVATE_CONTAINER_SCRIPT_PATH);
