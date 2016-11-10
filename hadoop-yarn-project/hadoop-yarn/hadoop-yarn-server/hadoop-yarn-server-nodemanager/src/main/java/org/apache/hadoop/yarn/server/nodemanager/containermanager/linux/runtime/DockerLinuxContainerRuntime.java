@@ -20,6 +20,7 @@
 
 package org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -43,11 +44,14 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.runtime.Contai
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.runtime.ContainerRuntimeContext;
 
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.*;
@@ -72,6 +76,9 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
       "YARN_CONTAINER_RUNTIME_DOCKER_CONTAINER_NETWORK";
   public static final String ENV_DOCKER_CONTAINER_RUN_PRIVILEGED_CONTAINER =
       "YARN_CONTAINER_RUNTIME_DOCKER_RUN_PRIVILEGED_CONTAINER";
+  @InterfaceAudience.Private
+  public static final String ENV_DOCKER_CONTAINER_LOCAL_RESOURCE_MOUNTS =
+      "YARN_CONTAINER_RUNTIME_DOCKER_LOCAL_RESOURCE_MOUNTS";
 
   private Configuration conf;
   private DockerClient dockerClient;
@@ -150,8 +157,8 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
       String containerIdStr, DockerRunCommand runCommand)
       throws ContainerExecutionException {
     if (resourcesOptions.equals(
-        (PrivilegedOperation.CGROUP_ARG_PREFIX + PrivilegedOperation
-            .CGROUP_ARG_NO_TASKS))) {
+            (PrivilegedOperation.CGROUP_ARG_PREFIX + PrivilegedOperation
+                    .CGROUP_ARG_NO_TASKS))) {
       if (LOG.isDebugEnabled()) {
           LOG.debug("no resource restrictions specified. not using docker's "
             + "cgroup options");
@@ -236,6 +243,27 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     return true;
   }
 
+  @VisibleForTesting
+  protected String validateMount(String mount,
+      Map<Path, List<String>> localizedResources)
+      throws ContainerExecutionException {
+    for (Entry<Path, List<String>> resource : localizedResources.entrySet()) {
+      if (resource.getValue().contains(mount)) {
+        java.nio.file.Path path = Paths.get(resource.getKey().toString());
+        if (!path.isAbsolute()) {
+          throw new ContainerExecutionException("Mount must be absolute: " +
+              mount);
+        }
+        if (Files.isSymbolicLink(path)) {
+          throw new ContainerExecutionException("Mount cannot be a symlink: " +
+              mount);
+        }
+        return path.toString();
+      }
+    }
+    throw new ContainerExecutionException("Mount must be a localized " +
+        "resource: " + mount);
+  }
 
   @Override
   public void launchContainer(ContainerRuntimeContext ctx)
@@ -272,6 +300,9 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     @SuppressWarnings("unchecked")
     List<String> containerLogDirs = ctx.getExecutionAttribute(
         CONTAINER_LOG_DIRS);
+    @SuppressWarnings("unchecked")
+    Map<Path, List<String>> localizedResources = ctx.getExecutionAttribute(
+        LOCALIZED_RESOURCES);
     Set<String> capabilities = new HashSet<>(Arrays.asList(conf.getStrings(
         YarnConfiguration.NM_DOCKER_CONTAINER_CAPABILITIES,
         YarnConfiguration.DEFAULT_NM_DOCKER_CONTAINER_CAPABILITIES)));
@@ -290,6 +321,23 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     allDirs.addAll(containerLogDirs);
     for (String dir: allDirs) {
       runCommand.addMountLocation(dir, dir);
+    }
+
+    if (environment.containsKey(ENV_DOCKER_CONTAINER_LOCAL_RESOURCE_MOUNTS)) {
+      String mounts = environment.get(
+          ENV_DOCKER_CONTAINER_LOCAL_RESOURCE_MOUNTS);
+      if (!mounts.isEmpty()) {
+        for (String mount : StringUtils.split(mounts)) {
+          String[] dir = StringUtils.split(mount, ':');
+          if (dir.length != 2) {
+            throw new ContainerExecutionException("Invalid mount : " +
+                mount);
+          }
+          String src = validateMount(dir[0], localizedResources);
+          String dst = dir[1];
+          runCommand.addMountLocation(src, dst + ":ro");
+        }
+      }
     }
 
     if (allowPrivilegedContainerExecution(container)) {
