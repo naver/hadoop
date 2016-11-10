@@ -373,8 +373,7 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     String commandFile = dockerClient.writeCommandToTempFile(runCommand,
         containerIdStr);
     PrivilegedOperation launchOp = new PrivilegedOperation(
-        PrivilegedOperation.OperationType.LAUNCH_DOCKER_CONTAINER, (String)
-        null);
+        PrivilegedOperation.OperationType.LAUNCH_DOCKER_CONTAINER);
 
     launchOp.appendArgs(runAsUser, ctx.getExecutionAttribute(USER),
         Integer.toString(PrivilegedOperation
