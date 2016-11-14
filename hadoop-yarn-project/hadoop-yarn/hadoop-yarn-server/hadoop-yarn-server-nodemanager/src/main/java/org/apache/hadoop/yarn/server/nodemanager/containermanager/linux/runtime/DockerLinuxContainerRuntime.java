@@ -39,6 +39,7 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.privileg
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.privileged.PrivilegedOperationExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.resources.CGroupsHandler;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.docker.DockerClient;
+import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.docker.DockerLoadCommand;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.docker.DockerRunCommand;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.docker.DockerStopCommand;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.runtime.ContainerExecutionException;
@@ -57,6 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import static org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntimeConstants.*;
 
@@ -142,7 +145,69 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
   @Override
   public void prepareContainer(ContainerRuntimeContext ctx)
       throws ContainerExecutionException {
+    Container container = ctx.getContainer();
+    Map<String, String> environment = container.getLaunchContext()
+        .getEnvironment();
+    String imageFileRegex = environment.get(ENV_DOCKER_CONTAINER_IMAGE_FILE);
+    if (imageFileRegex == null) {
+      return;
+    }
+    if (validRegex(imageFileRegex)) {
+      Map<Path, List<String>> localizedResources =
+          ctx.getExecutionAttribute(LOCALIZED_RESOURCES);
+      if (localizedResources.size() == 0) {
+        LOG.warn("Prepare failed due to LocalResources size equals zero!");
+        throw new ContainerExecutionException(
+            "Prepare failed due to LocalResources size equals zero!");
+      }
+      String filename;
+      for (Path location : localizedResources.keySet()) {
+        filename = location.getName();
+        if (filename.matches(imageFileRegex)) {
+          //docker load this file
+          DockerLoadCommand cmd = new DockerLoadCommand(location.toString());
+          executeDockerLoadCommand(cmd, ctx);
+        }
+        LOG.info("Not matched! Filename:" + filename +
+            "; regex: " + imageFileRegex);
+      }
+    } else {
+      LOG.warn("Invalid regex expression: " + imageFileRegex);
+      throw new ContainerExecutionException("Invalid regex expression: "
+          + imageFileRegex);
+    }
+  }
 
+  private boolean validRegex(String regex) {
+    try {
+      Pattern.compile(regex);
+    } catch (PatternSyntaxException exception) {
+      return false;
+    }
+    return true;
+  }
+
+  private void executeDockerLoadCommand(DockerLoadCommand cmd,
+      ContainerRuntimeContext ctx)
+      throws ContainerExecutionException {
+    Container container = ctx.getContainer();
+    String containerIdStr = container.getContainerId().toString();
+    String commandFile = dockerClient.writeCommandToTempFile(cmd,
+        containerIdStr);
+    PrivilegedOperation launchOp = new PrivilegedOperation(
+        PrivilegedOperation.OperationType.RUN_DOCKER_CMD);
+
+    launchOp.appendArgs(commandFile);
+
+    try {
+      privilegedOperationExecutor.executePrivilegedOperation(null,
+          launchOp, null, container.getLaunchContext().getEnvironment(),
+          false, false);
+    } catch (PrivilegedOperationException e) {
+      LOG.warn("Docker load operation failed. Exception: ", e);
+      throw new ContainerExecutionException("Docker load operation failed", e
+          .getExitCode(), e.getOutput(), e.getErrorOutput());
+    }
   }
 
   private void validateContainerNetworkType(String network)

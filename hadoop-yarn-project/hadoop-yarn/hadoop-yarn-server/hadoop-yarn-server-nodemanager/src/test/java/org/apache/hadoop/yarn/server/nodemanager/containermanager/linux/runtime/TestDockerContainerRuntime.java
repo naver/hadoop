@@ -198,6 +198,24 @@ public class TestDockerContainerRuntime {
   }
 
   @SuppressWarnings("unchecked")
+  private PrivilegedOperation captureDockerLoadPrivilegedOperationAndVerifyArgs()
+      throws PrivilegedOperationException {
+    ArgumentCaptor<PrivilegedOperation> opCaptor = ArgumentCaptor.forClass(
+        PrivilegedOperation.class);
+    verify(mockExecutor, times(1))
+        .executePrivilegedOperation(anyList(), opCaptor.capture(), any(
+            File.class), any(Map.class), eq(false), eq(false));
+
+    PrivilegedOperation op = opCaptor.getValue();
+
+    Assert.assertEquals(PrivilegedOperation.OperationType
+        .RUN_DOCKER_CMD, op.getOperationType());
+    List<String> args = op.getArguments();
+    Assert.assertEquals(1, args.size());
+    return op;
+  }
+
+  @SuppressWarnings("unchecked")
   private PrivilegedOperation capturePrivilegedOperationAndVerifyArgs()
       throws PrivilegedOperationException {
 
@@ -243,6 +261,62 @@ public class TestDockerContainerRuntime {
     }
 
     return expectedCapabilitiesString.toString();
+  }
+
+  @Test
+  public void testDockerContainerPrepareWithInvalidRegex() {
+    String invalidImageFileRegex = "(busybox";
+    try {
+      DockerLinuxContainerRuntime runtime = new DockerLinuxContainerRuntime(
+          mockExecutor);
+      runtime.initialize(conf);
+      Map<Path, List<String>> localizedResources = new HashMap<Path,List<String>>();
+      localizedResources.put(new Path(containerWorkDir+ "/busybox.tar"),null);
+      env.put(DockerLinuxContainerRuntime.ENV_DOCKER_CONTAINER_IMAGE_FILE,invalidImageFileRegex);
+      builder.setExecutionAttribute(LOCALIZED_RESOURCES, localizedResources);
+      runtime.prepareContainer(builder.build());
+    } catch (ContainerExecutionException e) {
+      String expectMessage = "Invalid regex expression: " + invalidImageFileRegex;
+      Assert.assertEquals(e.getMessage(),expectMessage);
+    }
+  }
+
+  @Test
+  public void testDockerContainerPrepareWithEmptyLocalResource() {
+    try {
+      String validImageFileRegex = "busybox.tar";
+      DockerLinuxContainerRuntime runtime = new DockerLinuxContainerRuntime(
+          mockExecutor);
+      runtime.initialize(conf);
+      Map<Path, List<String>> localizedResources = new HashMap<Path, List<String>>();
+      env.put(DockerLinuxContainerRuntime.ENV_DOCKER_CONTAINER_IMAGE_FILE, validImageFileRegex);
+      builder.setExecutionAttribute(LOCALIZED_RESOURCES, localizedResources);
+      runtime.prepareContainer(builder.build());
+    } catch (ContainerExecutionException e) {
+      String expectMessage = "Prepare failed due to LocalResources size equals zero!";
+      Assert.assertEquals(e.getMessage(),expectMessage);
+    }
+  }
+
+  @Test
+  public void testDockerContainerPrepare()
+      throws ContainerExecutionException, PrivilegedOperationException, IOException {
+    String validImageFileRegex = "busybox.*";
+    DockerLinuxContainerRuntime runtime = new DockerLinuxContainerRuntime(
+        mockExecutor);
+    runtime.initialize(conf);
+    Map<Path, List<String>> localizedResources = new HashMap<Path,List<String>>();
+    localizedResources.put(new Path(containerWorkDir+ "/busybox.tar"),null);
+    env.put(DockerLinuxContainerRuntime.ENV_DOCKER_CONTAINER_IMAGE_FILE, validImageFileRegex);
+    builder.setExecutionAttribute(LOCALIZED_RESOURCES, localizedResources);
+    runtime.prepareContainer(builder.build());
+    PrivilegedOperation op = captureDockerLoadPrivilegedOperationAndVerifyArgs();
+    List<String> args = op.getArguments();
+    String dockerCommandFile = args.get(0);
+    String expectedCommand = "load --input " + containerWorkDir+ "/busybox.tar";
+    List<String> dockerCommands = Files.readAllLines(Paths.get
+        (dockerCommandFile), Charset.forName("UTF-8"));
+    Assert.assertEquals(expectedCommand, dockerCommands.get(0));
   }
 
   @Test

@@ -127,6 +127,14 @@ public abstract class ContainerExecutor implements Configurable {
   public abstract void startLocalizer(LocalizerStartContext ctx)
     throws IOException, InterruptedException;
 
+  /**
+   * Prepare the container on the node. This is a blocking call
+   * @param ctx Encapsulates information necessary for preparing containers.
+   * @return the return status of the prepare
+   * @throws IOException
+   */
+  public abstract int prepareContainer(ContainerStartContext ctx) throws
+      IOException;
 
   /**
    * Launch the container on the node. This is a blocking call and returns only

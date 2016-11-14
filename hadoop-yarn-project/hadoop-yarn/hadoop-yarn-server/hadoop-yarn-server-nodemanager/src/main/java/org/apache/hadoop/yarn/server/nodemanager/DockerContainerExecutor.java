@@ -146,6 +146,11 @@ public class DockerContainerExecutor extends ContainerExecutor {
     localizer.runLocalization(nmAddr);
   }
 
+  @Override
+  public int prepareContainer(ContainerStartContext ctx) throws IOException {
+    return 0;
+  }
+
 
   @Override
   public int launchContainer(ContainerStartContext ctx) throws IOException {

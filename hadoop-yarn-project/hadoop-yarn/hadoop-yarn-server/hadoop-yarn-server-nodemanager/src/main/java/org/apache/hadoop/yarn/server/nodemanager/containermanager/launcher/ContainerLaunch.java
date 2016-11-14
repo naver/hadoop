@@ -314,8 +314,7 @@ public class ContainerLaunch implements Callable<Integer> {
         ret = ExitCode.TERMINATED.getExitCode();
       }
       else {
-        exec.activateContainer(containerID, pidFilePath);
-        ret = exec.launchContainer(new ContainerStartContext.Builder()
+        ContainerStartContext csc = new ContainerStartContext.Builder()
             .setContainer(container)
             .setLocalizedResources(localResources)
             .setNmPrivateContainerScriptPath(nmPrivateContainerScriptPath)
@@ -327,7 +326,15 @@ public class ContainerLaunch implements Callable<Integer> {
             .setLogDirs(logDirs)
             .setContainerLocalDirs(containerLocalDirs)
             .setContainerLogDirs(containerLogDirs)
-            .build());
+            .build();
+        ret = exec.prepareContainer(csc);
+        if (ret == 0) {
+          exec.activateContainer(containerID, pidFilePath);
+          ret = exec.launchContainer(csc);
+        } else {
+          LOG.warn("Failed to prepare contaner." + ret);
+          return ret;
+        }
       }
     } catch (Throwable e) {
       LOG.warn("Failed to launch container.", e);
