@@ -94,6 +94,17 @@ public abstract class NMStateStoreService extends AbstractService {
     public StartContainerRequest getStartRequest() {
       return startRequest;
     }
+
+    @Override
+    public String toString() {
+      return new StringBuffer("Status: ").append(getStatus())
+          .append(", Exit code: ").append(exitCode)
+          .append(", Killed: ").append(getKilled())
+          .append(", Diagnostics: ").append(getDiagnostics())
+          .append(", Capability: ").append(getCapability())
+          .append(", StartRequest: ").append(getStartRequest())
+          .toString();
+    }
   }
 
   public static class LocalResourceTrackerState {

@@ -240,6 +240,11 @@ public class NMLeveldbStateStoreService extends NMStateStoreService {
   @Override
   public void storeContainer(ContainerId containerId,
       StartContainerRequest startRequest) throws IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("storeContainer: containerId= " + containerId
+          + ", startRequest= " + startRequest);
+    }
+
     String key = CONTAINERS_KEY_PREFIX + containerId.toString()
         + CONTAINER_REQUEST_KEY_SUFFIX;
     try {
@@ -253,6 +258,11 @@ public class NMLeveldbStateStoreService extends NMStateStoreService {
   @Override
   public void storeContainerDiagnostics(ContainerId containerId,
       StringBuilder diagnostics) throws IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("storeContainerDiagnostics: containerId=" + containerId
+      + ", diagnostics=" + diagnostics);
+    }
+
     String key = CONTAINERS_KEY_PREFIX + containerId.toString()
         + CONTAINER_DIAGS_KEY_SUFFIX;
     try {
@@ -265,6 +275,10 @@ public class NMLeveldbStateStoreService extends NMStateStoreService {
   @Override
   public void storeContainerLaunched(ContainerId containerId)
       throws IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("storeContainerLaunched: containerId=" + containerId);
+    }
+
     String key = CONTAINERS_KEY_PREFIX + containerId.toString()
         + CONTAINER_LAUNCHED_KEY_SUFFIX;
     try {
@@ -277,6 +291,10 @@ public class NMLeveldbStateStoreService extends NMStateStoreService {
   @Override
   public void storeContainerKilled(ContainerId containerId)
       throws IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("storeContainerKilled: containerId=" + containerId);
+    }
+
     String key = CONTAINERS_KEY_PREFIX + containerId.toString()
         + CONTAINER_KILLED_KEY_SUFFIX;
     try {
@@ -289,6 +307,10 @@ public class NMLeveldbStateStoreService extends NMStateStoreService {
   @Override
   public void storeContainerCompleted(ContainerId containerId,
       int exitCode) throws IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("storeContainerCompleted: containerId=" + containerId);
+    }
+
     String key = CONTAINERS_KEY_PREFIX + containerId.toString()
         + CONTAINER_EXIT_CODE_KEY_SUFFIX;
     try {
@@ -301,6 +323,10 @@ public class NMLeveldbStateStoreService extends NMStateStoreService {
   @Override
   public void removeContainer(ContainerId containerId)
       throws IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("removeContainer: containerId=" + containerId);
+    }
+
     String keyPrefix = CONTAINERS_KEY_PREFIX + containerId.toString();
     try {
       WriteBatch batch = db.createWriteBatch();
@@ -367,6 +393,11 @@ public class NMLeveldbStateStoreService extends NMStateStoreService {
   @Override
   public void storeApplication(ApplicationId appId,
       ContainerManagerApplicationProto p) throws IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("storeApplication: appId=" + appId
+          + ", proto=" + p);
+    }
+
     String key = APPLICATIONS_KEY_PREFIX + appId;
     try {
       db.put(bytes(key), p.toByteArray());
@@ -378,6 +409,10 @@ public class NMLeveldbStateStoreService extends NMStateStoreService {
   @Override
   public void storeFinishedApplication(ApplicationId appId)
       throws IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("storeFinishedApplication.appId: " + appId);
+    }
+
     String key = FINISHED_APPS_KEY_PREFIX + appId;
     try {
       db.put(bytes(key), new byte[0]);
@@ -389,6 +424,10 @@ public class NMLeveldbStateStoreService extends NMStateStoreService {
   @Override
   public void removeApplication(ApplicationId appId)
       throws IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("removeApplication: appId=" + appId);
+    }
+
     try {
       WriteBatch batch = db.createWriteBatch();
       try {
