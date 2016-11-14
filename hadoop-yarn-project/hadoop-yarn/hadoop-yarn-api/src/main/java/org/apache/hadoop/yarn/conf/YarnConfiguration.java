@@ -1049,6 +1049,14 @@ public class YarnConfiguration extends Configuration {
   public static final String DEFAULT_NM_DOCKER_DEFAULT_CONTAINER_NETWORK =
       "host";
 
+  /** The docker client config used when launching containers, this allows for
+   * overriding the $HOME/.docker/config.json path used when running or pulling
+   * containers. This is needed to allow YARN to automatically download
+   * the image from a docker registry that requires authentication.
+   */
+  public static final String NM_DOCKER_CLIENT_CONFIG_DIRECTORY =
+      DOCKER_CONTAINER_RUNTIME_PREFIX + "client-config-directory";
+
   /** The path to the Linux container executor.*/
   public static final String NM_LINUX_CONTAINER_EXECUTOR_PATH =
     NM_PREFIX + "linux-container-executor.path";

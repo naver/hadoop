@@ -79,7 +79,9 @@ public class TestYarnConfigurationFields extends TestConfigurationFieldsBase {
     configurationPropsToSkipCompare
         .add(YarnConfiguration
 	    .YARN_SECURITY_SERVICE_AUTHORIZATION_RESOURCETRACKER_PROTOCOL);
-
+    configurationPropsToSkipCompare
+        .add(YarnConfiguration.NM_DOCKER_CLIENT_CONFIG_DIRECTORY);
+      
     // Allocate for usage
     xmlPropsToSkipCompare = new HashSet<String>();
     xmlPrefixToSkipCompare = new HashSet<String>();

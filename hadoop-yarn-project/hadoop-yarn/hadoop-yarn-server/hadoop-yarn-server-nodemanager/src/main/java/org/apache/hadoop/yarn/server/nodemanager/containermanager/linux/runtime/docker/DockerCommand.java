@@ -60,7 +60,29 @@ public abstract class DockerCommand  {
     this.commandWithArguments.addAll(Arrays.asList(arguments));
   }
 
+  /** Add commands to the beginning of the commandWithArguments.
+   * This is needed in cases such as prepending --config or
+   * -D/--debug to the docker CLI.
+   * This method is only meant for use by sub-classes.
+   * @param arguments to be prepended
+   */
+  protected final void prependCommandArguments(String... arguments) {
+    this.commandWithArguments.addAll(0, Arrays.asList(arguments));
+  }
+
   public String getCommandWithArguments() {
     return StringUtils.join(" ", commandWithArguments);
   }
+
+  /** Add the client configuration to the docker command.
+   * The client configuration goes before any of the docker subcommands (such
+   * as run, load, pull, etc).
+   * @param clientConfigDir - directory containing the docker client config
+   */
+  public void setClientConfigDir(String clientConfigDir) {
+    if (clientConfigDir != null) {
+      prependCommandArguments("--config=" + clientConfigDir);
+    }
+  }
+
 }

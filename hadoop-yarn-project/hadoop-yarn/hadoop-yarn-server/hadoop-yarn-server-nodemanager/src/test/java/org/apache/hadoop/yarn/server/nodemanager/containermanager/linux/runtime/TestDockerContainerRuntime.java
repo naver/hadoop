@@ -840,4 +840,38 @@ public class TestDockerContainerRuntime {
     return conf;
   }
 
+  @Test
+  public void testDockerConfigDirDefault() throws Exception {
+    String command = getAndValidateDockerCommandsWithConf(conf);
+    Assert.assertFalse(command.startsWith("--config="));
+  }
+
+  @Test
+  public void testDockerConfigDirNonDefault() throws Exception {
+    String dockerConfDir = "/etc/docker";
+    conf.set(YarnConfiguration.NM_DOCKER_CLIENT_CONFIG_DIRECTORY,
+        dockerConfDir);
+    String command = getAndValidateDockerCommandsWithConf(conf);
+    Assert.assertTrue(command.startsWith("--config=" + dockerConfDir));
+  }
+
+  private String getAndValidateDockerCommandsWithConf(Configuration config)
+      throws Exception {
+    DockerLinuxContainerRuntime runtime =
+        new DockerLinuxContainerRuntime(mockExecutor, mockCGroupsHandler);
+    runtime.initialize(config);
+    runtime.launchContainer(builder.build());
+
+    PrivilegedOperation op = capturePrivilegedOperation();
+    Assert.assertEquals(op.getOperationType(),
+        PrivilegedOperation.OperationType.LAUNCH_DOCKER_CONTAINER);
+
+    String dockerCommandFile = op.getArguments().get(11);
+    List<String> dockerCommands = Files
+        .readAllLines(Paths.get(dockerCommandFile), Charset.forName("UTF-8"));
+    Assert.assertEquals(1, dockerCommands.size());
+
+    return dockerCommands.get(0);
+  }
+
 }

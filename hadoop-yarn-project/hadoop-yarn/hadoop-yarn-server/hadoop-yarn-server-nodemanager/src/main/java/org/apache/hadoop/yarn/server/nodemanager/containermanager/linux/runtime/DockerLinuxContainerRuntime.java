@@ -318,6 +318,10 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
         .setCapabilities(capabilities);
     List<String> allDirs = new ArrayList<>(containerLocalDirs);
 
+    String clientConfigDir =
+        conf.get(YarnConfiguration.NM_DOCKER_CLIENT_CONFIG_DIRECTORY);
+    runCommand.setClientConfigDir(clientConfigDir);
+
     allDirs.add(containerWorkDir.toString());
     allDirs.addAll(containerLogDirs);
     for (String dir: allDirs) {
@@ -434,6 +438,11 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     } else {
       String containerId = ctx.getContainer().getContainerId().toString();
       DockerStopCommand stopCommand = new DockerStopCommand(containerId);
+
+      String clientConfigDir =
+          conf.get(YarnConfiguration.NM_DOCKER_CLIENT_CONFIG_DIRECTORY);
+      stopCommand.setClientConfigDir(clientConfigDir);
+
       String commandFile = dockerClient.writeCommandToTempFile(stopCommand,
           containerId);
       privOp = new PrivilegedOperation(
