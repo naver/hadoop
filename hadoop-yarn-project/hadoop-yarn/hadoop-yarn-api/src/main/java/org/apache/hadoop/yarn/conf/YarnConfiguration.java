@@ -784,6 +784,10 @@ public class YarnConfiguration extends Configuration {
       NM_PREFIX + "log-aggregation.roll-monitoring-interval-seconds";
   public static final long
       DEFAULT_NM_LOG_AGGREGATION_ROLL_MONITORING_INTERVAL_SECONDS = -1;
+
+  public static final String NM_WHITE_LIST_VOLUME_MOUNT =
+          NM_PREFIX + "white-list-volume-mount";
+
   /**
    * Number of threads used in log cleanup. Only applicable if Log aggregation
    * is disabled

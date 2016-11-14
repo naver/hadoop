@@ -46,8 +46,10 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.runtime.Contai
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.runtime.ContainerRuntimeContext;
 
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -243,6 +245,35 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     }
 
     return true;
+
+}
+  private boolean isArbitraryMount(String mount) {
+    String[] whiteList = YarnConfiguration.NM_WHITE_LIST_VOLUME_MOUNT.split(",");
+    File child = new File(mount);
+    for (int i = 0; i < whiteList.length; i++){
+      File parent = new File(mount);
+      if (isSubDirectory(parent, child)){
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean isSubDirectory(File parent, File child){
+    try {
+      parent = parent.getCanonicalFile();
+      child = child.getCanonicalFile();
+      File parentFile = child;
+      while (parentFile != null){
+        if (parent.equals(parentFile)){
+          return true;
+        }
+        parentFile = parentFile.getParentFile();
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return false;
   }
 
   @VisibleForTesting
@@ -254,11 +285,14 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
         java.nio.file.Path path = Paths.get(resource.getKey().toString());
         if (!path.isAbsolute()) {
           throw new ContainerExecutionException("Mount must be absolute: " +
-              mount);
+                  mount);
         }
         if (Files.isSymbolicLink(path)) {
           throw new ContainerExecutionException("Mount cannot be a symlink: " +
-              mount);
+                  mount);
+        }
+        if (isArbitraryMount(mount)) {
+          throw new ContainerExecutionException("Mount is not allowed in the white list");
         }
         return path.toString();
       }
