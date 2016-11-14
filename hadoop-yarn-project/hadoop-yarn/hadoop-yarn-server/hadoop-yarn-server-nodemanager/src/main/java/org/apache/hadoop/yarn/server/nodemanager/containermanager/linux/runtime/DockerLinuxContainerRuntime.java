@@ -395,6 +395,10 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     if (tcCommandFile != null) {
       launchOp.appendArgs(tcCommandFile);
     }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Launching container with cmd: " + runCommand
+          .getCommandWithArguments());
+    }
 
     try {
       privilegedOperationExecutor.executePrivilegedOperation(null,
@@ -402,6 +406,7 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
           false);
     } catch (PrivilegedOperationException e) {
       LOG.warn("Launch container failed. Exception: ", e);
+      LOG.info("Docker command used: " + runCommand.getCommandWithArguments());
 
       throw new ContainerExecutionException("Launch container failed", e
           .getExitCode(), e.getOutput(), e.getErrorOutput());
