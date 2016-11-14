@@ -315,8 +315,7 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
         .detachOnRun()
         .setContainerWorkDir(containerWorkDir.toString())
         .setNetworkType(network)
-        .setCapabilities(capabilities)
-        .addMountLocation("/etc/passwd", "/etc/password:ro", false);
+        .setCapabilities(capabilities);
     List<String> allDirs = new ArrayList<>(containerLocalDirs);
 
     allDirs.add(containerWorkDir.toString());

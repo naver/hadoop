@@ -264,7 +264,6 @@ public class TestDockerContainerRuntime {
         .append("--workdir=%3$s ")
         .append("--net=host ")
         .append(getExpectedTestCapabilitiesArgumentString())
-        .append("-v /etc/passwd:/etc/password:ro ")
         .append("-v %4$s:%4$s ")
         .append("-v %5$s:%5$s ")
         .append("-v %6$s:%6$s ")
@@ -367,7 +366,6 @@ public class TestDockerContainerRuntime {
             .append("--workdir=%3$s ")
             .append("--net=" + allowedNetwork + " ")
             .append(getExpectedTestCapabilitiesArgumentString())
-            .append("-v /etc/passwd:/etc/password:ro ")
             .append("-v %4$s:%4$s ").append("-v %5$s:%5$s ")
             .append("-v %6$s:%6$s ").append("%7$s ")
             .append("bash %8$s/launch_container.sh");
@@ -420,7 +418,6 @@ public class TestDockerContainerRuntime {
             .append("--workdir=%3$s ")
             .append("--net=" + customNetwork1 + " ")
             .append(getExpectedTestCapabilitiesArgumentString())
-            .append("-v /etc/passwd:/etc/password:ro ")
             .append("-v %4$s:%4$s ").append("-v %5$s:%5$s ")
             .append("-v %6$s:%6$s ").append("%7$s ")
             .append("bash %8$s/launch_container.sh");
@@ -455,7 +452,6 @@ public class TestDockerContainerRuntime {
             .append("--workdir=%3$s ")
             .append("--net=" + customNetwork2 + " ")
             .append(getExpectedTestCapabilitiesArgumentString())
-            .append("-v /etc/passwd:/etc/password:ro ")
             .append("-v %4$s:%4$s ").append("-v %5$s:%5$s ")
             .append("-v %6$s:%6$s ").append("%7$s ")
             .append("bash %8$s/launch_container.sh");
