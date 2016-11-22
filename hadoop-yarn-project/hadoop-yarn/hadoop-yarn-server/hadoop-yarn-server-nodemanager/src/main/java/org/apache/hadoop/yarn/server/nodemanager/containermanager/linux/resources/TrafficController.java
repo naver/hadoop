@@ -25,11 +25,13 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.privileged.PrivilegedOperation;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.privileged.PrivilegedOperationException;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.privileged.PrivilegedOperationExecutor;
 
+import java.util.Collection;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -68,21 +70,21 @@ import java.util.regex.Pattern;
 
   /** Root queuing discipline attached to the root of the interface */
   private static final String FORMAT_QDISC_ADD_TO_ROOT_WITH_DEFAULT =
-      "qdisc add dev %s root handle %d: htb default %s";
+      "qdisc add dev %s root handle %d: htb default %s%n";
   /** Specifies a cgroup/classid based filter - based on the classid associated
    * with the outbound packet, the corresponding traffic shaping rule is used
    * . Please see tc documentation for additional details.
    */
   private static final String FORMAT_FILTER_CGROUP_ADD_TO_PARENT =
-      "filter add dev %s parent %d: protocol ip prio 10 handle 1: cgroup";
+      "filter add dev %s parent %d: protocol ip prio 10 handle 1: cgroup%n";
   /** Standard format for adding a traffic shaping class to a parent, with
    * the specified bandwidth limits
    */
   private static final String FORMAT_CLASS_ADD_TO_PARENT_WITH_RATES =
-      "class add dev %s parent %d:%d classid %d:%d htb rate %s ceil %s";
+      "class add dev %s parent %d:%d classid %d:%d htb rate %s ceil %s%n";
   /** Standard format to delete a traffic shaping class */
   private static final String FORMAT_DELETE_CLASS =
-      "class del dev %s classid %d:%d";
+      "class del dev %s classid %d:%d%n";
   /** Format of the classid that is to be used with the net_cls cgroup. Needs
    * to be of the form 0xAAAABBBB */
   private static final String FORMAT_NET_CLS_CLASS_ID = "0x%04d%04d";
@@ -92,11 +94,11 @@ import java.util.regex.Pattern;
   private static final String FORMAT_READ_STATE =
       "qdisc show dev %1$s%n" +
           "filter show dev %1$s%n" +
-          "class show dev %1$s";
-  private static final String FORMAT_READ_CLASSES = "class show dev %s";
+          "class show dev %1$s%n";
+  private static final String FORMAT_READ_CLASSES = "class show dev %s%n";
   /** Delete a qdisc and all its children - classes/filters etc */
   private static final String FORMAT_WIPE_STATE =
-      "qdisc del dev %s parent root";
+      "qdisc del dev %s parent root%n";
 
   private final Configuration conf;
   //Used to store the set of classids in use for container classes
@@ -104,7 +106,7 @@ import java.util.regex.Pattern;
   private final PrivilegedOperationExecutor privilegedOperationExecutor;
 
   private String tmpDirPath;
-  private String device;
+  private Collection<String> device;
   private int rootBandwidthMbit;
   private int yarnBandwidthMbit;
   private int defaultClassBandwidthMbit;
@@ -138,7 +140,7 @@ import java.util.regex.Pattern;
           tmpDirPath);
     }
 
-    this.device = device;
+    this.device = StringUtils.getStringCollection(device);
     this.rootBandwidthMbit = rootBandwidthMbit;
     this.yarnBandwidthMbit = yarnBandwidthMbit;
     defaultClassBandwidthMbit = (rootBandwidthMbit - yarnBandwidthMbit) <= 0
@@ -435,8 +437,12 @@ import java.util.regex.Pattern;
    * incoming packets
    */
   private String getStringForAddRootQDisc() {
-    return String.format(FORMAT_QDISC_ADD_TO_ROOT_WITH_DEFAULT, device,
-        ROOT_QDISC_HANDLE, DEFAULT_CLASS_ID);
+    StringBuffer ret = new StringBuffer();
+    for (String device : this.device) {
+      ret.append(String.format(FORMAT_QDISC_ADD_TO_ROOT_WITH_DEFAULT, device,
+          ROOT_QDISC_HANDLE, DEFAULT_CLASS_ID));
+    }
+    return ret.toString();
   }
 
   /**
@@ -444,8 +450,12 @@ import java.util.regex.Pattern;
    * presence of net_cls classids
    */
   private String getStringForaAddCGroupFilter() {
-    return String.format(FORMAT_FILTER_CGROUP_ADD_TO_PARENT, device,
-        ROOT_QDISC_HANDLE);
+    StringBuffer ret = new StringBuffer();
+    for (String device : this.device) {
+      ret.append(String.format(FORMAT_FILTER_CGROUP_ADD_TO_PARENT, device,
+          ROOT_QDISC_HANDLE));
+    }
+    return ret.toString();
   }
 
   /**
@@ -509,9 +519,13 @@ import java.util.regex.Pattern;
     String rateMbitStr = rateMbit + MBIT_SUFFIX;
     //example : "class add dev eth0 parent 42:0 classid 42:1 htb rate 1000mbit
     // ceil 1000mbit"
-    return String.format(FORMAT_CLASS_ADD_TO_PARENT_WITH_RATES, device,
-        ROOT_QDISC_HANDLE, ZERO_CLASS_ID, ROOT_QDISC_HANDLE, ROOT_CLASS_ID,
-        rateMbitStr, rateMbitStr);
+    StringBuffer ret = new StringBuffer();
+    for (String device : this.device) {
+      ret.append(String.format(FORMAT_CLASS_ADD_TO_PARENT_WITH_RATES, device,
+          ROOT_QDISC_HANDLE, ZERO_CLASS_ID, ROOT_QDISC_HANDLE, ROOT_CLASS_ID,
+          rateMbitStr, rateMbitStr));
+    }
+    return ret.toString();
   }
 
   private String getStringForAddDefaultClass(int rateMbit, int ceilMbit) {
@@ -519,9 +533,13 @@ import java.util.regex.Pattern;
     String ceilMbitStr = ceilMbit + MBIT_SUFFIX;
     //example : "class add dev eth0 parent 42:1 classid 42:2 htb rate 300mbit
     // ceil 1000mbit"
-    return String.format(FORMAT_CLASS_ADD_TO_PARENT_WITH_RATES, device,
-        ROOT_QDISC_HANDLE, ROOT_CLASS_ID, ROOT_QDISC_HANDLE, DEFAULT_CLASS_ID,
-        rateMbitStr, ceilMbitStr);
+    StringBuffer ret = new StringBuffer();
+    for (String device : this.device) {
+      ret.append(String.format(FORMAT_CLASS_ADD_TO_PARENT_WITH_RATES, device,
+          ROOT_QDISC_HANDLE, ROOT_CLASS_ID, ROOT_QDISC_HANDLE, DEFAULT_CLASS_ID,
+          rateMbitStr, ceilMbitStr));
+    }
+    return ret.toString();
   }
 
   private String getStringForAddYARNRootClass(int rateMbit, int ceilMbit) {
@@ -529,9 +547,13 @@ import java.util.regex.Pattern;
     String ceilMbitStr = ceilMbit + MBIT_SUFFIX;
     //example : "class add dev eth0 parent 42:1 classid 42:3 htb rate 700mbit
     // ceil 1000mbit"
-    return String.format(FORMAT_CLASS_ADD_TO_PARENT_WITH_RATES, device,
-        ROOT_QDISC_HANDLE, ROOT_CLASS_ID, ROOT_QDISC_HANDLE, YARN_ROOT_CLASS_ID,
-        rateMbitStr, ceilMbitStr);
+    StringBuffer ret = new StringBuffer();
+    for (String device : this.device) {
+      ret.append(String.format(FORMAT_CLASS_ADD_TO_PARENT_WITH_RATES, device,
+          ROOT_QDISC_HANDLE, ROOT_CLASS_ID, ROOT_QDISC_HANDLE, YARN_ROOT_CLASS_ID,
+          rateMbitStr, ceilMbitStr));
+    }
+    return ret.toString();
   }
 
   private String getStringForAddContainerClass(int classId, int rateMbit, int
@@ -540,27 +562,47 @@ import java.util.regex.Pattern;
     String ceilMbitStr = ceilMbit + MBIT_SUFFIX;
     //example : "class add dev eth0 parent 42:99 classid 42:99 htb rate 50mbit
     // ceil 700mbit"
-    return String.format(FORMAT_CLASS_ADD_TO_PARENT_WITH_RATES, device,
-        ROOT_QDISC_HANDLE, YARN_ROOT_CLASS_ID, ROOT_QDISC_HANDLE, classId,
-        rateMbitStr, ceilMbitStr);
+    StringBuffer ret = new StringBuffer();
+    for (String device : this.device) {
+      ret.append(String.format(FORMAT_CLASS_ADD_TO_PARENT_WITH_RATES, device,
+          ROOT_QDISC_HANDLE, YARN_ROOT_CLASS_ID, ROOT_QDISC_HANDLE, classId,
+          rateMbitStr, ceilMbitStr));
+    }
+    return ret.toString();
   }
 
   private String getStringForDeleteContainerClass(int classId) {
     //example "class del dev eth0 classid 42:7"
-    return String.format(FORMAT_DELETE_CLASS, device, ROOT_QDISC_HANDLE,
-        classId);
+    StringBuffer ret = new StringBuffer();
+    for (String device : this.device) {
+      ret.append(String.format(FORMAT_DELETE_CLASS, device, ROOT_QDISC_HANDLE,
+          classId));
+    }
+    return ret.toString();
   }
 
   private String getStringForReadState() {
-    return String.format(FORMAT_READ_STATE, device);
+    StringBuffer ret = new StringBuffer();
+    for (String device : this.device) {
+      ret.append(String.format(FORMAT_READ_STATE, device));
+    }
+    return ret.toString();
   }
 
   private String getStringForReadClasses() {
-    return String.format(FORMAT_READ_CLASSES, device);
+    StringBuffer ret = new StringBuffer();
+    for (String device : this.device) {
+      ret.append(String.format(FORMAT_READ_CLASSES, device));
+    }
+    return ret.toString();
   }
 
   private String getStringForWipeState() {
-    return String.format(FORMAT_WIPE_STATE, device);
+    StringBuffer ret = new StringBuffer();
+    for (String device : this.device) {
+      ret.append(String.format(FORMAT_WIPE_STATE, device));
+    }
+    return ret.toString();
   }
 
   public class BatchBuilder {
