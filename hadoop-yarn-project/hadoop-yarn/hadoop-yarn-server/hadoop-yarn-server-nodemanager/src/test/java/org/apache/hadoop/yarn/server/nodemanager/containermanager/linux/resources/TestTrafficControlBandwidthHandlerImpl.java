@@ -53,6 +53,7 @@ public class TestTrafficControlBandwidthHandlerImpl {
       LogFactory.getLog(TestTrafficControlBandwidthHandlerImpl.class);
   private static final int ROOT_BANDWIDTH_MBIT = 100;
   private static final int YARN_BANDWIDTH_MBIT = 70;
+  private static final int CONTAINER_BANDWIDTH_MBIT = 2;
   private static final int TEST_CLASSID = 100;
   private static final String TEST_CLASSID_STR = "42:100";
   private static final String TEST_CONTAINER_ID_STR = "container_01";
