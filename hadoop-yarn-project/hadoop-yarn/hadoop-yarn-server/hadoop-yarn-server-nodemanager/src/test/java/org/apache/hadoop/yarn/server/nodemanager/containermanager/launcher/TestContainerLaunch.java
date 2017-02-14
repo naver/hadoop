@@ -102,6 +102,7 @@ import org.apache.hadoop.yarn.util.AuxiliaryServiceHelper;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.LinuxResourceCalculatorPlugin;
 import org.apache.hadoop.yarn.util.ResourceCalculatorPlugin;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -1138,7 +1139,7 @@ public class TestContainerLaunch extends BaseContainerManagerTest {
               "X", Shell.WINDOWS_MAX_SHELL_LENGHT -callCmd.length() + 1)));
       fail("longCommand was expected to throw");
     } catch(IOException e) {
-      assertThat(e.getMessage(), containsString(expectedMessage));
+      assertThat(e.getMessage(), CoreMatchers.containsString(expectedMessage));
     }
 
     // Composite tests, from parts: less, exact and +
@@ -1160,7 +1161,7 @@ public class TestContainerLaunch extends BaseContainerManagerTest {
           org.apache.commons.lang.StringUtils.repeat("X", 2048 - callCmd.length())));
       fail("long commands was expected to throw");
     } catch(IOException e) {
-      assertThat(e.getMessage(), containsString(expectedMessage));
+      assertThat(e.getMessage(), CoreMatchers.containsString(expectedMessage));
     }
   }
   
@@ -1183,7 +1184,7 @@ public class TestContainerLaunch extends BaseContainerManagerTest {
           "A", Shell.WINDOWS_MAX_SHELL_LENGHT - ("@set somekey=").length()) + 1);
       fail("long env was expected to throw");
     } catch(IOException e) {
-      assertThat(e.getMessage(), containsString(expectedMessage));
+      assertThat(e.getMessage(), CoreMatchers.containsString(expectedMessage));
     }
   }
     
@@ -1208,7 +1209,7 @@ public class TestContainerLaunch extends BaseContainerManagerTest {
           "X", (Shell.WINDOWS_MAX_SHELL_LENGHT - mkDirCmd.length())/2 +1)));
       fail("long mkdir was expected to throw");
     } catch(IOException e) {
-      assertThat(e.getMessage(), containsString(expectedMessage));
+      assertThat(e.getMessage(), CoreMatchers.containsString(expectedMessage));
     }    
   }
 
@@ -1240,7 +1241,7 @@ public class TestContainerLaunch extends BaseContainerManagerTest {
               "Y", (Shell.WINDOWS_MAX_SHELL_LENGHT - linkCmd.length())/2) + 1));
       fail("long link was expected to throw");
     } catch(IOException e) {
-      assertThat(e.getMessage(), containsString(expectedMessage));
+      assertThat(e.getMessage(), CoreMatchers.containsString(expectedMessage));
     }
   }
 

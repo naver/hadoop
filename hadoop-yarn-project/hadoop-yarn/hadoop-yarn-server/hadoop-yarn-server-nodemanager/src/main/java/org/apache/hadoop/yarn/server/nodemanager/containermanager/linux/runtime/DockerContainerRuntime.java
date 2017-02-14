@@ -160,13 +160,13 @@ public class DockerContainerRuntime implements LinuxContainerRuntime {
         .detachOnRun()
         .setContainerWorkDir(containerWorkDir.toString())
         .setNetworkType("host")
-        .addMountLocation("/etc/passwd", "/etc/password:ro");
+        .addMountLocation("/etc/passwd", "/etc/password:ro", true);
     List<String> allDirs = new ArrayList<>(localDirs);
 
     allDirs.add(containerWorkDir.toString());
     allDirs.addAll(logDirs);
     for (String dir: allDirs) {
-      runCommand.addMountLocation(dir, dir);
+      runCommand.addMountLocation(dir, dir, true);
     }
 
     String resourcesOpts = ctx.getExecutionAttribute(RESOURCES_OPTIONS);

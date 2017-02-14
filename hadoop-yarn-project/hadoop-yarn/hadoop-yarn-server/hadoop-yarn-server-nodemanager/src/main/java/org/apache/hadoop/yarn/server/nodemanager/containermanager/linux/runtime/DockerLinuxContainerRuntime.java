@@ -202,7 +202,7 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     try {
       privilegedOperationExecutor.executePrivilegedOperation(null,
           launchOp, null, container.getLaunchContext().getEnvironment(),
-          false, false);
+          false);
     } catch (PrivilegedOperationException e) {
       LOG.warn("Docker load operation failed. Exception: ", e);
       throw new ContainerExecutionException("Docker load operation failed", e

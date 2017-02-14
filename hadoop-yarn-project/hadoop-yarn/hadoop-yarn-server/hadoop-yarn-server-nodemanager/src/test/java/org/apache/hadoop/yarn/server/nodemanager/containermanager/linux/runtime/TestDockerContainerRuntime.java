@@ -204,7 +204,7 @@ public class TestDockerContainerRuntime {
         PrivilegedOperation.class);
     verify(mockExecutor, times(1))
         .executePrivilegedOperation(anyList(), opCaptor.capture(), any(
-            File.class), any(Map.class), eq(false), eq(false));
+            File.class), any(Map.class), eq(false));
 
     PrivilegedOperation op = opCaptor.getValue();
 
@@ -268,7 +268,7 @@ public class TestDockerContainerRuntime {
     String invalidImageFileRegex = "(busybox";
     try {
       DockerLinuxContainerRuntime runtime = new DockerLinuxContainerRuntime(
-          mockExecutor);
+          mockExecutor, mockCGroupsHandler);
       runtime.initialize(conf);
       Map<Path, List<String>> localizedResources = new HashMap<Path,List<String>>();
       localizedResources.put(new Path(containerWorkDir+ "/busybox.tar"),null);
@@ -286,7 +286,7 @@ public class TestDockerContainerRuntime {
     try {
       String validImageFileRegex = "busybox.tar";
       DockerLinuxContainerRuntime runtime = new DockerLinuxContainerRuntime(
-          mockExecutor);
+          mockExecutor, mockCGroupsHandler);
       runtime.initialize(conf);
       Map<Path, List<String>> localizedResources = new HashMap<Path, List<String>>();
       env.put(DockerLinuxContainerRuntime.ENV_DOCKER_CONTAINER_IMAGE_FILE, validImageFileRegex);
@@ -303,7 +303,7 @@ public class TestDockerContainerRuntime {
       throws ContainerExecutionException, PrivilegedOperationException, IOException {
     String validImageFileRegex = "busybox.*";
     DockerLinuxContainerRuntime runtime = new DockerLinuxContainerRuntime(
-        mockExecutor);
+        mockExecutor, mockCGroupsHandler);
     runtime.initialize(conf);
     Map<Path, List<String>> localizedResources = new HashMap<Path,List<String>>();
     localizedResources.put(new Path(containerWorkDir+ "/busybox.tar"),null);
