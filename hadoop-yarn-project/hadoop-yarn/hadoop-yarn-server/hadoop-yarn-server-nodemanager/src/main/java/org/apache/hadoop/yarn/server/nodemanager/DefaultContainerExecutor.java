@@ -144,11 +144,6 @@ public class DefaultContainerExecutor extends ContainerExecutor {
   }
 
   @Override
-  public int prepareContainer(ContainerStartContext ctx) throws IOException {
-    return 0;
-  }
-
-  @Override
   public int launchContainer(ContainerStartContext ctx) throws IOException {
     Container container = ctx.getContainer();
     Path nmPrivateContainerScriptPath = ctx.getNmPrivateContainerScriptPath();

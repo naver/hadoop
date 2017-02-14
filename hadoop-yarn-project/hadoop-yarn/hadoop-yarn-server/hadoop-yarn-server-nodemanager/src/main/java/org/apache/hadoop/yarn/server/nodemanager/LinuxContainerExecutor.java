@@ -293,22 +293,6 @@ public class LinuxContainerExecutor extends ContainerExecutor {
     return 0;
   }
 
-  @Override
-  public int prepareContainer(ContainerStartContext ctx) throws IOException {
-    Container container = ctx.getContainer();
-    LOG.info("Preparing container" + container.getContainerId());
-    ContainerRuntimeContext.Builder builder = new ContainerRuntimeContext
-        .Builder(container);
-    Map<Path, List<String>> localizedResources = ctx.getLocalizedResources();
-    builder.setExecutionAttribute(LOCALIZED_RESOURCES, localizedResources);
-    try {
-      linuxContainerRuntime.prepareContainer(builder.build());
-    } catch (ContainerExecutionException e) {
-      return e.getExitCode();
-    }
-    return 0;
-  }
-
   @VisibleForTesting
   public void buildMainArgs(List<String> command, String user, String appId,
       String locId, InetSocketAddress nmAddr, List<String> localDirs) {
