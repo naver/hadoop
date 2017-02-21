@@ -38,7 +38,7 @@ import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.privileg
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.resources.ResourceHandler;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.resources.ResourceHandlerException;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.resources.ResourceHandlerModule;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.DelegatingContainerRuntime;
+import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.DelegatingLinuxContainerRuntime;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.linux.runtime.LinuxContainerRuntime;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.localizer.ContainerLocalizer;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.runtime.ContainerExecutionException;
@@ -198,7 +198,7 @@ public class LinuxContainerExecutor extends ContainerExecutor {
 
     try {
       if (linuxContainerRuntime == null) {
-        LinuxContainerRuntime runtime = new DelegatingContainerRuntime();
+        LinuxContainerRuntime runtime = new DelegatingLinuxContainerRuntime();
 
         runtime.initialize(conf);
         this.linuxContainerRuntime = runtime;

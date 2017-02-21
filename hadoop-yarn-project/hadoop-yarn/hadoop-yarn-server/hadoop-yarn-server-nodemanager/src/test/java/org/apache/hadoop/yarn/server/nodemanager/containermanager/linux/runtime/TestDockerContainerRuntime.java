@@ -112,7 +112,7 @@ public class TestDockerContainerRuntime {
     env = new HashMap<String, String>();
     image = "busybox:latest";
 
-    env.put(DockerContainerRuntime.ENV_DOCKER_CONTAINER_IMAGE, image);
+    env.put(DockerLinuxContainerRuntime.ENV_DOCKER_CONTAINER_IMAGE, image);
     when(container.getContainerId()).thenReturn(cId);
     when(cId.toString()).thenReturn(containerId);
     when(container.getLaunchContext()).thenReturn(context);
@@ -173,11 +173,11 @@ public class TestDockerContainerRuntime {
     envDockerType.put(ContainerRuntimeConstants.ENV_CONTAINER_TYPE, "docker");
     envOtherType.put(ContainerRuntimeConstants.ENV_CONTAINER_TYPE, "other");
 
-    Assert.assertEquals(false, DockerContainerRuntime
+    Assert.assertEquals(false, DockerLinuxContainerRuntime
         .isDockerContainerRequested(null));
-    Assert.assertEquals(true, DockerContainerRuntime
+    Assert.assertEquals(true, DockerLinuxContainerRuntime
         .isDockerContainerRequested(envDockerType));
-    Assert.assertEquals(false, DockerContainerRuntime
+    Assert.assertEquals(false, DockerLinuxContainerRuntime
         .isDockerContainerRequested(envOtherType));
   }
 
