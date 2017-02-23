@@ -396,6 +396,8 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     @SuppressWarnings("unchecked")
     List<String> logDirs = ctx.getExecutionAttribute(LOG_DIRS);
     @SuppressWarnings("unchecked")
+    List<String> filecacheDirs = ctx.getExecutionAttribute(FILECACHE_DIRS);
+    @SuppressWarnings("unchecked")
     List<String> containerLocalDirs = ctx.getExecutionAttribute(
         CONTAINER_LOCAL_DIRS);
     @SuppressWarnings("unchecked")
@@ -404,6 +406,9 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     @SuppressWarnings("unchecked")
     Map<Path, List<String>> localizedResources = ctx.getExecutionAttribute(
         LOCALIZED_RESOURCES);
+    @SuppressWarnings("unchecked")
+    List<String> userLocalDirs = ctx.getExecutionAttribute(USER_LOCAL_DIRS);
+
     Set<String> capabilities = new HashSet<>(Arrays.asList(conf.getStrings(
         YarnConfiguration.NM_DOCKER_CONTAINER_CAPABILITIES,
         YarnConfiguration.DEFAULT_NM_DOCKER_CONTAINER_CAPABILITIES)));
@@ -421,8 +426,10 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
         conf.get(YarnConfiguration.NM_DOCKER_CLIENT_CONFIG_DIRECTORY);
     runCommand.setClientConfigDir(clientConfigDir);
 
+    allDirs.addAll(filecacheDirs);
     allDirs.add(containerWorkDir.toString());
     allDirs.addAll(containerLogDirs);
+    allDirs.addAll(userLocalDirs);
     for (String dir: allDirs) {
       runCommand.addMountLocation(dir, dir, true);
     }

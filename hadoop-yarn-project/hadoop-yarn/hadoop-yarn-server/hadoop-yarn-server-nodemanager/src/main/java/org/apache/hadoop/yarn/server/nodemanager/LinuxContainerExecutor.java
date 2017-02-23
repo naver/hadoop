@@ -310,6 +310,8 @@ public class LinuxContainerExecutor extends ContainerExecutor {
     Path containerWorkDir = ctx.getContainerWorkDir();
     List<String> localDirs = ctx.getLocalDirs();
     List<String> logDirs = ctx.getLogDirs();
+    List<String> filecacheDirs = ctx.getFilecacheDirs();
+    List<String> userLocalDirs = ctx.getUserLocalDirs();
     List<String> containerLocalDirs = ctx.getContainerLocalDirs();
     List<String> containerLogDirs = ctx.getContainerLogDirs();
     Map<Path, List<String>> localizedResources = ctx.getLocalizedResources();
@@ -396,6 +398,8 @@ public class LinuxContainerExecutor extends ContainerExecutor {
             .setExecutionAttribute(PID_FILE_PATH, pidFilePath)
             .setExecutionAttribute(LOCAL_DIRS, localDirs)
             .setExecutionAttribute(LOG_DIRS, logDirs)
+            .setExecutionAttribute(FILECACHE_DIRS, filecacheDirs)
+            .setExecutionAttribute(USER_LOCAL_DIRS, userLocalDirs)
             .setExecutionAttribute(CONTAINER_LOCAL_DIRS, containerLocalDirs)
             .setExecutionAttribute(CONTAINER_LOG_DIRS, containerLogDirs)
             .setExecutionAttribute(RESOURCES_OPTIONS, resourcesOptions);
