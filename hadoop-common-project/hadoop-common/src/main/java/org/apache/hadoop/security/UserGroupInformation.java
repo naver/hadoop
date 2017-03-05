@@ -1518,7 +1518,9 @@ public class UserGroupInformation {
         (groups.getGroups(getShortUserName()));
       return result.toArray(new String[result.size()]);
     } catch (IOException ie) {
-      LOG.warn("No groups available for user " + getShortUserName());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("No groups available for user " + getShortUserName());
+      }
       return new String[0];
     }
   }
