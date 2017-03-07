@@ -705,6 +705,17 @@ public class TestAMRMClient {
         Assert.assertNull(req.getNodeLabelExpression());
       }
     }
+    // set container with nodes and racks with labels
+    client.addContainerRequest(new ContainerRequest(
+        Resource.newInstance(1024, 1), new String[] { "rack1" },
+        new String[] { "node1", "node2" }, Priority.UNDEFINED, true, "y"));
+    for (ResourceRequest req : client.ask) {
+      if (ResourceRequest.ANY.equals(req.getResourceName())) {
+        Assert.assertEquals("y", req.getNodeLabelExpression());
+      } else {
+        Assert.assertNull(req.getNodeLabelExpression());
+      }
+    }
   }
   
   private void verifyAddRequestFailed(AMRMClient<ContainerRequest> client,
