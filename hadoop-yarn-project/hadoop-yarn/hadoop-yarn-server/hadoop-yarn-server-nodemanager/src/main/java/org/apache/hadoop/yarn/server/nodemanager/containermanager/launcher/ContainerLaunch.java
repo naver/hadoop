@@ -113,6 +113,7 @@ public class ContainerLaunch implements Callable<Integer> {
   protected Path pidFilePath = null;
 
   private final LocalDirsHandlerService dirsHandler;
+  private final OwnLocalResources olr;
 
   public ContainerLaunch(Context context, Configuration configuration,
       Dispatcher dispatcher, ContainerExecutor exec, Application app,
@@ -132,6 +133,8 @@ public class ContainerLaunch implements Callable<Integer> {
     this.maxKillWaitTime =
         conf.getLong(YarnConfiguration.NM_PROCESS_KILL_WAIT_MS,
             YarnConfiguration.DEFAULT_NM_PROCESS_KILL_WAIT_MS);
+
+    this.olr = new OwnLocalResources();
   }
 
   @VisibleForTesting
@@ -152,6 +155,7 @@ public class ContainerLaunch implements Callable<Integer> {
     }
     return var;
   }
+
 
   @Override
   @SuppressWarnings("unchecked") // dispatcher not typed
@@ -183,6 +187,7 @@ public class ContainerLaunch implements Callable<Integer> {
             "Unable to get local resources when Container " + containerID +
             " is at " + container.getContainerState());
       }
+      localResources = olr.filterLocalResources(localResources);
 
       final String user = container.getUser();
       // /////////////////////////// Variable expansion
