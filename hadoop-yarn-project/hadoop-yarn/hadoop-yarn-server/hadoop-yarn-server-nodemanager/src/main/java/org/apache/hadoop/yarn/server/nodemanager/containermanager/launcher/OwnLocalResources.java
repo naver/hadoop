@@ -30,7 +30,7 @@ public class OwnLocalResources {
    */
 
   private static final Set<String> LR_ALL_TAGS = getLocalResourcesAllTags();
-  private String thisNodeTag;
+  private final String thisNodeTag;
 
 
   public OwnLocalResources(String thisNodeTag){
@@ -164,24 +164,22 @@ public class OwnLocalResources {
       if(thatCachePath != null){
         syms = filteredLRs.remove(thatCachePath);
       } else {
-        syms = originLocalResources.get(thisCachePath);
-        List<String> newSyms = new ArrayList<>();
-        for(String sym: syms){
+        syms = new ArrayList<>();
+        for(String sym: originLocalResources.get(thisCachePath)){
 
           Pair<String,Path> pair = splitTagAndBasename(new Path(sym));
           if(pair == null){
-            newSyms.add(sym);
+            syms.add(sym);
           } else {
 
             String tag = pair.getFirst();
             Path taggingLinkName = pair.getSecond();
 
             if(tag.equals(thisNodeTag)) {
-              newSyms.add(taggingLinkName.toString());
+              syms.add(taggingLinkName.toString());
             }
           }
         }
-        syms = newSyms;
       }
 
       filteredLRs.put(thisCachePath, syms);
