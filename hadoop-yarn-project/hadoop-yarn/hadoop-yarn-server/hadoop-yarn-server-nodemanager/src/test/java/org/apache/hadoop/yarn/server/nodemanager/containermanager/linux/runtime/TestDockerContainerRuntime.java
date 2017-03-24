@@ -202,6 +202,10 @@ public class TestDockerContainerRuntime {
         .executePrivilegedOperation(anyList(), opCaptor.capture(), any(
             File.class), any(Map.class), eq(false));
 
+    //verification completed. we need to isolate specific invications.
+    // hence, reset mock here
+    Mockito.reset(mockExecutor);
+
     return opCaptor.getValue();
   }
 
