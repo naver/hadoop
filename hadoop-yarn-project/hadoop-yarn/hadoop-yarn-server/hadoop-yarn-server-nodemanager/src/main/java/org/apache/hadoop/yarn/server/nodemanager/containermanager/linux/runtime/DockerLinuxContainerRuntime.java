@@ -86,6 +86,10 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
   @InterfaceAudience.Private
   public static final String ENV_DOCKER_CONTAINER_LOCAL_RESOURCE_MOUNTS =
       "YARN_CONTAINER_RUNTIME_DOCKER_LOCAL_RESOURCE_MOUNTS";
+  @InterfaceAudience.Private
+  public static final String ENV_DOCKER_CONTAINER_ENVIRONMENT_VARIABLES =
+      "YARN_CONTAINER_RUNTIME_DOCKER_ENVIRONMENT_VARIABLES";
+
 
   private Configuration conf;
   private DockerClient dockerClient;
@@ -447,6 +451,15 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
           String src = validateMount(dir[0], localizedResources);
           String dst = dir[1];
           runCommand.addMountLocation(src, dst + ":ro", true);
+        }
+      }
+    }
+
+    if (environment.containsKey(ENV_DOCKER_CONTAINER_ENVIRONMENT_VARIABLES)) {
+      String envs = environment.get(ENV_DOCKER_CONTAINER_ENVIRONMENT_VARIABLES);
+      if (!envs.isEmpty()) {
+        for (String env : StringUtils.split(envs)) {
+          runCommand.setEnv(env);
         }
       }
     }

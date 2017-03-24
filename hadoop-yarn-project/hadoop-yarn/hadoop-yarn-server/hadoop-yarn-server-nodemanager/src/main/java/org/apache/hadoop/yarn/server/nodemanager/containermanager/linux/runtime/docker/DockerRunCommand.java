@@ -114,6 +114,11 @@ public class DockerRunCommand extends DockerCommand {
     return this;
   }
 
+  public DockerRunCommand setEnv(String env) {
+    super.addCommandArguments("-e " + env);
+    return this;
+  }
+
   @Override
   public String getCommandWithArguments() {
     List<String> argList = new ArrayList<>();
