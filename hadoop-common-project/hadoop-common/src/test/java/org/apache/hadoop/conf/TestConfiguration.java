@@ -1355,6 +1355,19 @@ public class TestConfiguration extends TestCase {
     // it's expected behaviour.
   }
 
+  public void testQuotesInValue() throws IOException {
+    out=new BufferedWriter(new FileWriter(CONFIG));
+    startConfig();
+    appendProperty("prop", "\"value\"");
+    appendProperty("env", "A=\"t1,t2\",B=C");
+    endConfig();
+    Path fileResource = new Path(CONFIG);
+    conf.addResource(fileResource);
+
+    assertEquals("\"value\"", conf.get("prop"));
+    assertEquals("A=\"t1,t2\",B=C", conf.get("env"));
+  }
+
   public static void main(String[] argv) throws Exception {
     junit.textui.TestRunner.main(new String[]{
       TestConfiguration.class.getName()

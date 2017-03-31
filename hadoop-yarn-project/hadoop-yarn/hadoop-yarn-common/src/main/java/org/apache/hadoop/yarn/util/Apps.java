@@ -50,7 +50,7 @@ public class Apps {
         "(?<=^|,)"                            // preceded by ',' or line begin
       + "(" + Shell.ENV_NAME_REGEX + ")"      // var group
       + "="
-      + "([^,]*)"                             // val group
+      + "(\"[^\"]*\"|[^,]*)"                             // val group
       );
 
   public static ApplicationId toAppID(String aid) {
@@ -84,7 +84,8 @@ public class Apps {
       Matcher varValMatcher = VARVAL_SPLITTER.matcher(envString);
       while (varValMatcher.find()) {
         String envVar = varValMatcher.group(1);
-        Matcher m = VAR_SUBBER.matcher(varValMatcher.group(2));
+        String envVal = varValMatcher.group(2).replaceAll("^\"|\"$", "");
+        Matcher m = VAR_SUBBER.matcher(envVal);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
           String var = m.group(1);
