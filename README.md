@@ -15,9 +15,21 @@ mvn clean package install -Dversion-info.scm.commit=${REV} -Pdist,native -DskipT
 git push --tags
 ```
 
+If you want to build the package without native libraries, remove -Pnative option.
+
+```
+source source.me
+REV={NUMBER} # check last tag using git tag command, then add 1
+mvn clean package install -Dversion-info.scm.commit=${REV} -Pdist -DskipTests -Dtar -Dmaven.javadoc.skip=true -Dcontainer-executor.conf.dir=/etc/hadoop/
+```
+
+Currently if you build the hadoop package, we recommend running maven with -DskipTests. Depending on the build environment, maven tests can sometimes fail and some our improvements need to be fix.
+
 # Package Naming
 We are using a separate package for HDFS and YARN, so the packages's name is like this:
 
 * YARN: ``hadoop-yarn-2.7.1-r${REV}-arch-${OS}-x86_64.tar.gz``
 * HDFS: ``hadoop-hdfs-2.7.1-r${REV}-arch-${OS}-x86_64.tar.gz``
+* MAPRED: ``hadoop-2.7.1-r${REV}.tar.gz``
+  * this is package without native libraries
 
