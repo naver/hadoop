@@ -72,8 +72,16 @@ public class TestApps {
       + ",YARN_CONTAINER_RUNTIME_DOCKER_LOCAL_RESOURCE_MOUNTS=\"/dir1:/targetdir1,/dir2:/targetdir2\""
       + ",YARN_CONTAINER_RUNTIME_DOCKER_ENVIRONMENT_VARIABLES=\"HADOOP_CONF_DIR=$HADOOP_CONF_DIR,HADOOP_HDFS_HOME=/hadoop\""
       ;
-    environment.put("HADOOP_CONF_DIR", "etc/hadoop");
 
+    Apps.setEnvFromInputString(environment, envString, File.pathSeparator);
+    assertEquals("docker", environment.get("YARN_CONTAINER_RUNTIME_TYPE"));
+    assertEquals("hadoop-docker", environment.get("YARN_CONTAINER_RUNTIME_DOCKER_IMAGE"));
+    assertEquals("/dir1:/targetdir1,/dir2:/targetdir2", environment.get("YARN_CONTAINER_RUNTIME_DOCKER_LOCAL_RESOURCE_MOUNTS"));
+    assertEquals("HADOOP_CONF_DIR=,HADOOP_HDFS_HOME=/hadoop", environment.get("YARN_CONTAINER_RUNTIME_DOCKER_ENVIRONMENT_VARIABLES"));
+
+    environment.clear();
+
+    environment.put("HADOOP_CONF_DIR", "etc/hadoop");
     Apps.setEnvFromInputString(environment, envString, File.pathSeparator);
     assertEquals("docker", environment.get("YARN_CONTAINER_RUNTIME_TYPE"));
     assertEquals("hadoop-docker", environment.get("YARN_CONTAINER_RUNTIME_DOCKER_IMAGE"));
