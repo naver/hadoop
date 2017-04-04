@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -1038,6 +1039,54 @@ public class TestDockerContainerRuntime {
 
     Assert.assertEquals(1, dockerCommands.size());
     Assert.assertEquals(expectedCommand, dockerCommands.get(0));
+  }
+
+  @Test
+  public void testDockerContainerLaunchWithShortCircuit()
+      throws ContainerExecutionException, PrivilegedOperationException,
+      IOException {
+    DockerLinuxContainerRuntime runtime = new DockerLinuxContainerRuntime(
+        mockExecutor, mockCGroupsHandler);
+    conf.setBoolean(DFSConfigKeys.DFS_CLIENT_READ_SHORTCIRCUIT_KEY, true);
+    conf.set(DFSConfigKeys.DFS_DOMAIN_SOCKET_PATH_KEY, "/var/lib/hadoop-hdfs/dn_socket");
+    runtime.initialize(conf);
+
+    runtime.launchContainer(builder.build());
+
+    PrivilegedOperation op = capturePrivilegedOperationAndVerifyArgs();
+    List<String> args = op.getArguments();
+    String dockerCommandFile = args.get(11);
+
+    //This is the expected docker invocation for this case
+    StringBuffer expectedCommandTemplate = new StringBuffer("run --name=%1$s ")
+        .append("--user=%2$s -d ")
+        .append("--workdir=%3$s ")
+        .append("--net=host ")
+        .append(getExpectedTestCapabilitiesArgumentString())
+        .append("-v %4$s:%4$s ")
+        .append("-v %5$s:%5$s ")
+        .append("-v %6$s:%6$s ")
+        .append("-v %7$s:%7$s ")
+        .append("-v %8$s:%8$s ")
+        .append("-v %9$s:%9$s ")
+        .append("%10$s ")
+        .append("bash %11$s/launch_container.sh");
+
+    String expectedCommand = String
+        .format(expectedCommandTemplate.toString(), containerId, runAsUser,
+            containerWorkDir, containerLocalDirs.get(0), filecacheDirs.get(0),
+            containerWorkDir, containerLogDirs.get(0), userLocalDirs.get(0),
+            "/var/lib/hadoop-hdfs/dn_socket",
+            image, containerWorkDir);
+
+    List<String> dockerCommands = Files.readAllLines(Paths.get
+        (dockerCommandFile), Charset.forName("UTF-8"));
+
+    Assert.assertEquals(1, dockerCommands.size());
+    Assert.assertEquals(expectedCommand, dockerCommands.get(0));
+
+    conf.setBoolean(DFSConfigKeys.DFS_CLIENT_READ_SHORTCIRCUIT_KEY, DFSConfigKeys.DFS_CLIENT_READ_SHORTCIRCUIT_DEFAULT);
+    conf.set(DFSConfigKeys.DFS_DOMAIN_SOCKET_PATH_KEY, DFSConfigKeys.DFS_DOMAIN_SOCKET_PATH_DEFAULT);
   }
 
   private String getAndValidateDockerCommandsWithConf(Configuration config)
