@@ -115,6 +115,7 @@ public class OwnLocalResources {
     Map<Path,Path> linkNameMap = new HashMap<>();
     Map<Path,List<String>> filteredLRs = new HashMap<>();
     Map<Path,Path> taggingLinkNameMap = new HashMap<>();
+    Map<String,Path> ignores = new HashMap<>();
 
     if(thisNodeTag == null){
       return new HashMap<>(originLocalResources);
@@ -148,6 +149,8 @@ public class OwnLocalResources {
 
           if(tag.equals(thisNodeTag)) {
             taggingLinkNameMap.put(taggingLinkName, localCachePath);
+          } else {
+            ignores.put(item, localCachePath);
           }
         }
       }
@@ -163,6 +166,11 @@ public class OwnLocalResources {
       Path thatCachePath = linkNameMap.get(linkName);
       if(thatCachePath != null){
         syms = filteredLRs.remove(thatCachePath);
+
+        for(String sym:syms){
+          ignores.put(sym, thatCachePath);
+        }
+
       } else {
         syms = new ArrayList<>();
         for(String sym: originLocalResources.get(thisCachePath)){
@@ -177,12 +185,18 @@ public class OwnLocalResources {
 
             if(tag.equals(thisNodeTag)) {
               syms.add(taggingLinkName.toString());
+            } else {
+              ignores.put(sym, thisCachePath);
             }
           }
         }
       }
 
       filteredLRs.put(thisCachePath, syms);
+    }
+
+    if(ignores.size() > 0 || taggingLinkNameMap.size() > 0) {
+      LOG.info("Ignored LRs:" + ignores + " Node Own LRs:" + taggingLinkNameMap);
     }
 
     return filteredLRs;
