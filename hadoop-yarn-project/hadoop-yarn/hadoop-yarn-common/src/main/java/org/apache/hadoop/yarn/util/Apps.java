@@ -50,7 +50,7 @@ public class Apps {
         "(?<=^|,)"                            // preceded by ',' or line begin
       + "(" + Shell.ENV_NAME_REGEX + ")"      // var group
       + "="
-      + "(\"[^\"]*\"|[^,]*)"                             // val group
+      + "(\"[^\"]*|[^,]*)"                             // val group
       );
 
   public static ApplicationId toAppID(String aid) {
