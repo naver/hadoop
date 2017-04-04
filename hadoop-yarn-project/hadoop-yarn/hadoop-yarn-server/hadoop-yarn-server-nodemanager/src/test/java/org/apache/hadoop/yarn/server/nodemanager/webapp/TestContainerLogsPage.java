@@ -42,6 +42,7 @@ import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.nativeio.NativeIO;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.util.NodeHealthScriptRunner;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
@@ -76,6 +77,12 @@ import com.google.inject.Module;
 
 public class TestContainerLogsPage {
 
+  private NodeHealthCheckerService createNodeHealthCheckerService(Configuration conf) {
+    NodeHealthScriptRunner scriptRunner = NodeManager.getNodeHealthScriptRunner(conf);
+    LocalDirsHandlerService dirsHandler = new LocalDirsHandlerService();
+    return new NodeHealthCheckerService(scriptRunner, dirsHandler);
+  }
+
   @Test(timeout=30000)
   public void testContainerLogDirs() throws IOException, YarnException {
     File absLogDir = new File("target",
@@ -83,7 +90,7 @@ public class TestContainerLogsPage {
     String logdirwithFile = absLogDir.toURI().toString();
     Configuration conf = new Configuration();
     conf.set(YarnConfiguration.NM_LOG_DIRS, logdirwithFile);
-    NodeHealthCheckerService healthChecker = new NodeHealthCheckerService();
+    NodeHealthCheckerService healthChecker = createNodeHealthCheckerService(conf);
     healthChecker.init(conf);
     LocalDirsHandlerService dirsHandler = healthChecker.getDiskHandler();
     NMContext nmContext = new NodeManager.NMContext(null, null, dirsHandler,
@@ -136,7 +143,7 @@ public class TestContainerLogsPage {
     File containerLogDir = new File(absLogDir, appId + "/" + container1);
     Assert.assertTrue(dirs.contains(containerLogDir));
   }
-  
+
   @Test(timeout = 10000)
   public void testContainerLogPageAccess() throws IOException {
     // SecureIOUtils require Native IO to be enabled. This test will run
@@ -157,7 +164,7 @@ public class TestContainerLogsPage {
         "kerberos");
       UserGroupInformation.setConfiguration(conf);
 
-      NodeHealthCheckerService healthChecker = new NodeHealthCheckerService();
+      NodeHealthCheckerService healthChecker = createNodeHealthCheckerService(conf);
       healthChecker.init(conf);
       LocalDirsHandlerService dirsHandler = healthChecker.getDiskHandler();
       // Add an application and the corresponding containers
