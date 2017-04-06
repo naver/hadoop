@@ -198,6 +198,26 @@ static int write_pid_to_cgroup_as_root(const char* cgroup_file, pid_t pid) {
   return 0;
 }
 
+static int check_docker_exit_code(const char *docker_binary, const char *container_id) {
+  char docker_inspect_command[PATH_MAX];
+
+  snprintf(docker_inspect_command, PATH_MAX,
+    "%s inspect --format {{.State.ExitCode}} %s",
+    docker_binary, container_id);
+
+  FILE* inspect_docker = popen(docker_inspect_command, "r");
+  int exit_code = 0;
+  int res = fscanf (inspect_docker, "%d", &exit_code);
+  if (pclose (inspect_docker) != 0 || res <= 0)
+  {
+    exit_code = UNABLE_TO_EXECUTE_CONTAINER_SCRIPT;
+  }
+
+  fprintf(LOGFILE, "Checking docker container's exit code : %d\n", exit_code);
+
+  return exit_code;
+}
+
 /**
  * Write the pid of the current process into the pid file.
  * pid_file: Path to pid file where pid needs to be written to
@@ -1311,9 +1331,14 @@ int launch_docker_container_as_user(const char * user, const char *app_id,
      for (cgroup_ptr = resources_values; cgroup_ptr != NULL &&
           *cgroup_ptr != NULL; ++cgroup_ptr) {
        if (strcmp(*cgroup_ptr, "none") != 0 &&
-             write_pid_to_cgroup_as_root(*cgroup_ptr, pid) != 0) {
-         exit_code = WRITE_CGROUP_FAILED;
-         goto cleanup;
+           write_pid_to_cgroup_as_root(*cgroup_ptr, pid) != 0) {
+           if (check_docker_exit_code(docker_binary, container_id) != 0) {
+             exit_code = WRITE_CGROUP_FAILED;
+             goto cleanup;
+           } else {
+             exit_code = 0;
+             goto cleanup;
+           }
        }
      }
     }
