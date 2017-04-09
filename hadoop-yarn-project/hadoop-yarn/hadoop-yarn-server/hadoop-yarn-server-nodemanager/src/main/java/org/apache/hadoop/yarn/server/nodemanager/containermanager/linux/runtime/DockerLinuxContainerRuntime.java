@@ -90,7 +90,9 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
   @InterfaceAudience.Private
   public static final String ENV_DOCKER_CONTAINER_ENVIRONMENT_VARIABLES =
       "YARN_CONTAINER_RUNTIME_DOCKER_ENVIRONMENT_VARIABLES";
-
+  @InterfaceAudience.Private
+  public static final String ENV_DOCKER_CONTAINER_MOUNT_LOCAL_PASSWORD =
+      "YARN_CONTAINER_RUNTIME_DOCKER_MOUNT_LOCAL_PASSWORD";
 
   private Configuration conf;
   private DockerClient dockerClient;
@@ -462,6 +464,13 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
         for (String env : StringUtils.split(envs)) {
           runCommand.setEnv(env);
         }
+      }
+    }
+
+    if (environment.containsKey(ENV_DOCKER_CONTAINER_MOUNT_LOCAL_PASSWORD)) {
+      String isMoundPassword = environment.get(ENV_DOCKER_CONTAINER_MOUNT_LOCAL_PASSWORD);
+      if ("true".equals(isMoundPassword)) {
+        runCommand.addMountLocation("/etc/password", "/etc/password" + ":ro", true);
       }
     }
 
