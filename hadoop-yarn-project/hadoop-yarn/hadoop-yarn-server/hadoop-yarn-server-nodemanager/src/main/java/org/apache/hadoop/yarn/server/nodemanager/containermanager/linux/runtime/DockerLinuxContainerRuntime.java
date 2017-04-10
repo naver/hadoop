@@ -93,6 +93,9 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
   @InterfaceAudience.Private
   public static final String ENV_DOCKER_CONTAINER_MOUNT_LOCAL_PASSWORD =
       "YARN_CONTAINER_RUNTIME_DOCKER_MOUNT_LOCAL_PASSWORD";
+  @InterfaceAudience.Private
+  public static final String ENV_DOCKER_CONTAINER_PUBLISH_PORTS =
+      "YARN_CONTAINER_RUNTIME_DOCKER_PUBLISH_PORTS";
 
   private Configuration conf;
   private DockerClient dockerClient;
@@ -478,6 +481,20 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
         DFSConfigKeys.DFS_CLIENT_READ_SHORTCIRCUIT_DEFAULT)) {
       String socketPath = conf.get(DFSConfigKeys.DFS_DOMAIN_SOCKET_PATH_KEY, DFSConfigKeys.DFS_DOMAIN_SOCKET_PATH_DEFAULT);
       runCommand.addMountLocation(socketPath, socketPath, true);
+    }
+
+    if (environment.containsKey(ENV_DOCKER_CONTAINER_PUBLISH_PORTS)) {
+      String ports = environment.get(ENV_DOCKER_CONTAINER_PUBLISH_PORTS);
+      if (!ports.isEmpty()) {
+        for (String port : StringUtils.split(ports)) {
+          String[] dir = StringUtils.split(port, ':');
+          if (dir.length != 2 && "all".equals(port) == false) {
+            throw new ContainerExecutionException("Invalid port : " +
+                port);
+          }
+          runCommand.setPublishPort(port);
+        }
+      }
     }
 
     if (allowPrivilegedContainerExecution(container)) {

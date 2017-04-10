@@ -1089,6 +1089,98 @@ public class TestDockerContainerRuntime {
     conf.set(DFSConfigKeys.DFS_DOMAIN_SOCKET_PATH_KEY, DFSConfigKeys.DFS_DOMAIN_SOCKET_PATH_DEFAULT);
   }
 
+  @Test
+  public void testDockerContainerLaunchWithPublishPorts()
+      throws ContainerExecutionException, PrivilegedOperationException,
+      IOException {
+    DockerLinuxContainerRuntime runtime = new DockerLinuxContainerRuntime(
+        mockExecutor, mockCGroupsHandler);
+    runtime.initialize(conf);
+
+    env.put("YARN_CONTAINER_RUNTIME_DOCKER_PUBLISH_PORTS",
+        "80:80,443:443");
+
+    runtime.launchContainer(builder.build());
+
+    PrivilegedOperation op = capturePrivilegedOperationAndVerifyArgs();
+    List<String> args = op.getArguments();
+    String dockerCommandFile = args.get(11);
+
+    //This is the expected docker invocation for this case
+    StringBuffer expectedCommandTemplate = new StringBuffer("run --name=%1$s ")
+        .append("--user=%2$s -d ")
+        .append("--workdir=%3$s ")
+        .append("--net=host ")
+        .append(getExpectedTestCapabilitiesArgumentString())
+        .append("-v %4$s:%4$s ")
+        .append("-v %5$s:%5$s ")
+        .append("-v %6$s:%6$s ")
+        .append("-v %7$s:%7$s ")
+        .append("-v %8$s:%8$s ")
+        .append("-p %9$s:%9$s ")
+        .append("-p %10$s:%10$s ")
+        .append("%11$s ")
+        .append("bash %12$s/launch_container.sh");
+
+    String expectedCommand = String
+        .format(expectedCommandTemplate.toString(), containerId, runAsUser,
+            containerWorkDir, containerLocalDirs.get(0), filecacheDirs.get(0),
+            containerWorkDir, containerLogDirs.get(0), userLocalDirs.get(0),
+            "80", "443",
+            image, containerWorkDir);
+
+    List<String> dockerCommands = Files.readAllLines(Paths.get
+        (dockerCommandFile), Charset.forName("UTF-8"));
+
+    Assert.assertEquals(1, dockerCommands.size());
+    Assert.assertEquals(expectedCommand, dockerCommands.get(0));
+  }
+
+  @Test
+  public void testDockerContainerLaunchWithPublishAllExposedPorts()
+      throws ContainerExecutionException, PrivilegedOperationException,
+      IOException {
+    DockerLinuxContainerRuntime runtime = new DockerLinuxContainerRuntime(
+        mockExecutor, mockCGroupsHandler);
+    runtime.initialize(conf);
+
+    env.put("YARN_CONTAINER_RUNTIME_DOCKER_PUBLISH_PORTS",
+        "all");
+
+    runtime.launchContainer(builder.build());
+
+    PrivilegedOperation op = capturePrivilegedOperationAndVerifyArgs();
+    List<String> args = op.getArguments();
+    String dockerCommandFile = args.get(11);
+
+    //This is the expected docker invocation for this case
+    StringBuffer expectedCommandTemplate = new StringBuffer("run --name=%1$s ")
+        .append("--user=%2$s -d ")
+        .append("--workdir=%3$s ")
+        .append("--net=host ")
+        .append(getExpectedTestCapabilitiesArgumentString())
+        .append("-v %4$s:%4$s ")
+        .append("-v %5$s:%5$s ")
+        .append("-v %6$s:%6$s ")
+        .append("-v %7$s:%7$s ")
+        .append("-v %8$s:%8$s ")
+        .append("-P ")
+        .append("%9$s ")
+        .append("bash %10$s/launch_container.sh");
+
+    String expectedCommand = String
+        .format(expectedCommandTemplate.toString(), containerId, runAsUser,
+            containerWorkDir, containerLocalDirs.get(0), filecacheDirs.get(0),
+            containerWorkDir, containerLogDirs.get(0), userLocalDirs.get(0),
+            image, containerWorkDir);
+
+    List<String> dockerCommands = Files.readAllLines(Paths.get
+        (dockerCommandFile), Charset.forName("UTF-8"));
+
+    Assert.assertEquals(1, dockerCommands.size());
+    Assert.assertEquals(expectedCommand, dockerCommands.get(0));
+  }
+
   private String getAndValidateDockerCommandsWithConf(Configuration config)
       throws Exception {
     DockerLinuxContainerRuntime runtime =

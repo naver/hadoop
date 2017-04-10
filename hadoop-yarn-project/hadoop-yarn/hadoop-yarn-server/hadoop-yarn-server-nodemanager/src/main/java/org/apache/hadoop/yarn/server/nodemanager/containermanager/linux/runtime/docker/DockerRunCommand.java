@@ -119,6 +119,15 @@ public class DockerRunCommand extends DockerCommand {
     return this;
   }
 
+  public DockerRunCommand setPublishPort(String port) {
+    if("all".equals(port)) {
+      super.addCommandArguments("-P");
+    } else {
+      super.addCommandArguments("-p " + port);
+    }
+    return this;
+  }
+
   @Override
   public String getCommandWithArguments() {
     List<String> argList = new ArrayList<>();
