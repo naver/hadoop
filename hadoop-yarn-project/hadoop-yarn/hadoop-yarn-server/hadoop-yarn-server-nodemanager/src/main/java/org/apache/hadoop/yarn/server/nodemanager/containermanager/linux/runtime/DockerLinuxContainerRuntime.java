@@ -401,6 +401,7 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
 
     String containerIdStr = container.getContainerId().toString();
     String runAsUser = ctx.getExecutionAttribute(RUN_AS_USER);
+    String runAsUserForDocker = runAsUser;
     Path containerWorkDir = ctx.getExecutionAttribute(CONTAINER_WORK_DIR);
     //List<String> -> stored as List -> fetched/converted to List<String>
     //we can't do better here thanks to type-erasure
@@ -427,13 +428,13 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
         YarnConfiguration.DEFAULT_NM_DOCKER_CONTAINER_CAPABILITIES)));
 
     if (environment.containsKey(ENV_DOCKER_CONTAINER_USER_NAME)) {
-      runAsUser = environment.get(ENV_DOCKER_CONTAINER_USER_NAME);
+      runAsUserForDocker = environment.get(ENV_DOCKER_CONTAINER_USER_NAME);
       LOG.info("docker run as [" + runAsUser + "].");
     }
 
     @SuppressWarnings("unchecked")
     DockerRunCommand runCommand = new DockerRunCommand(containerIdStr,
-        runAsUser, imageName)
+        runAsUserForDocker, imageName)
         .detachOnRun()
         .setContainerWorkDir(containerWorkDir.toString())
         .setNetworkType(network)
