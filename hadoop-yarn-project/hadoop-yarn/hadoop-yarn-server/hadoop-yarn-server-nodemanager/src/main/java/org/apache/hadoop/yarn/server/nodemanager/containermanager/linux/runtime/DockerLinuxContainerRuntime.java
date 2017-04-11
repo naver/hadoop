@@ -96,6 +96,9 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
   @InterfaceAudience.Private
   public static final String ENV_DOCKER_CONTAINER_PUBLISH_PORTS =
       "YARN_CONTAINER_RUNTIME_DOCKER_PUBLISH_PORTS";
+  @InterfaceAudience.Private
+  public static final String ENV_DOCKER_CONTAINER_USER_NAME =
+      "YARN_CONTAINER_RUNTIME_DOCKER_USER_NAME";
 
   private Configuration conf;
   private DockerClient dockerClient;
@@ -422,6 +425,11 @@ public class DockerLinuxContainerRuntime implements LinuxContainerRuntime {
     Set<String> capabilities = new HashSet<>(Arrays.asList(conf.getStrings(
         YarnConfiguration.NM_DOCKER_CONTAINER_CAPABILITIES,
         YarnConfiguration.DEFAULT_NM_DOCKER_CONTAINER_CAPABILITIES)));
+
+    if (environment.containsKey(ENV_DOCKER_CONTAINER_USER_NAME)) {
+      runAsUser = environment.get(ENV_DOCKER_CONTAINER_USER_NAME);
+      LOG.info("docker run as [" + runAsUser + "].");
+    }
 
     @SuppressWarnings("unchecked")
     DockerRunCommand runCommand = new DockerRunCommand(containerIdStr,
