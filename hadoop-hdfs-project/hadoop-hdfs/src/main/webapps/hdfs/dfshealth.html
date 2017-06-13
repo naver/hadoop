@@ -269,6 +269,7 @@
       <th>Last contact</th>
       <th>Admin State</th>
       <th style="width:180px; text-align:center">Capacity</th>
+      <th>DFS Used</th>
       <th>Non DFS Used</th>
       <th>Remaining</th>
       <th>Blocks</th>
@@ -291,6 +292,7 @@
         </div>
       </div>
     </td>
+    <td ng-value="{used}">{used|fmt_bytes} ({usedPercentage|fmt_percentage})</td>
     <td ng-value="{nonDfsUsedSpace}">{nonDfsUsedSpace|fmt_bytes}</td>
     <td ng-value="{remaining}">{remaining|fmt_bytes}</td>
     <td>{numBlocks}</td>
@@ -304,6 +306,7 @@
     <td ng-value="{state}-{name}" class="dfshealth-node-icon dfshealth-node-{state}">{name} ({xferaddr})</td>
     <td ng-value="{lastContact}">{#helper_lastcontact_tostring value="{lastContact}"/}</td>
     <td>Dead{?decommissioned}, Decommissioned{/decommissioned}</td>
+    <td>-</td>
     <td>-</td>
     <td>-</td>
     <td>-</td>

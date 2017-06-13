@@ -255,10 +255,11 @@
               { 'orderDataType': 'ng-value', 'type': 'num' },
               { 'orderDataType': 'ng-value', 'type': 'num' },
               { 'orderDataType': 'ng-value', 'type': 'num' },
-              { 'orderData': 6, 'type': 'num' },
               { 'orderDataType': 'ng-value', 'type': 'num' },
-              { 'orderData': 8, 'type': 'num' },
-              { 'orderData': 9 }
+              { 'orderData': 7, 'type': 'num' },
+              { 'orderDataType': 'ng-value', 'type': 'num' },
+              { 'orderData': 9, 'type': 'num' },
+              { 'orderData': 10 }
             ]});
           $('#ui-tabs a[href="#tab-datanode"]').tab('show');
         });
