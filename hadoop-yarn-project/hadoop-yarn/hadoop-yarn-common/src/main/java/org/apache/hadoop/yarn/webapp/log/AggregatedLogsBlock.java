@@ -27,13 +27,22 @@ import static org.apache.hadoop.yarn.webapp.YarnWebParams.NM_NODENAME;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.NoSuchElementException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.hadoop.fs.UnsupportedFileSystemException;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.api.records.ApplicationAccessType;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -59,6 +68,98 @@ public class AggregatedLogsBlock extends HtmlBlock {
   @Inject
   AggregatedLogsBlock(Configuration conf) {
     this.conf = conf;
+  }
+
+  public static List<Path> getRemoteAppLogDirs(Configuration conf, ApplicationId appId, String appOwner) throws UnsupportedFileSystemException {
+
+    Set<Path> remoteRootLogDirs = new HashSet<Path>();
+    List<Path> remoteAppLogDirs = new ArrayList<Path>();
+
+    Path remoteRootLogDir = new Path(conf.get(
+        YarnConfiguration.NM_REMOTE_APP_LOG_DIR,
+        YarnConfiguration.DEFAULT_NM_REMOTE_APP_LOG_DIR));
+
+    Collection<String> logDirs = conf.getTrimmedStringCollection(YarnConfiguration.NM_REMOTE_APP_LOG_DIRS);
+
+    FileContext fc = FileContext.getFileContext(conf);
+    remoteRootLogDir = fc.makeQualified(remoteRootLogDir);
+
+    remoteRootLogDirs.add(remoteRootLogDir);
+    for(String dir: logDirs){
+      Path d = fc.makeQualified(new Path(dir));
+      remoteRootLogDirs.add(d);
+    }
+
+    String user = appOwner;
+    String logDirSuffix = LogAggregationUtils.getRemoteNodeLogDirSuffix(conf);
+
+    for(Path dir: remoteRootLogDirs) {
+      Path remoteAppLogDir = LogAggregationUtils.getRemoteAppLogDir(
+          dir, appId, user, logDirSuffix);
+
+      remoteAppLogDirs.add(remoteAppLogDir);
+    }
+
+    return remoteAppLogDirs;
+  }
+
+  public static RemoteIterator<FileStatus> getFileListAtRemoteAppDir(Configuration conf, List<Path> remoteAppLogDirs, ApplicationId appId, String appOwner) throws IOException {
+
+    if(remoteAppLogDirs == null) {
+      remoteAppLogDirs = getRemoteAppLogDirs(conf, appId, appOwner);
+    }
+    final List<FileStatus> mergedStatus = new ArrayList<>();
+
+    int fnf = 0;
+    int ioe = 0;
+    StringBuffer sb = new StringBuffer();
+
+    for(Path remoteAppDir: remoteAppLogDirs){
+      try {
+
+        FileSystem fs = remoteAppDir.getFileSystem(conf);
+        FileStatus[] status = fs.listStatus(remoteAppDir);
+
+        for(FileStatus s: status){
+          mergedStatus.add(s);
+        }
+
+      } catch(FileNotFoundException e){
+        fnf++;
+      } catch(IOException e){
+        ioe++;
+        if(sb.length() > 0){
+          sb.append("\n");
+        }
+        sb.append(e.getMessage());
+      }
+    }
+
+    if(remoteAppLogDirs.size() == fnf){
+      throw new FileNotFoundException(StringUtils.join(remoteAppLogDirs, ","));
+    }
+    if(remoteAppLogDirs.size() == ioe){
+      throw new IOException(sb.toString());
+    }
+
+    return new RemoteIterator<FileStatus>() {
+      private int i = 0;
+      private List<FileStatus> statusList = mergedStatus;
+
+      @Override
+      public boolean hasNext() {
+        return i < statusList.size();
+      }
+
+      @Override
+      public FileStatus next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        return statusList.get(i++);
+      }
+    };
+
   }
 
   @Override
@@ -87,20 +188,10 @@ public class AggregatedLogsBlock extends HtmlBlock {
       return;
     }
 
-    Path remoteRootLogDir = new Path(conf.get(
-        YarnConfiguration.NM_REMOTE_APP_LOG_DIR,
-        YarnConfiguration.DEFAULT_NM_REMOTE_APP_LOG_DIR));
-    Path remoteAppDir = LogAggregationUtils.getRemoteAppLogDir(
-        remoteRootLogDir, applicationId, appOwner,
-        LogAggregationUtils.getRemoteNodeLogDirSuffix(conf));
+
     RemoteIterator<FileStatus> nodeFiles;
     try {
-      Path qualifiedLogDir =
-          FileContext.getFileContext(conf).makeQualified(
-            remoteAppDir);
-      nodeFiles =
-          FileContext.getFileContext(qualifiedLogDir.toUri(), conf)
-            .listStatus(remoteAppDir);
+      nodeFiles = getFileListAtRemoteAppDir(conf, null, applicationId, appOwner);
     } catch (FileNotFoundException fnf) {
       html.h1()
           ._("Logs not available for " + logEntity

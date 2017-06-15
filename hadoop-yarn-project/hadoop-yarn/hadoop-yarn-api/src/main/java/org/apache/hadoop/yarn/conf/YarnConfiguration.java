@@ -801,6 +801,9 @@ public class YarnConfiguration extends Configuration {
     NM_PREFIX + "remote-app-log-dir";
   public static final String DEFAULT_NM_REMOTE_APP_LOG_DIR = "/tmp/logs";
 
+  public static final String NM_REMOTE_APP_LOG_DIRS =
+      NM_PREFIX + "remote-app-log-dirs";
+
   /**
    * The remote log dir will be created at
    * NM_REMOTE_APP_LOG_DIR/${user}/NM_REMOTE_APP_LOG_DIR_SUFFIX/${appId}

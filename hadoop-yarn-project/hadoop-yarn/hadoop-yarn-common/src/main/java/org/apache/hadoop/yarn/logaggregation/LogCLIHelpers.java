@@ -23,6 +23,7 @@ import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -39,6 +40,7 @@ import org.apache.hadoop.yarn.logaggregation.AggregatedLogFormat.LogReader;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.hadoop.yarn.webapp.log.AggregatedLogsBlock;
 
 public class LogCLIHelpers implements Configurable {
 
@@ -48,21 +50,14 @@ public class LogCLIHelpers implements Configurable {
   @VisibleForTesting
   public int dumpAContainersLogs(String appId, String containerId,
       String nodeId, String jobOwner) throws IOException {
-    Path remoteRootLogDir = new Path(getConf().get(
-        YarnConfiguration.NM_REMOTE_APP_LOG_DIR,
-        YarnConfiguration.DEFAULT_NM_REMOTE_APP_LOG_DIR));
-    String suffix = LogAggregationUtils.getRemoteNodeLogDirSuffix(getConf());
-    Path remoteAppLogDir = LogAggregationUtils.getRemoteAppLogDir(
-        remoteRootLogDir, ConverterUtils.toApplicationId(appId), jobOwner,
-        suffix);
+
+    ApplicationId applicationId = ConverterUtils.toApplicationId(appId);
+    List<Path> remoteAppLogDirs = AggregatedLogsBlock.getRemoteAppLogDirs(getConf(), applicationId, jobOwner);
+    String remoteAppLogDir = StringUtils.join(remoteAppLogDirs, ",");
+
     RemoteIterator<FileStatus> nodeFiles;
     try {
-      Path qualifiedLogDir =
-          FileContext.getFileContext(getConf()).makeQualified(
-            remoteAppLogDir);
-      nodeFiles =
-          FileContext.getFileContext(qualifiedLogDir.toUri(), getConf())
-            .listStatus(remoteAppLogDir);
+      nodeFiles = AggregatedLogsBlock.getFileListAtRemoteAppDir(getConf(), remoteAppLogDirs, applicationId, jobOwner);
     } catch (FileNotFoundException fnf) {
       logDirNotExist(remoteAppLogDir.toString());
       return -1;
@@ -133,20 +128,12 @@ public class LogCLIHelpers implements Configurable {
   @Private
   public int dumpAllContainersLogs(ApplicationId appId, String appOwner,
       PrintStream out) throws IOException {
-    Path remoteRootLogDir = new Path(getConf().get(
-        YarnConfiguration.NM_REMOTE_APP_LOG_DIR,
-        YarnConfiguration.DEFAULT_NM_REMOTE_APP_LOG_DIR));
-    String user = appOwner;
-    String logDirSuffix = LogAggregationUtils.getRemoteNodeLogDirSuffix(getConf());
-    // TODO Change this to get a list of files from the LAS.
-    Path remoteAppLogDir = LogAggregationUtils.getRemoteAppLogDir(
-        remoteRootLogDir, appId, user, logDirSuffix);
+
+    List<Path> remoteAppLogDirs = AggregatedLogsBlock.getRemoteAppLogDirs(getConf(), appId, appOwner);
+    String remoteAppLogDir = StringUtils.join(remoteAppLogDirs, ",");
     RemoteIterator<FileStatus> nodeFiles;
     try {
-      Path qualifiedLogDir =
-          FileContext.getFileContext(getConf()).makeQualified(remoteAppLogDir);
-      nodeFiles = FileContext.getFileContext(qualifiedLogDir.toUri(),
-          getConf()).listStatus(remoteAppLogDir);
+      nodeFiles = AggregatedLogsBlock.getFileListAtRemoteAppDir(getConf(), remoteAppLogDirs, appId, appOwner);
     } catch (FileNotFoundException fnf) {
       logDirNotExist(remoteAppLogDir.toString());
       return -1;
