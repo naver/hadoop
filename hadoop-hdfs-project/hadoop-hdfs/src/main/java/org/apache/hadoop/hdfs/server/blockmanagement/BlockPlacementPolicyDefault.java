@@ -632,9 +632,11 @@ public class BlockPlacementPolicyDefault extends BlockPlacementPolicy {
       final float nodeDfsUsedPercent = node.getDfsUsedPercent();
 
       if(nodeDfsUsedPercent > weightedDfsUsedPercent && nodeDfsUsedPercent >= considerDfsUsedPercentTresholdPercent) {
-        String reason = "dfsUsedPercent of the node is too high. (nodeDfsUsedPercent: " + nodeDfsUsedPercent
-                  + "% > " + weightedDfsUsedPercent + "% , dfsUsedPercent: " + dfsUsedPercent + "%)";
-        LOG.info("Datanode: " + node + " is not chosen since " + reason);
+        if(LOG.isDebugEnabled()) {
+          String reason = "dfsUsedPercent of the node is too high. (nodeDfsUsedPercent: " + nodeDfsUsedPercent
+              + "% > " + weightedDfsUsedPercent + "% , dfsUsedPercent: " + dfsUsedPercent + "%)";
+          LOG.debug("Datanode: " + node + " is not chosen since " + reason);
+        }
         return false;
       }
     }
