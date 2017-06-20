@@ -157,10 +157,46 @@
                         fi
                       }
 
-                      run tar cf hadoop-${project.version}.tar hadoop-${project.version}
-                      run gzip -f hadoop-${project.version}.tar
+                      get_os(){
+                        if [ -f "/etc/redhat-release" ];then
+                          cat /etc/os-release 2> /dev/null | grep 'VERSION_ID="7"' -q
+                          if [ "$?" -eq "0" ];then
+                            echo "centos7"
+                          else
+                            echo "centos6"
+                          fi
+                        elif [ "`uname`" == "Darwin" ];then
+                            echo "macos"
+                        fi
+                      }
+
+                      suffix=
+                      rev=${version-info.scm.commit}
+                      if [ -n "$rev" -a "$rev" != "info.scm.commit" ];then
+                        suffix=r$rev
+                      fi
+
+                      os=`get_os`
+                      if [ -n "$os" -a -d "hadoop-${project.version}/lib/native" ];then
+                        if [ -z "$suffix" ];then
+                          suffix=${os}
+                        else
+                          suffix=${suffix}-${os}
+                        fi
+                      fi
+
+                      if [ -z "$suffix" ];then
+                        package_name=hadoop-${project.version}
+                      else
+                        package_name=hadoop-${project.version}-${suffix}
+                      fi
+
+                      run rm -rf ${package_name}
+                      run mv hadoop-${project.version} ${package_name}
+                      run tar cf ${package_name}.tar ${package_name}
+                      run gzip -f ${package_name}.tar
                       echo
-                      echo "Hadoop dist tar available at: ${project.build.directory}/hadoop-${project.version}.tar.gz"
+                      echo "Hadoop dist tar available at: ${project.build.directory}/${package_name}.tar.gz"
                       echo
                     </echo>
                     <exec executable="sh" dir="${project.build.directory}" failonerror="true">
