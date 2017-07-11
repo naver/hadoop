@@ -78,7 +78,7 @@ public class HsJobsBlock extends HtmlBlock {
       .append(dateFormat.format(new Date(job.getSubmitTime()))).append("\",\"")
       .append(dateFormat.format(new Date(job.getStartTime()))).append("\",\"")
       .append(dateFormat.format(new Date(job.getFinishTime()))).append("\",\"")
-      .append("<a href='").append(url("job", job.getId())).append("'>")
+      .append("<a target='_blank' href='").append(url("job", job.getId())).append("'>")
       .append(job.getId()).append("</a>\",\"")
       .append(StringEscapeUtils.escapeJavaScript(StringEscapeUtils.escapeHtml(
         job.getName()))).append("\",\"")
