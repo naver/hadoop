@@ -613,7 +613,8 @@ public class ParentQueue extends AbstractCSQueue {
     
     // Update metrics
     CSQueueUtils.updateQueueStatistics(
-        resourceCalculator, this, parent, clusterResource, minimumAllocation);
+        resourceCalculator, this, parent,
+        labelManager.getResourceByLabel(RMNodeLabelsManager.NO_LABEL, clusterResource), minimumAllocation);
   }
   
   @Override

@@ -21,6 +21,7 @@ package org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity;
 import java.io.IOException;
 
 import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSystem;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerDynamicEditException;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.QueueEntitlement;
@@ -65,7 +66,7 @@ public class ReservationQueue extends LeafQueue {
     super.reinitialize(newlyParsedQueue, clusterResource);
     CSQueueUtils.updateQueueStatistics(
         parent.schedulerContext.getResourceCalculator(), newlyParsedQueue,
-        parent, parent.schedulerContext.getClusterResource(),
+        parent, labelManager.getResourceByLabel(RMNodeLabelsManager.NO_LABEL, clusterResource),
         parent.schedulerContext.getMinimumResourceCapability());
     updateQuotas(parent.getUserLimitForReservation(),
         parent.getUserLimitFactor(),

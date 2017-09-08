@@ -264,7 +264,8 @@ public abstract class AbstractCSQueue implements CSQueue {
 
     // Update metrics
     CSQueueUtils.updateQueueStatistics(
-        resourceCalculator, this, parent, clusterResource, minimumAllocation);
+        resourceCalculator, this, parent,
+        labelManager.getResourceByLabel(RMNodeLabelsManager.NO_LABEL, clusterResource), minimumAllocation);
     
     // Check if labels of this queue is a subset of parent queue, only do this
     // when we not root
@@ -332,8 +333,10 @@ public abstract class AbstractCSQueue implements CSQueue {
     }
 
     ++numContainers;
-    CSQueueUtils.updateQueueStatistics(resourceCalculator, this, getParent(),
-        clusterResource, minimumAllocation);
+    if (null == nodeLabels || nodeLabels.isEmpty()) {
+      CSQueueUtils.updateQueueStatistics(resourceCalculator, this, getParent(),
+          labelManager.getResourceByLabel(RMNodeLabelsManager.NO_LABEL, clusterResource), minimumAllocation);
+    }
   }
   
   protected synchronized void releaseResource(Resource clusterResource,
@@ -349,8 +352,10 @@ public abstract class AbstractCSQueue implements CSQueue {
       }
     }
 
-    CSQueueUtils.updateQueueStatistics(resourceCalculator, this, getParent(),
-        clusterResource, minimumAllocation);
+    if (null == nodeLabels || nodeLabels.isEmpty()) {
+      CSQueueUtils.updateQueueStatistics(resourceCalculator, this, getParent(),
+          labelManager.getResourceByLabel(RMNodeLabelsManager.NO_LABEL, clusterResource), minimumAllocation);
+    }
     --numContainers;
   }
   

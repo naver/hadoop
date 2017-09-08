@@ -1810,7 +1810,8 @@ public class LeafQueue extends AbstractCSQueue {
     
     // Update metrics
     CSQueueUtils.updateQueueStatistics(
-        resourceCalculator, this, getParent(), clusterResource, 
+        resourceCalculator, this, getParent(),
+        labelManager.getResourceByLabel(RMNodeLabelsManager.NO_LABEL, clusterResource),
         minimumAllocation);
 
     // queue metrics are updated, more resource may be available
