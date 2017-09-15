@@ -21,18 +21,25 @@ package org.apache.hadoop.yarn.server.resourcemanager.nodelabels;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.service.Service;
 import org.apache.hadoop.yarn.api.records.NodeId;
+import org.apache.hadoop.yarn.api.records.NodeLabel;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
 import org.apache.hadoop.yarn.nodelabels.NodeLabel;
 import org.apache.hadoop.yarn.nodelabels.NodeLabelTestBase;
 import org.apache.hadoop.yarn.server.resourcemanager.MockRM;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.any;
 
 import java.io.File;
 import java.io.IOException;
@@ -511,18 +518,10 @@ public class TestRMNodeLabelsManager extends NodeLabelTestBase {
     checkNodeLabelInfo(infos, "z", 0, 0);
   }
 
+  @SuppressWarnings("unchecked")
   @Test(timeout = 60000)
   public void testcheckRemoveFromClusterNodeLabelsOfQueue() throws Exception {
-    class TestRMLabelManger extends RMNodeLabelsManager {
-      @Override
-      protected void checkRemoveFromClusterNodeLabelsOfQueue(
-          Collection<String> labelsToRemove) throws IOException {
-        checkQueueCall = true;
-        // Do nothing
-      }
-
-    }
-    lmgr = new TestRMLabelManger();
+    lmgr = new RMNodeLabelsManager();
     Configuration conf = new Configuration();
     File tempDir = File.createTempFile("nlb", ".tmp");
     tempDir.delete();
@@ -531,23 +530,55 @@ public class TestRMNodeLabelsManager extends NodeLabelTestBase {
     conf.set(YarnConfiguration.FS_NODE_LABELS_STORE_ROOT_DIR,
         tempDir.getAbsolutePath());
     conf.setBoolean(YarnConfiguration.NODE_LABELS_ENABLED, true);
+    conf.set(YarnConfiguration.RM_SCHEDULER,
+        "org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler");
+    Configuration withQueueLabels = getConfigurationWithQueueLabels(conf);
+    MockRM rm = initRM(conf);
+    lmgr.addToCluserNodeLabels(toSet(NodeLabel.newInstance("x", false)));
+    List<String> labels = Arrays.asList(new String[] { "x" });
+    lmgr.removeFromClusterNodeLabels(labels);
+    lmgr.addToCluserNodeLabelsWithDefaultExclusivity(toSet("x"));
+    rm.stop();
+    lmgr = spy(new RMNodeLabelsManager());
+    MockRM rm2 = initRM(withQueueLabels);
+    verify(lmgr, times(0))
+        .checkRemoveFromClusterNodeLabelsOfQueue(any(Collection.class));
+    try {
+      lmgr.removeFromClusterNodeLabels(labels);
+      Assert.fail("IO Exception expected");
+    } catch (Exception e) {
+      Assert.assertTrue(e instanceof IOException);
+    }
+    verify(lmgr, times(1))
+        .checkRemoveFromClusterNodeLabelsOfQueue(any(Collection.class));
+    rm2.stop();
+  }
+
+  private MockRM initRM(Configuration conf) {
     MockRM rm = new MockRM(conf) {
       @Override
       public RMNodeLabelsManager createNodeLabelManager() {
         return lmgr;
       }
     };
-    lmgr.addToCluserNodeLabelsWithDefaultExclusivity(toSet("a"));
-    lmgr.removeFromClusterNodeLabels(Arrays.asList(new String[] { "a" }));
     rm.getRMContext().setNodeLabelManager(lmgr);
     rm.start();
-    lmgr.addToCluserNodeLabelsWithDefaultExclusivity(toSet("a"));
-    Assert.assertEquals(false, checkQueueCall);
-    lmgr.removeFromClusterNodeLabels(Arrays.asList(new String[] { "a" }));
-    Assert.assertEquals(true, checkQueueCall);
-    lmgr.stop();
-    lmgr.close();
-    rm.stop();
+    Assert.assertEquals(Service.STATE.STARTED, rm.getServiceState());
+    return rm;
+  }
+
+  private Configuration getConfigurationWithQueueLabels(Configuration config) {
+    CapacitySchedulerConfiguration conf =
+        new CapacitySchedulerConfiguration(config);
+    // Define top-level queues
+    conf.setQueues(CapacitySchedulerConfiguration.ROOT, new String[] { "a" });
+    conf.setCapacityByLabel(CapacitySchedulerConfiguration.ROOT, "x", 100);
+
+    final String A = CapacitySchedulerConfiguration.ROOT + ".a";
+    conf.setCapacity(A, 100);
+    conf.setAccessibleNodeLabels(A, ImmutableSet.of("x"));
+    conf.setCapacityByLabel(A, "x", 100);
+    return conf;
   }
 
   @Test(timeout = 5000)

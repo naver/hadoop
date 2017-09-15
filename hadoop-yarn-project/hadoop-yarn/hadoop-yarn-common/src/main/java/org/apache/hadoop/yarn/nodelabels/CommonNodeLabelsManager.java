@@ -65,7 +65,9 @@ public class CommonNodeLabelsManager extends AbstractService {
   private static final Pattern LABEL_PATTERN = Pattern
       .compile("^[0-9a-zA-Z][0-9a-zA-Z-_]*");
   public static final int WILDCARD_PORT = 0;
-  
+  // Flag to identify startup for removelabel
+  private boolean initNodeLabelStoreInProgress = false;
+
   /**
    * Error messages
    */
@@ -213,6 +215,13 @@ public class CommonNodeLabelsManager extends AbstractService {
     labelCollections.put(NO_LABEL, new NodeLabel(NO_LABEL));
   }
 
+  /**
+   * @return the isStartup
+   */
+  protected boolean isInitNodeLabelStoreInProgress() {
+    return initNodeLabelStoreInProgress;
+  }
+
   protected void initNodeLabelStore(Configuration conf) throws Exception {
     this.store = new FileSystemNodeLabelsStore(this);
     this.store.init(conf);
@@ -229,7 +238,9 @@ public class CommonNodeLabelsManager extends AbstractService {
   @Override
   protected void serviceStart() throws Exception {
     if (nodeLabelsEnabled) {
+      setInitNodeLabelStoreInProgress(true);
       initNodeLabelStore(getConfig());
+      setInitNodeLabelStoreInProgress(false);
     }
     
     // init dispatcher only when service start, because recover will happen in
@@ -878,5 +889,10 @@ public class CommonNodeLabelsManager extends AbstractService {
       newMap.put(id, normalizeLabels(labels)); 
     }
     return newMap;
+  }
+
+  public void setInitNodeLabelStoreInProgress(
+      boolean initNodeLabelStoreInProgress) {
+    this.initNodeLabelStoreInProgress = initNodeLabelStoreInProgress;
   }
 }
