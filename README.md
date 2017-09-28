@@ -1,7 +1,26 @@
-This repository is based on Apache Hadoop 2.7.1 for Naver C3.
-You can see patch histories in commit logs.
+## What is this repository?
+This repository is based on Apache Hadoop 2.7.1 source code.
+It is used to make Naver's large scale multi-tenant hadoop cluster, which is called C3.
+The C3 users can execute several data processing jobs with MapReduce, Spark and Hive on CPU, and execute Deep Learning algorithms on GPU.
+And also they can run long-live applications on docker container.
 
-# Build
+Recently hadoop's new features is adding to Hadoop 2.8 or Hadoop 3.0.
+However if you are using hadoop cluster for years in production, your hadoop version maybe is not hadoop 2.8 or 3.0, because these versions is not recommended for production cluster yet.
+Thus you can't use very useful new features: GPU scheduler, docker container, several resource isolations(e.g. network outbound, disk).
+
+We're applying and developing new features to this repository.
+You can see histories in commit logs.
+
+## Features
+- GPU resource type for scheduling : [YARN-5517](https://issues.apache.org/jira/browse/YARN-5517)
+- Docker Containers in LinuxContainerExecutor : [YARN-3611](https://issues.apache.org/jira/browse/YARN-3611)
+- Network Outbound isolation : [YARN-2140](https://issues.apache.org/jira/browse/YARN-2140)
+- Balanced DataNode's local disk use ratio in several different disk capacity
+- Choose native library considering node' OS automatically
+- Multiple remote-app-log-dir for multiple NameNodes
+- ...
+
+## Build
 See ``BUILDING.txt`` to check required packages and run ``install_requirements.sh`` to install.
 
 If you installed required packages, there is ``source.me`` file which declare several environment variables.
@@ -25,7 +44,7 @@ mvn clean package install -Dversion-info.scm.commit=${REV} -Pdist -DskipTests -D
 
 Currently if you build the hadoop package, we recommend running maven with -DskipTests. Depending on the build environment, maven tests can sometimes fail and some our improvements need to be fix.
 
-# Package Naming
+## Package Naming
 We are using a separate package for HDFS and YARN, so the packages's name is like this:
 
 * YARN: ``hadoop-yarn-2.7.1-r${REV}-arch-${OS}-x86_64.tar.gz``
