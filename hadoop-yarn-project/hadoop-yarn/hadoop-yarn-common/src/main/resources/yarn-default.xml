@@ -895,6 +895,7 @@
   <property>
     <description>The remote log dir will be created at 
       {yarn.nodemanager.remote-app-log-dir}/${user}/{thisParam}
+      You can use multiple directories with comma separation : hdfs://xxx,hdfs://yyy
     </description>
     <name>yarn.nodemanager.remote-app-log-dir-suffix</name>
     <value>logs</value>
