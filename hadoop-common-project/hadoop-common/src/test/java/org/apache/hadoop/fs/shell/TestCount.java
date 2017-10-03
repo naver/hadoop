@@ -289,7 +289,7 @@ public class TestCount {
   public void getUsage() {
     Count count = new Count();
     String actual = count.getUsage();
-    String expected = "-count [-q] [-h] <path> ...";
+    String expected = "-count [-q] [-h] [-v] <path> ...";
     assertEquals("Count.getUsage", expected, actual);
   }
 
