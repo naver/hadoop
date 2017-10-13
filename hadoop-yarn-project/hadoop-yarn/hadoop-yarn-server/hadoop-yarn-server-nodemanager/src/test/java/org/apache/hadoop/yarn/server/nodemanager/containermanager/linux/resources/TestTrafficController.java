@@ -120,6 +120,7 @@ public class TestTrafficController {
 
     List<String> tcCmds = Files.readAllLines(tcCmdsFile.toPath(),
         Charset.forName("UTF-8"));
+    tcCmds.removeAll(Arrays.asList("", null));
 
     //Verify that the number of commands is the same as expected and verify
     //that each command is the same, in sequence
