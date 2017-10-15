@@ -17,7 +17,7 @@ You can see histories in commit logs.
 - Network Outbound isolation : [YARN-2140](https://issues.apache.org/jira/browse/YARN-2140)
 - Balanced DataNode's local disk use ratio in several different disk capacity : [Doc](https://github.com/naver/hadoop/wiki#balanced-datanodes-local-disk-use-ratio-in-several-different-disk-capacity)
 - Choose native library considering node' OS automatically : [Doc](https://github.com/naver/hadoop/wiki#choose-native-library-considering-node-os-automatically)
-- Multiple remote-app-log-dir for multiple NameNodes : See [yarn-default.xml](https://github.com/naver/hadoop/blob/master/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-common/src/main/resources/yarn-default.xml#L890)
+- Multiple remote-app-log-dir for multiple NameNodes : See [yarn-default.xml](https://github.com/naver/hadoop/blob/master/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-common/src/main/resources/yarn-default.xml#L896)
 - ...
 
 ## Build
@@ -34,7 +34,7 @@ mvn clean package install -Dversion-info.scm.commit=${REV} -Pdist,native -DskipT
 git push --tags
 ```
 
-If you want to build the package without native libraries, remove -Pnative option.
+If you want to build the package without native libraries, remove ``-Pnative`` option.
 
 ```
 source source.me
