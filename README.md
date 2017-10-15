@@ -15,9 +15,9 @@ You can see histories in commit logs.
 - GPU resource type for scheduling : [YARN-5517](https://issues.apache.org/jira/browse/YARN-5517)
 - Docker Containers in LinuxContainerExecutor : [YARN-3611](https://issues.apache.org/jira/browse/YARN-3611)
 - Network Outbound isolation : [YARN-2140](https://issues.apache.org/jira/browse/YARN-2140)
-- Balanced DataNode's local disk use ratio in several different disk capacity
-- Choose native library considering node' OS automatically
-- Multiple remote-app-log-dir for multiple NameNodes
+- Balanced DataNode's local disk use ratio in several different disk capacity : [Doc](https://github.com/naver/hadoop/wiki#balanced-datanodes-local-disk-use-ratio-in-several-different-disk-capacity)
+- Choose native library considering node' OS automatically : [Doc](https://github.com/naver/hadoop/wiki#choose-native-library-considering-node-os-automatically)
+- Multiple remote-app-log-dir for multiple NameNodes : See [yarn-default.xml](https://github.com/naver/hadoop/blob/master/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-common/src/main/resources/yarn-default.xml#L890)
 - ...
 
 ## Build
