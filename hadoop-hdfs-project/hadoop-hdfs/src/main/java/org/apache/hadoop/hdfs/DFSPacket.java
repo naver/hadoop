@@ -30,7 +30,7 @@ import org.apache.htrace.Span;
 
 /****************************************************************
  * DFSPacket is used by DataStreamer and DFSOutputStream.
- * DFSOutputStream generates packets and then ask DatStreamer
+ * DFSOutputStream generates packets and then ask DataStreamer
  * to send them to datanodes.
  ****************************************************************/
 
